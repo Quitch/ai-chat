@@ -14,7 +14,8 @@
     "model": "readonly",
     "_": "readonly",
     "loc": "readonly",
-    "handlers": "readonly"
+    "handlers": "readonly",
+    "api": "readonly"
   },
   "plugins": ["lodash"],
   "rules": {
