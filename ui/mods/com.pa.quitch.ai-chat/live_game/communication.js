@@ -12,6 +12,9 @@ if (!aiCommunicationsLoaded) {
       var aiAllyArmyIndex = [];
       var aiEnemyArmyIndex = [];
       var messages = ko.observableArray().extend({ local: "ai_message_queue" });
+      var processedLanding = ko
+        .observable(false)
+        .extend({ session: "ai_chat_processed_landing" });
 
       var checkPlanetsForUnit = function (desiredUnit, aiIndex) {
         var deferred = $.Deferred();
@@ -63,16 +66,19 @@ if (!aiCommunicationsLoaded) {
       // model.players() isn't populated yet when this script runs
       // neither is model.planetListState() but it updates first
       model.players.subscribe(function () {
-        var landing = model.player().landing;
         ais = _.filter(model.players(), { ai: 1 });
         aiAllies = _.filter(ais, { stateToPlayer: "allied_eco" });
         planets = model.planetListState().planets.length - 1;
         startingPlanets = _.filter(model.planetListState().planets, {
           starting_planet: true,
         }).length;
-        var playerHasLanded = !model.player().landing;
         var playerHasAllies = !_.isEmpty(aiAllies);
-        var processedLanding = landing ? false : true;
+        var playerSelectingSpawn = model.player().landing;
+
+        // Detect a new game
+        if (processedLanding() === true && playerSelectingSpawn === true) {
+          processedLanding(false);
+        }
 
         ais.forEach(function (ai) {
           var aiIndex = _.findIndex(model.players(), ai);
@@ -83,12 +89,12 @@ if (!aiCommunicationsLoaded) {
 
         if (
           startingPlanets > 1 &&
-          playerHasLanded &&
           playerHasAllies &&
-          processedLanding === false
+          !playerSelectingSpawn &&
+          !processedLanding()
         ) {
-          processedLanding = true;
-          _.delay(communicateLandingLocation, 10000);
+          processedLanding(true);
+          _.delay(communicateLandingLocation, 10000); // give AIs time to land
         }
       });
     } catch (e) {
