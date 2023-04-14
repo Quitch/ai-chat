@@ -85,7 +85,7 @@ if (!aiCommunicationsLoaded) {
           startingPlanets > 1 &&
           playerHasLanded &&
           playerHasAllies &&
-          processedLanding === true
+          processedLanding === false
         ) {
           processedLanding = true;
           _.delay(communicateLandingLocation, 10000);
