@@ -15,7 +15,8 @@
     "_": "readonly",
     "loc": "readonly",
     "handlers": "readonly",
-    "api": "readonly"
+    "api": "readonly",
+    "es6": true // PA uses Chrome 40 which supports a subset of ES6
   },
   "plugins": ["lodash"],
   "rules": {
