@@ -62,10 +62,13 @@ if (!aiCommunicationsLoaded) {
       // model.players() isn't populated yet when this script runs
       // neither is model.planetListState() but it updates first
       model.players.subscribe(function () {
-        var landing = model.player().landing.toString();
+        var landing = model.player().landing;
         ais = _.filter(model.players(), { ai: 1 });
         aiAllies = _.filter(ais, { stateToPlayer: "allied_eco" });
         planets = model.planetListState().planets.length - 1;
+        var playerHasLanded = !model.player().landing;
+        var playerHasAllies = !_.isEmpty(aiAllies);
+        var processedLanding = landing ? false : true;
 
         ais.forEach(function (ai) {
           var aiIndex = _.findIndex(model.players(), ai);
@@ -74,12 +77,8 @@ if (!aiCommunicationsLoaded) {
             : aiEnemyArmyIndex.push(aiIndex);
         });
 
-        if (
-          !model.player().landing &&
-          !_.isEmpty(aiAllies) &&
-          landing === "false"
-        ) {
-          landing = "completed";
+        if (playerHasLanded && playerHasAllies && processedLanding === true) {
+          processedLanding = true;
           _.delay(communicateLandingLocation, 10000);
         }
       });
