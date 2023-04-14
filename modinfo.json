@@ -1,0 +1,27 @@
+{
+  "context": "client",
+  "identifier": "com.pa.quitch.ai-chat-dev",
+  "display_name": "AI Chat DEV",
+  "description": "AI teammates will communicate with you via the chat system.",
+  "author": "Quitch",
+  "version": "0.1",
+  "build": "116931",
+  "date": "2023-04-14",
+  "signature": " ",
+  "forum": "",
+  "category": [
+    "classic",
+    "titans",
+    "ai",
+    "ki",
+    "ia",
+    "si",
+    "ИИ",
+    "电脑",
+    "電腦",
+    "gameplay"
+  ],
+  "icon": "",
+  "priority": 100,
+  "github": "https://github.com/Quitch/ai-chat"
+}
