@@ -13,7 +13,8 @@
   "globals": {
     "model": "readonly",
     "_": "readonly",
-    "loc": "readonly"
+    "loc": "readonly",
+    "handlers": "readonly"
   },
   "plugins": ["lodash"],
   "rules": {
