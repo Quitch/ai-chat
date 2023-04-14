@@ -15,14 +15,18 @@ if (!aiChatMessagesLoaded) {
         });
       };
 
+      var sendMessages = function () {
+        var messages = ko
+          .observableArray()
+          .extend({ local: "ai_message_queue" });
+        aiMessage(messages());
+        messages.splice(0, messages().length);
+      };
+
       // Listen for messages to send
       window.addEventListener("storage", function (e) {
         if (e.key === "ai_message_queue") {
-          var messages = ko
-            .observableArray()
-            .extend({ local: "ai_message_queue" });
-          aiMessage(messages());
-          messages([]);
+          _.delay(sendMessages, 1000); // avoids repeat messages when several sent at once
         }
       });
     } catch (e) {
