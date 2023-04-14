@@ -5,11 +5,13 @@ if (!aiCommunicationsLoaded) {
 
   function aiCommunications() {
     try {
-      var aiAllies = _.filter(model.players(), {
+      var aiAlliesCount = _.filter(model.players(), {
         ai: 1,
         stateToPlayer: "ally",
-      });
-      var aiAlliesCount = aiAllies.length;
+      }).length;
+      var startingPlanetCount = _.filter(model.planetListState().planets, {
+        starting_planet: true,
+      }).length;
     } catch (e) {
       console.error(e);
       console.error(JSON.stringify(e));
