@@ -5,7 +5,7 @@ if (!aiChatMessagesLoaded) {
 
   function aiChatMessages() {
     try {
-      var aiMessage = function (messages) {
+      var sendMessagesToChat = function (messages) {
         _.forEach(messages, function (message) {
           handlers.chat_message({
             type: message.audience,
@@ -15,18 +15,18 @@ if (!aiChatMessagesLoaded) {
         });
       };
 
-      var sendMessages = function () {
+      var processMessageQueue = function () {
         var messages = ko
           .observableArray()
           .extend({ local: "ai_message_queue" });
-        aiMessage(messages());
+        sendMessagesToChat(messages());
         messages.splice(0, messages().length);
       };
 
       // Listen for messages to send
       window.addEventListener("storage", function (e) {
         if (e.key === "ai_message_queue") {
-          _.delay(sendMessages, 1000); // avoids repeat messages when several sent at once
+          _.delay(processMessageQueue, 1000); // avoids repeat messages when several sent at once
         }
       });
     } catch (e) {
