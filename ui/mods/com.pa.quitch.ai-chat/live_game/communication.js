@@ -8,6 +8,7 @@ if (!aiCommunicationsLoaded) {
       var ais = [];
       var aiAllies = [];
       var planets = 1;
+      var startingPlanets = 1;
       var aiAllyArmyIndex = [];
       var aiEnemyArmyIndex = [];
       var messages = ko.observableArray().extend({ local: "ai_message_queue" });
@@ -66,6 +67,9 @@ if (!aiCommunicationsLoaded) {
         ais = _.filter(model.players(), { ai: 1 });
         aiAllies = _.filter(ais, { stateToPlayer: "allied_eco" });
         planets = model.planetListState().planets.length - 1;
+        startingPlanets = _.filter(model.planetListState().planets, {
+          starting_planet: true,
+        }).length;
         var playerHasLanded = !model.player().landing;
         var playerHasAllies = !_.isEmpty(aiAllies);
         var processedLanding = landing ? false : true;
@@ -77,7 +81,12 @@ if (!aiCommunicationsLoaded) {
             : aiEnemyArmyIndex.push(aiIndex);
         });
 
-        if (playerHasLanded && playerHasAllies && processedLanding === true) {
+        if (
+          startingPlanets > 1 &&
+          playerHasLanded &&
+          playerHasAllies &&
+          processedLanding === true
+        ) {
           processedLanding = true;
           _.delay(communicateLandingLocation, 10000);
         }
