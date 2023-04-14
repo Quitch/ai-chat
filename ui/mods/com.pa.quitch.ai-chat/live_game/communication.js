@@ -17,7 +17,7 @@ if (!aiCommunicationsLoaded) {
 
       var aiAlliesCount = _.filter(model.players(), {
         ai: 1,
-        stateToPlayer: "ally",
+        stateToPlayer: "allied_eco",
       }).length;
       var startingPlanetCount = _.filter(model.planetListState().planets, {
         starting_planet: true,
