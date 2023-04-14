@@ -15,6 +15,7 @@ if (!aiCommunicationsLoaded) {
         return "FFA";
       };
 
+      var ais = _.filter(model.players(), { ai: 1 });
       var aiAlliesCount = _.filter(model.players(), {
         ai: 1,
         stateToPlayer: "allied_eco",
