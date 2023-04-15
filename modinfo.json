@@ -27,9 +27,6 @@
   "scenes": {
     "live_game": [
       "coui://ui/mods/com.pa.quitch.ai-chat/live_game/communication.js"
-    ],
-    "live_game_chat": [
-      "coui://ui/mods/com.pa.quitch.ai-chat/live_game_chat/message.js"
     ]
   }
 }

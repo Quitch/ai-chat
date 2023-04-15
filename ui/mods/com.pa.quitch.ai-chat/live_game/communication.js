@@ -11,10 +11,16 @@ if (!aiCommunicationsLoaded) {
       var startingPlanets = 1;
       var aiAllyArmyIndex = [];
       var aiEnemyArmyIndex = [];
-      var messages = ko.observableArray().extend({ local: "ai_message_queue" });
       var processedLanding = ko
         .observable(false)
         .extend({ session: "ai_chat_processed_landing" });
+      var liveGameChatPanelId = 1;
+
+      _.defer(function () {
+        liveGameChatPanelId = _.find(api.panelsById, {
+          src: "coui://ui/main/game/live_game/live_game_chat.html",
+        }).id;
+      });
 
       var checkPlanetsForUnit = function (desiredUnit, aiIndex) {
         var deferred = $.Deferred();
@@ -44,8 +50,12 @@ if (!aiCommunicationsLoaded) {
         return deferred.promise();
       };
 
-      var messageAllies = function (aiName, message) {
-        messages.push({ audience: "team", name: aiName, contents: message });
+      var sendMessage = function (audience, aiName, message) {
+        api.Panel.message(liveGameChatPanelId, "chat_message", {
+          type: audience,
+          player_name: aiName,
+          message: message,
+        });
       };
 
       var communicateLandingLocation = function () {
@@ -53,7 +63,8 @@ if (!aiCommunicationsLoaded) {
           checkPlanetsForUnit(ally.commanders[0], aiAllyArmyIndex[i]).then(
             function (aiPlanets) {
               aiPlanets.forEach(function (aiPlanet) {
-                messageAllies(
+                sendMessage(
+                  "team",
                   ally.name,
                   "I'm on " + model.planetListState().planets[aiPlanet].name
                 );
@@ -64,7 +75,7 @@ if (!aiCommunicationsLoaded) {
       };
 
       // model.players() isn't populated yet when this script runs
-      // neither is model.planetListState() but it updates first
+      // neither is model.planetListState() but it updates earlier
       model.players.subscribe(function () {
         ais = _.filter(model.players(), { ai: 1 });
         aiAllies = _.filter(ais, { stateToPlayer: "allied_eco" });
