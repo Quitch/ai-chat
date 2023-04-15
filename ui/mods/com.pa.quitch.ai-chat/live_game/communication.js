@@ -52,7 +52,7 @@ if (!aiCommunicationsLoaded) {
 
       var sendMessage = function (audience, aiName, message) {
         api.Panel.message(liveGameChatPanelId, "chat_message", {
-          type: audience,
+          type: audience, // "team" or "global"
           player_name: aiName,
           message: message,
         });
