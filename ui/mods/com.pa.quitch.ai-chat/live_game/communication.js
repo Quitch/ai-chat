@@ -77,8 +77,9 @@ if (!aiCommunicationsLoaded) {
       // model.players() isn't populated yet when this script runs
       // neither is model.planetListState() but it updates earlier
       model.players.subscribe(function () {
+        var ally = "allied_eco";
         ais = _.filter(model.players(), { ai: 1 });
-        aiAllies = _.filter(ais, { stateToPlayer: "allied_eco" });
+        aiAllies = _.filter(ais, { stateToPlayer: ally });
         //TODO - we need to detect planets which spawn later
         planets = model.planetListState().planets.length - 1; // last entry in array isn't a planet
         startingPlanets = _.filter(model.planetListState().planets, {
@@ -94,7 +95,7 @@ if (!aiCommunicationsLoaded) {
 
         ais.forEach(function (ai) {
           var aiIndex = _.findIndex(model.players(), ai);
-          ai.stateToPlayer === "allied_eco"
+          ai.stateToPlayer === ally
             ? aiAllyArmyIndex.push(aiIndex)
             : aiEnemyArmyIndex.push(aiIndex);
         });
