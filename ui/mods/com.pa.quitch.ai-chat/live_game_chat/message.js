@@ -24,6 +24,7 @@ if (!aiChatMessagesLoaded) {
       };
 
       // Listen for messages to send
+      // TODO - replace this hack with event handlers
       window.addEventListener("storage", function (e) {
         if (e.key === "ai_message_queue") {
           _.delay(processMessageQueue, 1000); // avoids repeat messages when several sent at once
