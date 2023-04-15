@@ -79,7 +79,7 @@ if (!aiCommunicationsLoaded) {
       model.players.subscribe(function () {
         ais = _.filter(model.players(), { ai: 1 });
         aiAllies = _.filter(ais, { stateToPlayer: "allied_eco" });
-        planets = model.planetListState().planets.length - 1;
+        planets = model.planetListState().planets.length - 1; // last entry in array isn't a planet
         startingPlanets = _.filter(model.planetListState().planets, {
           starting_planet: true,
         }).length;
