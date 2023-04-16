@@ -14,18 +14,18 @@ if (!aiCommunicationsLoaded) {
         var processedLanding = ko
           .observable(false)
           .extend({ session: "ai_chat_processed_landing" });
-        var ally = "allied_eco";
+        var allyState = "allied_eco";
         // model variables may not be populated yet
         var planets = model.planetListState().planets.length - 1;
         var ais = _.filter(model.players(), { ai: 1 });
-        var aiAllies = _.filter(ais, { stateToPlayer: ally });
+        var aiAllies = _.filter(ais, { stateToPlayer: allyState });
         console.log("Start state", ais, aiAllies, planets);
 
         var identifyFriendAndFoe = function (allAis) {
           console.log("AIs present", allAis);
           allAis.forEach(function (ai) {
             var aiIndex = _.findIndex(model.players(), ai);
-            ai.stateToPlayer === ally
+            ai.stateToPlayer === allyState
               ? aiAllyArmyIndex.push(aiIndex)
               : aiEnemyArmyIndex.push(aiIndex);
           });
@@ -106,11 +106,12 @@ if (!aiCommunicationsLoaded) {
           });
         };
 
+        // Landing and variable set up
         model.players.subscribe(function () {
           console.log("model.players() updated", model.players());
-          // model isn't always populated when this script runs
+          // model isn't always populated when this script first runs
           ais = _.filter(model.players(), { ai: 1 });
-          aiAllies = _.filter(ais, { stateToPlayer: ally });
+          aiAllies = _.filter(ais, { stateToPlayer: allyState });
           //TODO - we need to detect planets which spawn later
           planets = model.planetListState().planets.length - 1; // last entry in array isn't a planet
           var startingPlanets = _.filter(model.planetListState().planets, {
