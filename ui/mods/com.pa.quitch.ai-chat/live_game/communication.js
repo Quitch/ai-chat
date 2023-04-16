@@ -30,7 +30,6 @@ if (!aiCommunicationsLoaded) {
               : aiEnemyArmyIndex.push(aiIndex);
           });
         };
-
         identifyFriendAndFoe(ais);
 
         var detectNewGame = function () {
