@@ -89,7 +89,6 @@ if (!aiCommunicationsLoaded) {
 
         var communicateLandingLocation = function () {
           console.log("Communicating landing");
-          processedLanding(true);
           aiAllies.forEach(function (ally, i) {
             checkPlanetsForUnit(ally.commanders[0], aiAllyArmyIndex[i]).then(
               function (aiPlanets) {
@@ -131,6 +130,7 @@ if (!aiCommunicationsLoaded) {
             !playerSelectingSpawn &&
             !processedLanding()
           ) {
+            processedLanding(true);
             _.delay(communicateLandingLocation, 10000); // give AIs time to land
           }
         });
