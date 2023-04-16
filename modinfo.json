@@ -8,7 +8,7 @@
   "build": "116931",
   "date": "2023-04-14",
   "signature": " ",
-  "forum": "",
+  "forum": "https://steamcommunity.com/app/386070/discussions/0/6363065234130451031/",
   "category": [
     "classic",
     "titans",
@@ -21,7 +21,7 @@
     "電腦",
     "gameplay"
   ],
-  "icon": "",
+  "icon": "https://raw.githubusercontent.com/Quitch/ai-chat/develop/images/icon.png",
   "priority": 100,
   "github": "https://github.com/Quitch/ai-chat",
   "scenes": {
