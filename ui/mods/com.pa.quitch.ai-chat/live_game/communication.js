@@ -8,12 +8,27 @@ if (!aiCommunicationsLoaded) {
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
       ], function (messages) {
-        var ais = [];
-        var aiAllies = [];
         var planets = 1;
         var aiAllyArmyIndex = [];
         var aiEnemyArmyIndex = [];
         var liveGameChatPanelId = 1;
+        var processedLanding = ko
+          .observable(false)
+          .extend({ session: "ai_chat_processed_landing" });
+        var ally = "allied_eco";
+        // model.players() may not be populated yet
+        var ais = _.filter(model.players(), { ai: 1 });
+        var aiAllies = _.filter(ais, { stateToPlayer: ally });
+        console.log("Start state", ais, aiAllies);
+
+        var detectNewGame = function () {
+          var playerSelectingSpawn = model.player().landing;
+          if (processedLanding() === true && playerSelectingSpawn === true) {
+            console.log("This is a new game");
+            processedLanding(false);
+          }
+        };
+        detectNewGame();
 
         _.defer(function () {
           liveGameChatPanelId = _.find(api.panelsById, {
@@ -22,6 +37,7 @@ if (!aiCommunicationsLoaded) {
         });
 
         var checkPlanetsForUnit = function (desiredUnit, aiIndex) {
+          console.log("Checking for unit", desiredUnit);
           var deferred = $.Deferred();
           var deferredQueue = [];
           var results = [];
@@ -50,6 +66,7 @@ if (!aiCommunicationsLoaded) {
         };
 
         var sendMessage = function (audience, aiName, message) {
+          console.log("Sending message", audience, aiName, message);
           api.Panel.message(liveGameChatPanelId, "chat_message", {
             type: audience, // "team" or "global"
             player_name: aiName,
@@ -58,6 +75,8 @@ if (!aiCommunicationsLoaded) {
         };
 
         var communicateLandingLocation = function () {
+          console.log("Communicating landing");
+          processedLanding(true);
           aiAllies.forEach(function (ally, i) {
             checkPlanetsForUnit(ally.commanders[0], aiAllyArmyIndex[i]).then(
               function (aiPlanets) {
@@ -77,10 +96,7 @@ if (!aiCommunicationsLoaded) {
         // model.players() isn't populated yet when this script runs
         // neither is model.planetListState() but it updates earlier
         model.players.subscribe(function () {
-          var processedLanding = ko
-            .observable(false)
-            .extend({ session: "ai_chat_processed_landing" });
-          var ally = "allied_eco";
+          console.log("model.players() updated", model.players());
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: ally });
           //TODO - we need to detect planets which spawn later
@@ -90,11 +106,10 @@ if (!aiCommunicationsLoaded) {
           }).length;
           var playerHasAllies = !_.isEmpty(aiAllies);
           var playerSelectingSpawn = model.player().landing;
+          console.log("Player selecting spawn", model.player().landing);
+          console.log("Processed landing start state", processedLanding());
 
-          // Detect a new game
-          if (processedLanding() === true && playerSelectingSpawn === true) {
-            processedLanding(false);
-          }
+          detectNewGame();
 
           ais.forEach(function (ai) {
             var aiIndex = _.findIndex(model.players(), ai);
@@ -109,7 +124,6 @@ if (!aiCommunicationsLoaded) {
             !playerSelectingSpawn &&
             !processedLanding()
           ) {
-            processedLanding(true);
             _.delay(communicateLandingLocation, 10000); // give AIs time to land
           }
         });
