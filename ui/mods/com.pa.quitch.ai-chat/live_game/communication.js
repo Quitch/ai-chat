@@ -8,7 +8,6 @@ if (!aiCommunicationsLoaded) {
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
       ], function (messages) {
-        var planets = 1;
         var aiAllyArmyIndex = [];
         var aiEnemyArmyIndex = [];
         var liveGameChatPanelId = 1;
@@ -16,10 +15,23 @@ if (!aiCommunicationsLoaded) {
           .observable(false)
           .extend({ session: "ai_chat_processed_landing" });
         var ally = "allied_eco";
-        // model.players() may not be populated yet
+        // model variables may not be populated yet
+        var planets = model.planetListState().planets.length - 1;
         var ais = _.filter(model.players(), { ai: 1 });
         var aiAllies = _.filter(ais, { stateToPlayer: ally });
-        console.log("Start state", ais, aiAllies);
+        console.log("Start state", ais, aiAllies, planets);
+
+        var identifyFriendAndFoe = function (allAis) {
+          console.log("AIs present", allAis);
+          allAis.forEach(function (ai) {
+            var aiIndex = _.findIndex(model.players(), ai);
+            ai.stateToPlayer === ally
+              ? aiAllyArmyIndex.push(aiIndex)
+              : aiEnemyArmyIndex.push(aiIndex);
+          });
+        };
+
+        identifyFriendAndFoe(ais);
 
         var detectNewGame = function () {
           var playerSelectingSpawn = model.player().landing;
@@ -50,6 +62,7 @@ if (!aiCommunicationsLoaded) {
                 .then(function (units) {
                   for (var unit in units) {
                     if (unit === desiredUnit) {
+                      console.log("Unit found at", planets, n);
                       results.push(n);
                       break;
                     }
@@ -110,13 +123,7 @@ if (!aiCommunicationsLoaded) {
           console.log("Processed landing start state", processedLanding());
 
           detectNewGame();
-
-          ais.forEach(function (ai) {
-            var aiIndex = _.findIndex(model.players(), ai);
-            ai.stateToPlayer === ally
-              ? aiAllyArmyIndex.push(aiIndex)
-              : aiEnemyArmyIndex.push(aiIndex);
-          });
+          identifyFriendAndFoe(ais);
 
           if (
             startingPlanets > 1 &&
