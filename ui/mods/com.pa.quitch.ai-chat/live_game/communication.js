@@ -105,10 +105,9 @@ if (!aiCommunicationsLoaded) {
           });
         };
 
-        // model.players() isn't populated yet when this script runs
-        // neither is model.planetListState() but it updates earlier
         model.players.subscribe(function () {
           console.log("model.players() updated", model.players());
+          // model isn't always populated when this script runs
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: ally });
           //TODO - we need to detect planets which spawn later
