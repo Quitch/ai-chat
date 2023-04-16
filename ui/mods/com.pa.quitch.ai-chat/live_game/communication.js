@@ -77,12 +77,13 @@ if (!aiCommunicationsLoaded) {
           return deferred.promise();
         };
 
-        var sendMessage = function (audience, aiName, message) {
-          console.log("Sending message", audience, aiName, message);
+        var sendMessage = function (audience, aiName, message, planet) {
+          var translatedMessage = loc(message) + " " + planet;
+          console.log("Sending message", audience, aiName, translatedMessage);
           api.Panel.message(liveGameChatPanelId, "chat_message", {
             type: audience, // "team" or "global"
             player_name: aiName,
-            message: message,
+            message: translatedMessage,
           });
         };
 
@@ -96,8 +97,8 @@ if (!aiCommunicationsLoaded) {
                   sendMessage(
                     "team",
                     ally.name,
-                    _.sample(messages.landing) +
-                      model.planetListState().planets[aiPlanet].name
+                    _.sample(messages.landing),
+                    model.planetListState().planets[aiPlanet].name
                   );
                 });
               }
