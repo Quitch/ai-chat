@@ -1,7 +1,7 @@
 {
   "context": "client",
-  "identifier": "com.pa.quitch.ai-chat-dev",
-  "display_name": "AI Chat DEV",
+  "identifier": "com.pa.quitch.ai-chat",
+  "display_name": "AI Chat",
   "description": "AI will communicate with you via the chat system. Very much a work in progress.",
   "author": "Quitch",
   "version": "0.1",
