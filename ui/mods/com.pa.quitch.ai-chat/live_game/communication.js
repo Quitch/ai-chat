@@ -12,6 +12,11 @@ if (!aiCommunicationsLoaded) {
         var aiEnemyArmyIndex = [];
         var setupAiIndexes = false;
         var liveGameChatPanelId = 1;
+        _.defer(function () {
+          liveGameChatPanelId = _.find(api.panelsById, {
+            src: "coui://ui/main/game/live_game/live_game_chat.html",
+          }).id;
+        });
         var processedLanding = ko
           .observable(false)
           .extend({ session: "ai_chat_processed_landing" });
@@ -44,12 +49,6 @@ if (!aiCommunicationsLoaded) {
           }
         };
         detectNewGame();
-
-        _.defer(function () {
-          liveGameChatPanelId = _.find(api.panelsById, {
-            src: "coui://ui/main/game/live_game/live_game_chat.html",
-          }).id;
-        });
 
         var checkPlanetsForUnit = function (desiredUnit, aiIndex) {
           console.log("Checking for unit", desiredUnit);
@@ -117,7 +116,7 @@ if (!aiCommunicationsLoaded) {
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
           //TODO - we need to detect planets which spawn later
           planetCount = model.planetListState().planets.length - 1; // last entry in array isn't a planet
-          var startingPlanets = _.filter(model.planetListState().planets, {
+          var startingPlanetsCount = _.filter(model.planetListState().planets, {
             starting_planet: true,
           }).length;
           var playerHasAllies = !_.isEmpty(aiAllies);
@@ -129,7 +128,7 @@ if (!aiCommunicationsLoaded) {
           identifyFriendAndFoe(ais);
 
           if (
-            startingPlanets > 1 &&
+            startingPlanetsCount > 1 &&
             playerHasAllies &&
             !playerSelectingSpawn &&
             !processedLanding()
