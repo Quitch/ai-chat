@@ -16,7 +16,7 @@ if (!aiCommunicationsLoaded) {
           .extend({ session: "ai_chat_processed_landing" });
         var allyState = "allied_eco";
         // model variables may not be populated yet
-        var planets = model.planetListState().planets.length - 1;
+        var planets = model.planetListState().planets.length - 1; // last planet is not a planet
         var ais = _.filter(model.players(), { ai: 1 });
         var aiAllies = _.filter(ais, { stateToPlayer: allyState });
         console.log("Start state", ais, aiAllies, planets);
