@@ -10,6 +10,7 @@ if (!aiCommunicationsLoaded) {
       ], function (messages) {
         var aiAllyArmyIndex = [];
         var aiEnemyArmyIndex = [];
+        var setupAiIndexes = false;
         var liveGameChatPanelId = 1;
         var processedLanding = ko
           .observable(false)
@@ -23,12 +24,15 @@ if (!aiCommunicationsLoaded) {
 
         var identifyFriendAndFoe = function (allAis) {
           console.log("AIs present", allAis);
-          allAis.forEach(function (ai) {
-            var aiIndex = _.findIndex(model.players(), ai);
-            ai.stateToPlayer === allyState
-              ? aiAllyArmyIndex.push(aiIndex)
-              : aiEnemyArmyIndex.push(aiIndex);
-          });
+          if (!_.isEmpty(ais) && setupAiIndexes === false) {
+            setupAiIndexes = true;
+            allAis.forEach(function (ai) {
+              var aiIndex = _.findIndex(model.players(), ai);
+              ai.stateToPlayer === allyState
+                ? aiAllyArmyIndex.push(aiIndex)
+                : aiEnemyArmyIndex.push(aiIndex);
+            });
+          }
         };
         identifyFriendAndFoe(ais);
 
