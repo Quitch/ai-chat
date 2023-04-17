@@ -16,10 +16,10 @@ if (!aiCommunicationsLoaded) {
           .extend({ session: "ai_chat_processed_landing" });
         var allyState = "allied_eco";
         // model variables may not be populated yet
-        var planets = model.planetListState().planets.length - 1; // last planet is not a planet
+        var planetCount = model.planetListState().planets.length - 1; // last planet is not a planet
         var ais = _.filter(model.players(), { ai: 1 });
         var aiAllies = _.filter(ais, { stateToPlayer: allyState });
-        console.log("Start state", ais, aiAllies, planets);
+        console.log("Start state", ais, aiAllies, planetCount);
 
         var identifyFriendAndFoe = function (allAis) {
           console.log("AIs present", allAis);
@@ -53,7 +53,7 @@ if (!aiCommunicationsLoaded) {
           var deferredQueue = [];
           var results = [];
 
-          _.times(planets, function (n) {
+          _.times(planetCount, function (n) {
             deferredQueue.push(
               api
                 .getWorldView()
@@ -61,7 +61,7 @@ if (!aiCommunicationsLoaded) {
                 .then(function (units) {
                   for (var unit in units) {
                     if (unit === desiredUnit) {
-                      console.log("Unit found at", planets, n);
+                      console.log("Unit found at", planetCount, n);
                       results.push(n);
                       break;
                     }
@@ -112,7 +112,7 @@ if (!aiCommunicationsLoaded) {
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
           //TODO - we need to detect planets which spawn later
-          planets = model.planetListState().planets.length - 1; // last entry in array isn't a planet
+          planetCount = model.planetListState().planets.length - 1; // last entry in array isn't a planet
           var startingPlanets = _.filter(model.planetListState().planets, {
             starting_planet: true,
           }).length;
