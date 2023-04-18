@@ -49,11 +49,13 @@ if (!aiCommunicationsLoaded) {
         detectNewGame();
 
         var checkPlanetsForUnits = function (desiredUnits, aiIndex) {
+          if (!_.isArray(desiredUnits)) {
+            desiredUnits = [desiredUnits];
+          }
+
           var deferred = $.Deferred();
           var deferredQueue = [];
           var results = [];
-
-          console.log("Desire", desiredUnits);
 
           _.times(planetCount, function (n) {
             deferredQueue.push(
@@ -63,10 +65,8 @@ if (!aiCommunicationsLoaded) {
                 .then(function (unitsOnPlanet) {
                   var unitsMatchedOnPlanet = 0;
                   desiredUnits.forEach(function (desiredUnit) {
-                    console.log("Checking", desiredUnit, "on", n);
                     for (var unit in unitsOnPlanet) {
                       if (unit === desiredUnit) {
-                        console.log("Match found");
                         unitsMatchedOnPlanet++;
                         break;
                       }
