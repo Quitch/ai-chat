@@ -25,10 +25,8 @@ if (!aiCommunicationsLoaded) {
         var planetCount = model.planetListState().planets.length - 1; // last planet is not a planet
         var ais = _.filter(model.players(), { ai: 1 });
         var aiAllies = _.filter(ais, { stateToPlayer: allyState });
-        console.log("Start state", ais, aiAllies, planetCount);
 
         var identifyFriendAndFoe = function (allAis) {
-          console.log("AIs present", allAis);
           if (!_.isEmpty(ais) && setupAiIndexes === false) {
             setupAiIndexes = true;
             allAis.forEach(function (ai) {
@@ -44,14 +42,12 @@ if (!aiCommunicationsLoaded) {
         var detectNewGame = function () {
           var playerSelectingSpawn = model.player().landing;
           if (processedLanding() === true && playerSelectingSpawn === true) {
-            console.log("This is a new game");
             processedLanding(false);
           }
         };
         detectNewGame();
 
         var checkPlanetsForUnit = function (desiredUnit, aiIndex) {
-          console.log("Checking for unit", desiredUnit);
           var deferred = $.Deferred();
           var deferredQueue = [];
           var results = [];
@@ -64,7 +60,6 @@ if (!aiCommunicationsLoaded) {
                 .then(function (units) {
                   for (var unit in units) {
                     if (unit === desiredUnit) {
-                      console.log("Unit found at", planetCount, n);
                       results.push(n);
                       break;
                     }
@@ -82,7 +77,6 @@ if (!aiCommunicationsLoaded) {
 
         var sendMessage = function (audience, aiName, message, planet) {
           var translatedMessage = loc(message) + " " + planet;
-          console.log("Sending message", audience, aiName, translatedMessage);
           api.Panel.message(liveGameChatPanelId, "chat_message", {
             type: audience, // "team" or "global"
             player_name: aiName,
@@ -91,7 +85,6 @@ if (!aiCommunicationsLoaded) {
         };
 
         var communicateLandingLocation = function () {
-          console.log("Communicating landing");
           aiAllies.forEach(function (ally, i) {
             checkPlanetsForUnit(ally.commanders[0], aiAllyArmyIndex[i]).then(
               function (aiPlanets) {
@@ -110,7 +103,6 @@ if (!aiCommunicationsLoaded) {
 
         // Landing and variable set up
         model.players.subscribe(function () {
-          console.log("model.players() updated", model.players());
           // model isn't always populated when this script first runs
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
@@ -121,8 +113,6 @@ if (!aiCommunicationsLoaded) {
           }).length;
           var playerHasAllies = !_.isEmpty(aiAllies);
           var playerSelectingSpawn = model.player().landing;
-          console.log("Player selecting spawn", model.player().landing);
-          console.log("Processed landing start state", processedLanding());
 
           detectNewGame();
           identifyFriendAndFoe(ais);
