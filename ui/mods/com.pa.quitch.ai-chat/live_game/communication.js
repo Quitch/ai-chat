@@ -25,6 +25,7 @@ if (!aiCommunicationsLoaded) {
         var planetCount = model.planetListState().planets.length - 1; // last planet is not a planet
         var ais = _.filter(model.players(), { ai: 1 });
         var aiAllies = _.filter(ais, { stateToPlayer: allyState });
+        var intervals = {};
 
         var identifyFriendAndFoe = function (allAis) {
           if (!_.isEmpty(ais) && setupAiIndexes === false) {
@@ -47,22 +48,38 @@ if (!aiCommunicationsLoaded) {
         };
         detectNewGame();
 
-        var checkPlanetsForUnit = function (desiredUnit, aiIndex) {
+        var checkPlanetsForUnits = function (desiredUnits, aiIndex) {
           var deferred = $.Deferred();
           var deferredQueue = [];
           var results = [];
+
+          console.log("Desire", desiredUnits);
 
           _.times(planetCount, function (n) {
             deferredQueue.push(
               api
                 .getWorldView()
                 .getArmyUnits(aiIndex, n)
-                .then(function (units) {
-                  for (var unit in units) {
-                    if (unit === desiredUnit) {
-                      results.push(n);
-                      break;
+                .then(function (unitsOnPlanet) {
+                  var unitsMatchedOnPlanet = 0;
+                  desiredUnits.forEach(function (desiredUnit) {
+                    console.log("Checking", desiredUnit, "on", n);
+                    for (var unit in unitsOnPlanet) {
+                      if (unit === desiredUnit) {
+                        console.log("Match found");
+                        unitsMatchedOnPlanet++;
+                        break;
+                      }
                     }
+                  });
+                  console.log(
+                    "Units matched",
+                    n,
+                    unitsMatchedOnPlanet,
+                    desiredUnits.length
+                  );
+                  if (unitsMatchedOnPlanet === desiredUnits.length) {
+                    results.push(n);
                   }
                 })
             );
@@ -86,7 +103,7 @@ if (!aiCommunicationsLoaded) {
 
         var communicateLandingLocation = function () {
           aiAllies.forEach(function (ally, i) {
-            checkPlanetsForUnit(ally.commanders[0], aiAllyArmyIndex[i]).then(
+            checkPlanetsForUnits([ally.commanders[0]], aiAllyArmyIndex[i]).then(
               function (planetsWithUnit) {
                 planetsWithUnit.forEach(function (planetIndex) {
                   sendMessage(
