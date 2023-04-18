@@ -25,7 +25,7 @@ if (!aiCommunicationsLoaded) {
         var planetCount = model.planetListState().planets.length - 1; // last planet is not a planet
         var ais = _.filter(model.players(), { ai: 1 });
         var aiAllies = _.filter(ais, { stateToPlayer: allyState });
-        var intervals = {};
+        var aiLandingInterval = 1;
 
         var identifyFriendAndFoe = function (allAis) {
           if (!_.isEmpty(ais) && setupAiIndexes === false) {
@@ -72,12 +72,6 @@ if (!aiCommunicationsLoaded) {
                       }
                     }
                   });
-                  console.log(
-                    "Units matched",
-                    n,
-                    unitsMatchedOnPlanet,
-                    desiredUnits.length
-                  );
                   if (unitsMatchedOnPlanet === desiredUnits.length) {
                     results.push(n);
                   }
@@ -113,6 +107,9 @@ if (!aiCommunicationsLoaded) {
                     model.planetListState().planets[planetIndex].name
                   );
                 });
+                if (!_.isEmpty(planetsWithUnit)) {
+                  clearInterval(aiLandingInterval);
+                }
               }
             );
           });
@@ -141,7 +138,7 @@ if (!aiCommunicationsLoaded) {
             !processedLanding()
           ) {
             processedLanding(true);
-            _.delay(communicateLandingLocation, 10000); // give AIs time to land
+            aiLandingInterval = setInterval(communicateLandingLocation, 1000); // keep checking until they spawn
           }
         });
       });
