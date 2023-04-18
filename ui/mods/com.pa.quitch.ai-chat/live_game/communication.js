@@ -87,13 +87,13 @@ if (!aiCommunicationsLoaded) {
         var communicateLandingLocation = function () {
           aiAllies.forEach(function (ally, i) {
             checkPlanetsForUnit(ally.commanders[0], aiAllyArmyIndex[i]).then(
-              function (aiPlanets) {
-                aiPlanets.forEach(function (aiPlanet) {
+              function (planetsWithUnit) {
+                planetsWithUnit.forEach(function (planetIndex) {
                   sendMessage(
                     "team",
                     ally.name,
                     _.sample(messages.landing),
-                    model.planetListState().planets[aiPlanet].name
+                    model.planetListState().planets[planetIndex].name
                   );
                 });
               }
