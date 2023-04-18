@@ -103,7 +103,7 @@ if (!aiCommunicationsLoaded) {
 
         // Landing and variable set up
         model.players.subscribe(function () {
-          // model isn't always populated when this script first runs
+          // model isn't always populated when these variables were first declared
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
           //TODO - we need to detect planets which spawn later
