@@ -179,8 +179,6 @@ if (!aiCommunicationsLoaded) {
                 return !_.includes(colonisedPlanets[index], planetWithUnit);
               }
             );
-            colonisedPlanets[index] =
-              colonisedPlanets[index].concat(newPlanets);
 
             newPlanets.forEach(function (planetIndex) {
               sendMessage(
@@ -190,6 +188,9 @@ if (!aiCommunicationsLoaded) {
                 model.planetListState().planets[planetIndex].name
               );
             });
+
+            colonisedPlanets[index] =
+              colonisedPlanets[index].concat(newPlanets);
           });
         };
 
