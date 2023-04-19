@@ -26,11 +26,8 @@ if (!aiCommunicationsLoaded) {
         var aiAllies = _.filter(ais, { stateToPlayer: allyState });
 
         var identifyFriendAndFoe = function (allAis) {
-          console.log("Identifying friend and foe");
           if (!_.isEmpty(allAis)) {
-            console.log("Setting up friend and foe");
             allAis.forEach(function (ai) {
-              console.log("Processing AI", ai);
               var aiIndex = _.findIndex(model.players(), ai);
               ai.stateToPlayer === allyState
                 ? aiAllyArmyIndex.push(aiIndex)
@@ -41,17 +38,14 @@ if (!aiCommunicationsLoaded) {
         identifyFriendAndFoe(ais);
 
         var detectNewGame = function () {
-          console.log("Checking for new game");
           var playerSelectingSpawn = model.player().landing;
           if (processedLanding() === true && playerSelectingSpawn === true) {
-            console.log("New game found");
             processedLanding(false);
           }
         };
         detectNewGame();
 
         var checkPlanetsForUnits = function (desiredUnits, aiIndex) {
-          console.log("Checking for units", desiredUnits, aiIndex);
           if (!_.isArray(desiredUnits)) {
             desiredUnits = [desiredUnits];
           }
@@ -66,24 +60,16 @@ if (!aiCommunicationsLoaded) {
                 .getWorldView()
                 .getArmyUnits(aiIndex, n)
                 .then(function (unitsOnPlanet) {
-                  console.log("Units on planet", unitsOnPlanet);
                   var unitsMatchedOnPlanet = 0;
                   desiredUnits.forEach(function (desiredUnit) {
-                    console.log("Desired unit", desiredUnit);
                     for (var unit in unitsOnPlanet) {
-                      console.log("Checking unit", unit);
                       if (unit === desiredUnit) {
                         unitsMatchedOnPlanet++;
-                        console.log(
-                          "Unit found. Matches now:",
-                          unitsMatchedOnPlanet
-                        );
                         break;
                       }
                     }
                   });
                   if (unitsMatchedOnPlanet === desiredUnits.length) {
-                    console.log("All units found for planet", n);
                     results.push(n);
                   }
                 })
@@ -99,7 +85,6 @@ if (!aiCommunicationsLoaded) {
 
         var sendMessage = function (audience, aiName, message, planet) {
           var translatedMessage = loc(message) + " " + planet;
-          console.log("Sending message", translatedMessage);
           api.Panel.message(liveGameChatPanelId, "chat_message", {
             type: audience, // "team" or "global"
             player_name: aiName,
@@ -108,7 +93,6 @@ if (!aiCommunicationsLoaded) {
         };
 
         var communicateLandingLocation = function () {
-          console.log("Checking for landing locations");
           aiAllies.forEach(function (ally, i) {
             checkPlanetsForUnits([ally.commanders[0]], aiAllyArmyIndex[i]).then(
               function (planetsWithUnit) {
@@ -116,7 +100,6 @@ if (!aiCommunicationsLoaded) {
                   return;
                 }
 
-                console.log("Planets with Commanders", planetsWithUnit);
                 planetsWithUnit.forEach(function (planetIndex) {
                   sendMessage(
                     "team",
@@ -133,7 +116,6 @@ if (!aiCommunicationsLoaded) {
         var colonisedPlanets = [];
 
         var colonisingPlanet = function (ally, index) {
-          console.log("Colonising planet checks running");
           //var faction = determineFaction(ally);
           //var unit = determineUnit(faction, "teleporter");
           var units = [
@@ -153,8 +135,6 @@ if (!aiCommunicationsLoaded) {
               colonisedPlanets[index] = [];
             }
 
-            console.debug("Planets with unit", planetsWithUnit);
-
             var newPlanets = _.filter(
               planetsWithUnit,
               function (planetWithUnit) {
@@ -163,11 +143,6 @@ if (!aiCommunicationsLoaded) {
             );
             colonisedPlanets[index] =
               colonisedPlanets[index].concat(newPlanets);
-            console.debug(
-              "Colonised planets",
-              newPlanets,
-              colonisedPlanets[index]
-            );
 
             newPlanets.forEach(function (planetIndex) {
               sendMessage(
@@ -183,18 +158,14 @@ if (!aiCommunicationsLoaded) {
         var checksInitialised = false;
 
         var initialiseChecks = function () {
-          console.log("Initialising checks");
           if (checksInitialised) {
-            console.log("Checks initialised already - ABORT!");
             return;
           }
 
           if (!_.isEmpty(aiAllies)) {
-            console.log("AIs found - starting checks", ais, aiAllies);
             checksInitialised = true;
 
             aiAllies.forEach(function (ally, i) {
-              console.log("Initialising checks for", ally, i);
               setInterval(colonisingPlanet, 5000, ally, i);
             });
           }
@@ -203,7 +174,6 @@ if (!aiCommunicationsLoaded) {
 
         // Landing and variable set up
         model.players.subscribe(function () {
-          console.log("model.players() has updated");
           // model isn't always populated when these variables were first declared
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
@@ -225,7 +195,6 @@ if (!aiCommunicationsLoaded) {
             !playerSelectingSpawn &&
             !processedLanding()
           ) {
-            console.log("I haven't processed landings yet");
             processedLanding(true);
             _.delay(communicateLandingLocation, 10000); // delay to allow AI to spawn
           }
