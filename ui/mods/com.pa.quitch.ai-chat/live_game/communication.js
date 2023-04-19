@@ -112,6 +112,10 @@ if (!aiCommunicationsLoaded) {
           aiAllies.forEach(function (ally, i) {
             checkPlanetsForUnits([ally.commanders[0]], aiAllyArmyIndex[i]).then(
               function (planetsWithUnit) {
+                if (_.isEmpty(planetsWithUnit)) {
+                  return;
+                }
+
                 console.log("Planets with Commanders", planetsWithUnit);
                 planetsWithUnit.forEach(function (planetIndex) {
                   sendMessage(
@@ -139,9 +143,12 @@ if (!aiCommunicationsLoaded) {
           checkPlanetsForUnits(units, aiAllyArmyIndex[index]).then(function (
             planetsWithUnit
           ) {
-            // avoid repeat notifications while still notifying for replacement teleporters
-            // TODO - prevent notification for planets with base presence
+            if (_.isEmpty(planetsWithUnit)) {
+              return;
+            }
 
+            // avoid repeat notifications while still notifying for replacement teleporters
+            // TODO - prevent notification for planets with base presences
             if (_.isUndefined(colonisedPlanets[index])) {
               colonisedPlanets[index] = [];
             }
