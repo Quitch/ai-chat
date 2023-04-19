@@ -190,7 +190,7 @@ if (!aiCommunicationsLoaded) {
             checksInitialised = true;
 
             aiAllies.forEach(function (ally, i) {
-              setInterval(colonisingPlanet, 5000, ally, i);
+              setInterval(colonisingPlanet, 10000, ally, i);
             });
           }
         };
