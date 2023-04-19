@@ -45,7 +45,11 @@ if (!aiCommunicationsLoaded) {
         };
         detectNewGame();
 
-        var checkPlanetsForUnits = function (desiredUnits, aiIndex) {
+        var checkPlanetsForUnits = function (
+          aiIndex,
+          desiredUnits,
+          excludedUnits
+        ) {
           if (!_.isArray(desiredUnits)) {
             desiredUnits = [desiredUnits];
           }
@@ -54,23 +58,40 @@ if (!aiCommunicationsLoaded) {
           var deferredQueue = [];
           var results = [];
 
-          _.times(planetCount, function (n) {
+          _.times(planetCount, function (planetIndex) {
             deferredQueue.push(
               api
                 .getWorldView()
-                .getArmyUnits(aiIndex, n)
+                .getArmyUnits(aiIndex, planetIndex)
                 .then(function (unitsOnPlanet) {
-                  var unitsMatchedOnPlanet = 0;
+                  var excludedUnitsOnPlanet = false;
+
+                  for (var excludedUnit of excludedUnits) {
+                    for (var unit in unitsOnPlanet) {
+                      if (unit === excludedUnit) {
+                        excludedUnitsOnPlanet = true;
+                        break;
+                      }
+                    }
+
+                    if (excludedUnitsOnPlanet) {
+                      return;
+                    }
+                  }
+
+                  var desiredUnitsOnPlanet = 0;
+
                   desiredUnits.forEach(function (desiredUnit) {
                     for (var unit in unitsOnPlanet) {
                       if (unit === desiredUnit) {
-                        unitsMatchedOnPlanet++;
+                        desiredUnitsOnPlanet++;
                         break;
                       }
                     }
                   });
-                  if (unitsMatchedOnPlanet === desiredUnits.length) {
-                    results.push(n);
+
+                  if (desiredUnitsOnPlanet === desiredUnits.length) {
+                    results.push(planetIndex);
                   }
                 })
             );
@@ -94,7 +115,7 @@ if (!aiCommunicationsLoaded) {
 
         var communicateLandingLocation = function () {
           aiAllies.forEach(function (ally, i) {
-            checkPlanetsForUnits([ally.commanders[0]], aiAllyArmyIndex[i]).then(
+            checkPlanetsForUnits(aiAllyArmyIndex[i], ally.commanders[0]).then(
               function (planetsWithUnit) {
                 if (_.isEmpty(planetsWithUnit)) {
                   return;
@@ -118,13 +139,16 @@ if (!aiCommunicationsLoaded) {
         var colonisingPlanet = function (ally, index) {
           //var faction = determineFaction(ally);
           //var unit = determineUnit(faction, "teleporter");
-          var units = [
+          var desiredUnits = [
             "/pa/units/land/teleporter/teleporter.json",
             "/pa/units/land/fabrication_bot/fabrication_bot.json",
           ];
-          checkPlanetsForUnits(units, aiAllyArmyIndex[index]).then(function (
-            planetsWithUnit
-          ) {
+          var excludedUnits = ["/pa/units/land/bot_factory/bot_factory.json"];
+          checkPlanetsForUnits(
+            aiAllyArmyIndex[index],
+            desiredUnits,
+            excludedUnits
+          ).then(function (planetsWithUnit) {
             if (_.isEmpty(planetsWithUnit)) {
               return;
             }
