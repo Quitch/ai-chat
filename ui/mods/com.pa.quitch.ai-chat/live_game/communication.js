@@ -45,6 +45,36 @@ if (!aiCommunicationsLoaded) {
         };
         detectNewGame();
 
+        var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
+          if (!excludedUnits) {
+            return false;
+          }
+
+          for (var excludedUnit of excludedUnits) {
+            for (var unit in unitsOnPlanet) {
+              var excludedUnitPresent = _.includes(unit, excludedUnit);
+              if (excludedUnitPresent) {
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+
+        var checkForDesiredUnits = function (unitsOnPlanet, desiredUnits) {
+          var desiredUnitsPresent = 0;
+          desiredUnits.forEach(function (desiredUnit) {
+            for (var unit in unitsOnPlanet) {
+              var desiredUnitOnPlanet = _.includes(unit, desiredUnit);
+              if (desiredUnitOnPlanet) {
+                desiredUnitsPresent++;
+                break;
+              }
+            }
+          });
+          return desiredUnitsPresent;
+        };
+
         var checkPlanetsForUnits = function (
           aiIndex,
           desiredUnits,
@@ -64,31 +94,19 @@ if (!aiCommunicationsLoaded) {
                 .getWorldView()
                 .getArmyUnits(aiIndex, planetIndex)
                 .then(function (unitsOnPlanet) {
-                  if (excludedUnits) {
-                    for (var excludedUnit of excludedUnits) {
-                      for (var unit in unitsOnPlanet) {
-                        var excludedUnitsOnPlanet = _.includes(
-                          unit,
-                          excludedUnit
-                        );
-                        if (excludedUnitsOnPlanet) {
-                          return;
-                        }
-                      }
-                    }
+                  var excludedUnitsOnPlanet = checkForExcludedUnits(
+                    unitsOnPlanet,
+                    excludedUnits
+                  );
+
+                  if (excludedUnitsOnPlanet) {
+                    return;
                   }
 
-                  var desiredUnitsOnPlanet = 0;
-
-                  desiredUnits.forEach(function (desiredUnit) {
-                    for (var unit in unitsOnPlanet) {
-                      var desiredUnitOnPlanet = _.includes(unit, desiredUnit);
-                      if (desiredUnitOnPlanet) {
-                        desiredUnitsOnPlanet++;
-                        break;
-                      }
-                    }
-                  });
+                  var desiredUnitsOnPlanet = checkForDesiredUnits(
+                    unitsOnPlanet,
+                    desiredUnits
+                  );
 
                   if (desiredUnitsOnPlanet === desiredUnits.length) {
                     results.push(planetIndex);
