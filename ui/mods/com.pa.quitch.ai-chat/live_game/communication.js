@@ -158,8 +158,6 @@ if (!aiCommunicationsLoaded) {
         var colonisedPlanets = [];
 
         var colonisingPlanet = function (ally, index) {
-          //var faction = determineFaction(ally);
-          //var unit = determineUnit(faction, "teleporter");
           var desiredUnits = ["lander", "teleporter", "fabrication"];
           var excludedUnits = ["factory"];
           checkPlanetsForUnits(
