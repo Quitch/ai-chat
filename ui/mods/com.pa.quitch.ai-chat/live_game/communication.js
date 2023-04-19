@@ -222,7 +222,6 @@ if (!aiCommunicationsLoaded) {
         };
         initialiseChecks();
 
-        // Landing and variable set up
         model.players.subscribe(function () {
           // model isn't always populated when these variables were first declared
           ais = _.filter(model.players(), { ai: 1 });
