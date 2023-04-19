@@ -28,4 +28,5 @@ define({
     "!LOC:Initiating approach towards",
     "!LOC:Confirming planetary coordinates for",
   ],
+  colonise: ["!LOC:Getting established on"],
 });
