@@ -110,7 +110,7 @@ if (!aiCommunicationsLoaded) {
         var communicateLandingLocation = function () {
           console.log("Checking for landing locations");
           aiAllies.forEach(function (ally, i) {
-            checkPlanetsForUnits([ally.commanders[0]], aiAllyArmyIndex[i]).then(
+            checkPlanetsForUnits([ally.commanders], aiAllyArmyIndex[i]).then(
               function (planetsWithUnit) {
                 console.log("Planets with Commanders", planetsWithUnit);
                 planetsWithUnit.forEach(function (planetIndex) {
