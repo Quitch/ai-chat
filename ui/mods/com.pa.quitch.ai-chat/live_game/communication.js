@@ -64,18 +64,17 @@ if (!aiCommunicationsLoaded) {
                 .getWorldView()
                 .getArmyUnits(aiIndex, planetIndex)
                 .then(function (unitsOnPlanet) {
-                  var excludedUnitsOnPlanet = false;
-
-                  for (var excludedUnit of excludedUnits) {
-                    for (var unit in unitsOnPlanet) {
-                      if (unit === excludedUnit) {
-                        excludedUnitsOnPlanet = true;
-                        break;
+                  if (excludedUnits) {
+                    for (var excludedUnit of excludedUnits) {
+                      for (var unit in unitsOnPlanet) {
+                        var excludedUnitsOnPlanet = _.includes(
+                          unit,
+                          excludedUnit
+                        );
+                        if (excludedUnitsOnPlanet) {
+                          return;
+                        }
                       }
-                    }
-
-                    if (excludedUnitsOnPlanet) {
-                      return;
                     }
                   }
 
@@ -83,14 +82,15 @@ if (!aiCommunicationsLoaded) {
 
                   desiredUnits.forEach(function (desiredUnit) {
                     for (var unit in unitsOnPlanet) {
-                      if (unit === desiredUnit) {
+                      var desiredUnitOnPlanet = _.includes(unit, desiredUnit);
+                      if (desiredUnitOnPlanet) {
                         desiredUnitsOnPlanet++;
                         break;
                       }
                     }
                   });
 
-                  if (desiredUnitsOnPlanet === desiredUnits.length) {
+                  if (desiredUnitsOnPlanet >= desiredUnits.length) {
                     results.push(planetIndex);
                   }
                 })
@@ -139,11 +139,8 @@ if (!aiCommunicationsLoaded) {
         var colonisingPlanet = function (ally, index) {
           //var faction = determineFaction(ally);
           //var unit = determineUnit(faction, "teleporter");
-          var desiredUnits = [
-            "/pa/units/land/teleporter/teleporter.json",
-            "/pa/units/land/fabrication_bot/fabrication_bot.json",
-          ];
-          var excludedUnits = ["/pa/units/land/bot_factory/bot_factory.json"];
+          var desiredUnits = ["teleporter", "fabrication"];
+          var excludedUnits = ["factory"];
           checkPlanetsForUnits(
             aiAllyArmyIndex[index],
             desiredUnits,
