@@ -165,6 +165,7 @@ if (!aiCommunicationsLoaded) {
             excludedUnits
           ).then(function (planetsWithUnit) {
             if (_.isEmpty(planetsWithUnit)) {
+              colonisedPlanets[index] = [];
               return;
             }
 
