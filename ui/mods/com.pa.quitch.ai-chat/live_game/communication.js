@@ -227,7 +227,6 @@ if (!aiCommunicationsLoaded) {
           // model isn't always populated when these variables were first declared
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
-          //TODO - we need to detect planets which spawn later
           planetCount = model.planetListState().planets.length - 1; // last entry in array isn't a planet
           var startingPlanetsCount = _.filter(model.planetListState().planets, {
             starting_planet: true,
@@ -248,6 +247,11 @@ if (!aiCommunicationsLoaded) {
             processedLanding(true);
             _.delay(communicateLandingLocation, 10000); // delay to allow AI to spawn
           }
+        });
+
+        // We need to detect planets which spawn later
+        model.planetListState.subscribe(function () {
+          planetCount = model.planetListState().planets.length - 1; // last entry in array isn't a planet
         });
       });
     } catch (e) {
