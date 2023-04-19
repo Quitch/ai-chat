@@ -217,6 +217,7 @@ if (!aiCommunicationsLoaded) {
 
           detectNewGame();
           identifyFriendAndFoe(ais);
+          initialiseChecks();
 
           if (
             startingPlanetsCount > 1 &&
