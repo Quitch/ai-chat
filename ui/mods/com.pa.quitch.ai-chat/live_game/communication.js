@@ -126,6 +126,74 @@ if (!aiCommunicationsLoaded) {
           });
         };
 
+        var colonisedPlanets = [];
+
+        var colonisingPlanet = function (ally, index) {
+          console.log("Colonising planet checks running");
+          //var faction = determineFaction(ally);
+          //var unit = determineUnit(faction, "teleporter");
+          var units = [
+            "/pa/units/land/teleporter/teleporter.json",
+            "/pa/units/land/fabrication_bot/fabrication_bot.json",
+          ];
+          checkPlanetsForUnits(units, aiAllyArmyIndex[index]).then(function (
+            planetsWithUnit
+          ) {
+            // avoid repeat notifications while still notifying for replacement teleporters
+            // TODO - prevent notification for planets with base presence
+
+            if (_.isUndefined(colonisedPlanets[index])) {
+              colonisedPlanets[index] = [];
+            }
+
+            console.debug("Planets with unit", planetsWithUnit);
+
+            var newPlanets = _.filter(
+              planetsWithUnit,
+              function (planetWithUnit) {
+                return !_.includes(colonisedPlanets[index], planetWithUnit);
+              }
+            );
+            colonisedPlanets[index] =
+              colonisedPlanets[index].concat(newPlanets);
+            console.debug(
+              "Colonised planets",
+              newPlanets,
+              colonisedPlanets[index]
+            );
+
+            newPlanets.forEach(function (planetIndex) {
+              sendMessage(
+                "team",
+                ally.name,
+                _.sample(messages.colonise),
+                model.planetListState().planets[planetIndex].name
+              );
+            });
+          });
+        };
+
+        var checksInitialised = false;
+
+        var initialiseChecks = function () {
+          console.log("Initialising checks");
+          if (checksInitialised) {
+            console.log("Checks initialised already - ABORT!");
+            return;
+          }
+
+          if (!_.isEmpty(aiAllies)) {
+            console.log("AIs found - starting checks", ais, aiAllies);
+            checksInitialised = true;
+
+            aiAllies.forEach(function (ally, i) {
+              console.log("Initialising checks for", ally, i);
+              setInterval(colonisingPlanet, 5000, ally, i);
+            });
+          }
+        };
+        initialiseChecks();
+
         // Landing and variable set up
         model.players.subscribe(function () {
           console.log("model.players() has updated");
