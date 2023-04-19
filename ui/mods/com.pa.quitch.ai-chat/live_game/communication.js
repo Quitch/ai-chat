@@ -78,6 +78,7 @@ if (!aiCommunicationsLoaded) {
         var checkPlanetsForUnits = function (
           aiIndex,
           desiredUnits,
+          desiredUnitCount,
           excludedUnits
         ) {
           if (!_.isArray(desiredUnits)) {
@@ -108,7 +109,7 @@ if (!aiCommunicationsLoaded) {
                     desiredUnits
                   );
 
-                  if (desiredUnitsOnPlanet === desiredUnits.length) {
+                  if (desiredUnitsOnPlanet >= desiredUnitCount) {
                     results.push(planetIndex);
                   }
                 })
@@ -133,35 +134,38 @@ if (!aiCommunicationsLoaded) {
 
         var communicateLandingLocation = function () {
           aiAllies.forEach(function (ally, i) {
-            checkPlanetsForUnits(aiAllyArmyIndex[i], ally.commanders).then(
-              function (planetsWithUnit) {
-                if (_.isEmpty(planetsWithUnit)) {
-                  return;
-                }
-
-                planetsWithUnit.forEach(function (planetIndex) {
-                  sendMessage(
-                    "team",
-                    ally.name,
-                    _.sample(messages.landing),
-                    model.planetListState().planets[planetIndex].name
-                  );
-                });
+            checkPlanetsForUnits(
+              aiAllyArmyIndex[i],
+              ally.commanders,
+              ally.commanders.length
+            ).then(function (planetsWithUnit) {
+              if (_.isEmpty(planetsWithUnit)) {
+                return;
               }
-            );
+
+              planetsWithUnit.forEach(function (planetIndex) {
+                sendMessage(
+                  "team",
+                  ally.name,
+                  _.sample(messages.landing),
+                  model.planetListState().planets[planetIndex].name
+                );
+              });
+            });
           });
         };
 
         var colonisedPlanets = [];
 
-        var colonisingPlanet = function (ally, index, teleporterOrTransport) {
+        var colonisingPlanet = function (ally, index) {
           //var faction = determineFaction(ally);
           //var unit = determineUnit(faction, "teleporter");
-          var desiredUnits = [teleporterOrTransport, "fabrication"];
+          var desiredUnits = ["lander", "teleporter", "fabrication"];
           var excludedUnits = ["factory"];
           checkPlanetsForUnits(
             aiAllyArmyIndex[index],
             desiredUnits,
+            desiredUnits.length - 1, // we only need lander or teleporter
             excludedUnits
           ).then(function (planetsWithUnit) {
             if (_.isEmpty(planetsWithUnit)) {
@@ -172,6 +176,12 @@ if (!aiCommunicationsLoaded) {
             if (_.isUndefined(colonisedPlanets[index])) {
               colonisedPlanets[index] = [];
             }
+
+            // remove planets which are not longer reported as colonised - this allows for future messages
+            colonisedPlanets[index] = _.intersection(
+              colonisedPlanets[index],
+              planetsWithUnit
+            );
 
             var newPlanets = _.filter(
               planetsWithUnit,
