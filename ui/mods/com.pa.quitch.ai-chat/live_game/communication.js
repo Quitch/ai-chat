@@ -154,10 +154,10 @@ if (!aiCommunicationsLoaded) {
 
         var colonisedPlanets = [];
 
-        var colonisingPlanet = function (ally, index) {
+        var colonisingPlanet = function (ally, index, teleporterOrTransport) {
           //var faction = determineFaction(ally);
           //var unit = determineUnit(faction, "teleporter");
-          var desiredUnits = ["teleporter", "fabrication"];
+          var desiredUnits = [teleporterOrTransport, "fabrication"];
           var excludedUnits = ["factory"];
           checkPlanetsForUnits(
             aiAllyArmyIndex[index],
@@ -206,7 +206,8 @@ if (!aiCommunicationsLoaded) {
             checksInitialised = true;
 
             aiAllies.forEach(function (ally, i) {
-              setInterval(colonisingPlanet, 10000, ally, i);
+              setInterval(colonisingPlanet, 10000, ally, i, "teleporter");
+              setInterval(colonisingPlanet, 10000, ally, i, "lander");
             });
           }
         };
