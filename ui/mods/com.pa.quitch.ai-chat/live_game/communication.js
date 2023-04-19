@@ -215,8 +215,7 @@ if (!aiCommunicationsLoaded) {
             checksInitialised = true;
 
             aiAllies.forEach(function (ally, i) {
-              setInterval(colonisingPlanet, 10000, ally, i, "teleporter");
-              setInterval(colonisingPlanet, 10000, ally, i, "lander");
+              setInterval(colonisingPlanet, 10000, ally, i);
             });
           }
         };
