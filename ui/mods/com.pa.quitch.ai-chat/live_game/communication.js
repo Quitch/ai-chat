@@ -90,7 +90,7 @@ if (!aiCommunicationsLoaded) {
                     }
                   });
 
-                  if (desiredUnitsOnPlanet >= desiredUnits.length) {
+                  if (desiredUnitsOnPlanet === desiredUnits.length) {
                     results.push(planetIndex);
                   }
                 })
