@@ -169,8 +169,6 @@ if (!aiCommunicationsLoaded) {
               return;
             }
 
-            // avoid repeat notifications while still notifying for replacement teleporters
-            // TODO - prevent notification for planets with base presences
             if (_.isUndefined(colonisedPlanets[index])) {
               colonisedPlanets[index] = [];
             }
