@@ -115,7 +115,7 @@ if (!aiCommunicationsLoaded) {
 
         var communicateLandingLocation = function () {
           aiAllies.forEach(function (ally, i) {
-            checkPlanetsForUnits(aiAllyArmyIndex[i], ally.commanders[0]).then(
+            checkPlanetsForUnits(aiAllyArmyIndex[i], ally.commanders).then(
               function (planetsWithUnit) {
                 if (_.isEmpty(planetsWithUnit)) {
                   return;
