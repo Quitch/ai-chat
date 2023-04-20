@@ -5,6 +5,7 @@ A mod for Planetary Annihilation which enables the AI to talk.
 ## Current Features
 
 - Allies will announce which planet they landed on when there are multiple starting planets
+- Allies notify you when colonising a new planet
 
 ## Planned Features
 
@@ -14,4 +15,3 @@ A mod for Planetary Annihilation which enables the AI to talk.
 - AIs taunt on victory
 - Allies warn you when they are in trouble
 - Allies notify you when launching an invasion
-- Allies notify you when colonising a new planet
