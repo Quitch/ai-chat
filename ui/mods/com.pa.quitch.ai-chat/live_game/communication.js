@@ -10,12 +10,6 @@ if (!aiCommunicationsLoaded) {
       ], function (messages) {
         var aiAllyArmyIndex = [];
         var aiEnemyArmyIndex = [];
-        var liveGameChatPanelId = 1;
-        _.defer(function () {
-          liveGameChatPanelId = _.find(api.panelsById, {
-            src: "coui://ui/main/game/live_game/live_game_chat.html",
-          }).id;
-        });
         var processedLanding = ko
           .observable(false)
           .extend({ session: "ai_chat_processed_landing" });
@@ -122,6 +116,13 @@ if (!aiCommunicationsLoaded) {
 
           return deferred.promise();
         };
+
+        var liveGameChatPanelId = 1;
+        _.defer(function () {
+          liveGameChatPanelId = _.find(api.panelsById, {
+            src: "coui://ui/main/game/live_game/live_game_chat.html",
+          }).id;
+        });
 
         var sendMessage = function (audience, aiName, message, planet) {
           var translatedMessage = loc(message) + " " + planet;
