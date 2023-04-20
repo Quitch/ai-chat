@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v0.2 - 2023-04-20
 
 - Fixed issue with AI allies not telling you where they landing in some circumstances
 - Support an AI ally with multiple commanders landing on multiple worlds
