@@ -2,7 +2,7 @@
 
 ## v0.2 - 2023-04-20
 
-- Fixed issue with AI allies not telling you where they landing in some circumstances
+- Fixed issue with AI allies not telling you where they landed in some circumstances
 - Support an AI ally with multiple commanders landing on multiple worlds
 - Allies inform you when they're colonising a new planet
 
