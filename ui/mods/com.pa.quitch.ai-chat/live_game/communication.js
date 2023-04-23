@@ -15,7 +15,8 @@ if (!aiCommunicationsLoaded) {
           .extend({ session: "ai_chat_processed_landing" });
         var allyState = "allied_eco";
         // model variables may not be populated yet
-        var planetCount = model.planetListState().planets.length - 1; // last planet is not a planet
+        var planets = model.planetListState().planets;
+        var planetCount = planets.length - 1; // last planet is not a planet
         var ais = _.filter(model.players(), { ai: 1 });
         var aiAllies = _.filter(ais, { stateToPlayer: allyState });
 
@@ -149,7 +150,7 @@ if (!aiCommunicationsLoaded) {
                   "team",
                   ally.name,
                   _.sample(messages.landing),
-                  model.planetListState().planets[planetIndex].name
+                  planets[planetIndex].name
                 );
               });
             });
@@ -194,7 +195,7 @@ if (!aiCommunicationsLoaded) {
                 "team",
                 ally.name,
                 _.sample(messages.colonise),
-                model.planetListState().planets[planetIndex].name
+                planets[planetIndex].name
               );
             });
 
@@ -225,7 +226,8 @@ if (!aiCommunicationsLoaded) {
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
           planetCount = model.planetListState().planets.length - 1; // last entry in array isn't a planet
-          var startingPlanetsCount = _.filter(model.planetListState().planets, {
+          planets = model.planetListState().planets;
+          var startingPlanetsCount = _.filter(planets, {
             starting_planet: true,
           }).length;
           var playerHasAllies = !_.isEmpty(aiAllies);
@@ -248,7 +250,8 @@ if (!aiCommunicationsLoaded) {
 
         // We need to detect planets which spawn later
         model.planetListState.subscribe(function () {
-          planetCount = model.planetListState().planets.length - 1; // last entry in array isn't a planet
+          planets = model.planetListState().planets;
+          planetCount = planets.length - 1; // last entry in array isn't a planet
         });
       });
     } catch (e) {
