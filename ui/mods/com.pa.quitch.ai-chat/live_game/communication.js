@@ -251,7 +251,7 @@ if (!aiCommunicationsLoaded) {
           }
         });
 
-        // We need to detect planets which spawn later
+        // model isn't always populated when these variables were first declared
         model.planetListState.subscribe(function () {
           planets = model.planetListState().planets;
           planetCount = planets.length - 1; // last entry in array isn't a planet
