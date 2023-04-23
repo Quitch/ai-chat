@@ -228,6 +228,8 @@ if (!aiCommunicationsLoaded) {
           // model isn't always populated when these variables were first declared
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
+          planets = model.planetListState().planets;
+          planetCount = planets.length - 1; // last entry in array isn't a planet
           var startingPlanetsCount = _.filter(planets, {
             starting_planet: true,
           }).length;
@@ -247,12 +249,6 @@ if (!aiCommunicationsLoaded) {
             processedLanding(true);
             _.delay(communicateLandingLocation, 10000); // delay to allow AI to spawn
           }
-        });
-
-        model.planetListState.subscribe(function () {
-          // model isn't always populated when these variables were first declared
-          planets = model.planetListState().planets;
-          planetCount = planets.length - 1; // last entry in array isn't a planet
         });
       });
     } catch (e) {
