@@ -157,36 +157,39 @@ if (!aiCommunicationsLoaded) {
           });
         };
 
-        var colonisedPlanets = [];
+        var currentlyColonisedPlanets = [];
 
-        var colonisingPlanet = function (ally, index) {
+        var colonisingPlanet = function (ally, i) {
           var desiredUnits = ["lander", "teleporter", "fabrication"];
           var excludedUnits = ["factory"];
           checkPlanetsForUnits(
-            aiAllyArmyIndex[index],
+            aiAllyArmyIndex[i],
             desiredUnits,
             desiredUnits.length - 1, // we only need lander or teleporter
             excludedUnits
           ).then(function (planetsWithUnit) {
             if (_.isEmpty(planetsWithUnit)) {
-              colonisedPlanets[index] = [];
+              currentlyColonisedPlanets[i] = [];
               return;
             }
 
-            if (_.isUndefined(colonisedPlanets[index])) {
-              colonisedPlanets[index] = [];
+            if (_.isUndefined(currentlyColonisedPlanets[i])) {
+              currentlyColonisedPlanets[i] = [];
             }
 
             // remove planets which are not longer reported as colonised - this allows for future messages
-            colonisedPlanets[index] = _.intersection(
-              colonisedPlanets[index],
+            currentlyColonisedPlanets[i] = _.intersection(
+              currentlyColonisedPlanets[i],
               planetsWithUnit
             );
 
             var newPlanets = _.filter(
               planetsWithUnit,
               function (planetWithUnit) {
-                return !_.includes(colonisedPlanets[index], planetWithUnit);
+                return !_.includes(
+                  currentlyColonisedPlanets[i],
+                  planetWithUnit
+                );
               }
             );
 
@@ -199,8 +202,8 @@ if (!aiCommunicationsLoaded) {
               );
             });
 
-            colonisedPlanets[index] =
-              colonisedPlanets[index].concat(newPlanets);
+            currentlyColonisedPlanets[i] =
+              currentlyColonisedPlanets[i].concat(newPlanets);
           });
         };
 
