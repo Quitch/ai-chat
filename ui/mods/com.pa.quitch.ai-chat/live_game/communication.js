@@ -228,8 +228,6 @@ if (!aiCommunicationsLoaded) {
           // model isn't always populated when these variables were first declared
           ais = _.filter(model.players(), { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
-          planetCount = model.planetListState().planets.length - 1; // last entry in array isn't a planet
-          planets = model.planetListState().planets;
           var startingPlanetsCount = _.filter(planets, {
             starting_planet: true,
           }).length;
@@ -251,8 +249,8 @@ if (!aiCommunicationsLoaded) {
           }
         });
 
-        // model isn't always populated when these variables were first declared
         model.planetListState.subscribe(function () {
+          // model isn't always populated when these variables were first declared
           planets = model.planetListState().planets;
           planetCount = planets.length - 1; // last entry in array isn't a planet
         });
