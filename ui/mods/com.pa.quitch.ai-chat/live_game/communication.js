@@ -17,13 +17,14 @@ if (!aiCommunicationsLoaded) {
         // model variables may not be populated yet
         var planets = model.planetListState().planets;
         var planetCount = planets.length - 1; // last planet is not a planet
-        var ais = _.filter(model.players(), { ai: 1 });
+        var players = model.players();
+        var ais = _.filter(players, { ai: 1 });
         var aiAllies = _.filter(ais, { stateToPlayer: allyState });
 
-        var identifyFriendAndFoe = function (allAis) {
+        var identifyFriendAndFoe = function (allAis, allPlayers) {
           if (!_.isEmpty(allAis)) {
             allAis.forEach(function (ai) {
-              var aiIndex = _.findIndex(model.players(), ai);
+              var aiIndex = _.findIndex(allPlayers, ai);
               ai.stateToPlayer === allyState
                 ? aiAllyArmyIndex.push(aiIndex)
                 : aiEnemyArmyIndex.push(aiIndex);
@@ -32,13 +33,13 @@ if (!aiCommunicationsLoaded) {
         };
         identifyFriendAndFoe(ais);
 
-        var detectNewGame = function () {
-          var playerSelectingSpawn = model.player().landing;
+        var detectNewGame = function (player) {
+          var playerSelectingSpawn = player.landing;
           if (processedLanding() === true && playerSelectingSpawn === true) {
             processedLanding(false);
           }
         };
-        detectNewGame();
+        detectNewGame(model.player());
 
         var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
           if (!excludedUnits) {
@@ -321,7 +322,8 @@ if (!aiCommunicationsLoaded) {
 
         model.players.subscribe(function () {
           // model isn't always populated when these variables were first declared
-          ais = _.filter(model.players(), { ai: 1 });
+          players = model.players();
+          ais = _.filter(players, { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
           planets = model.planetListState().planets;
           planetCount = planets.length - 1; // last entry in array isn't a planet
@@ -331,8 +333,8 @@ if (!aiCommunicationsLoaded) {
           var playerHasAllies = !_.isEmpty(aiAllies);
           var playerSelectingSpawn = model.player().landing;
 
-          detectNewGame();
-          identifyFriendAndFoe(ais);
+          detectNewGame(model.player());
+          identifyFriendAndFoe(ais, players);
           initialiseChecks();
 
           if (
