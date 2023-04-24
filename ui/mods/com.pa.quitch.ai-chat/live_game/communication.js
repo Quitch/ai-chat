@@ -5,136 +5,136 @@ if (!aiCommunicationsLoaded) {
 
   function aiCommunications() {
     try {
+      var aiAllyArmyIndex = [];
+      var aiEnemyArmyIndex = [];
+      var processedLanding = ko
+        .observable(false)
+        .extend({ session: "ai_chat_processed_landing" });
+      var allyState = "allied_eco";
+      // model variables may not be populated yet
+      var planets = model.planetListState().planets;
+      var planetCount = planets.length - 1; // last planet is not a planet
+      var players = model.players();
+      var ais = _.filter(players, { ai: 1 });
+      var aiAllies = _.filter(ais, { stateToPlayer: allyState });
+
+      var identifyFriendAndFoe = function (allAis, allPlayers) {
+        if (!_.isEmpty(allAis)) {
+          allAis.forEach(function (ai) {
+            var aiIndex = _.findIndex(allPlayers, ai);
+            ai.stateToPlayer === allyState
+              ? aiAllyArmyIndex.push(aiIndex)
+              : aiEnemyArmyIndex.push(aiIndex);
+          });
+        }
+      };
+      identifyFriendAndFoe(ais, players);
+
+      var detectNewGame = function (player) {
+        var playerSelectingSpawn = player.landing;
+        if (processedLanding() === true && playerSelectingSpawn === true) {
+          processedLanding(false);
+        }
+      };
+      detectNewGame(model.player());
+
+      var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
+        if (!excludedUnits) {
+          return false;
+        }
+
+        for (var excludedUnit of excludedUnits) {
+          for (var unit in unitsOnPlanet) {
+            var excludedUnitPresent = _.includes(unit, excludedUnit);
+            if (excludedUnitPresent) {
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      var checkForDesiredUnits = function (unitsOnPlanet, desiredUnits) {
+        var desiredUnitsPresent = 0;
+        desiredUnits.forEach(function (desiredUnit) {
+          for (var unit in unitsOnPlanet) {
+            var desiredUnitOnPlanet = _.includes(unit, desiredUnit);
+            if (desiredUnitOnPlanet) {
+              desiredUnitsPresent++;
+              break;
+            }
+          }
+        });
+        return desiredUnitsPresent;
+      };
+
+      var checkPlanetsForUnits = function (
+        aiIndex,
+        desiredUnits,
+        desiredUnitCount,
+        excludedUnits
+      ) {
+        if (!_.isArray(desiredUnits)) {
+          desiredUnits = [desiredUnits];
+        }
+
+        var deferred = $.Deferred();
+        var deferredQueue = [];
+        var results = [];
+
+        _.times(planetCount, function (planetIndex) {
+          deferredQueue.push(
+            api
+              .getWorldView()
+              .getArmyUnits(aiIndex, planetIndex)
+              .then(function (unitsOnPlanet) {
+                var excludedUnitsOnPlanet = checkForExcludedUnits(
+                  unitsOnPlanet,
+                  excludedUnits
+                );
+
+                if (excludedUnitsOnPlanet) {
+                  return;
+                }
+
+                var desiredUnitsOnPlanet = checkForDesiredUnits(
+                  unitsOnPlanet,
+                  desiredUnits
+                );
+
+                if (desiredUnitsOnPlanet >= desiredUnitCount) {
+                  results.push(planetIndex);
+                }
+              })
+          );
+        });
+
+        Promise.all(deferredQueue).then(function () {
+          deferred.resolve(results);
+        });
+
+        return deferred.promise();
+      };
+
+      var liveGameChatPanelId = 1;
+      _.defer(function () {
+        liveGameChatPanelId = _.find(api.panelsById, {
+          src: "coui://ui/main/game/live_game/live_game_chat.html",
+        }).id;
+      });
+
+      var sendMessage = function (audience, aiName, message, planet) {
+        var translatedMessage = loc(message) + " " + planet;
+        api.Panel.message(liveGameChatPanelId, "chat_message", {
+          type: audience, // "team" or "global"
+          player_name: aiName,
+          message: translatedMessage,
+        });
+      };
+
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
       ], function (messages) {
-        var aiAllyArmyIndex = [];
-        var aiEnemyArmyIndex = [];
-        var processedLanding = ko
-          .observable(false)
-          .extend({ session: "ai_chat_processed_landing" });
-        var allyState = "allied_eco";
-        // model variables may not be populated yet
-        var planets = model.planetListState().planets;
-        var planetCount = planets.length - 1; // last planet is not a planet
-        var players = model.players();
-        var ais = _.filter(players, { ai: 1 });
-        var aiAllies = _.filter(ais, { stateToPlayer: allyState });
-
-        var identifyFriendAndFoe = function (allAis, allPlayers) {
-          if (!_.isEmpty(allAis)) {
-            allAis.forEach(function (ai) {
-              var aiIndex = _.findIndex(allPlayers, ai);
-              ai.stateToPlayer === allyState
-                ? aiAllyArmyIndex.push(aiIndex)
-                : aiEnemyArmyIndex.push(aiIndex);
-            });
-          }
-        };
-        identifyFriendAndFoe(ais, players);
-
-        var detectNewGame = function (player) {
-          var playerSelectingSpawn = player.landing;
-          if (processedLanding() === true && playerSelectingSpawn === true) {
-            processedLanding(false);
-          }
-        };
-        detectNewGame(model.player());
-
-        var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
-          if (!excludedUnits) {
-            return false;
-          }
-
-          for (var excludedUnit of excludedUnits) {
-            for (var unit in unitsOnPlanet) {
-              var excludedUnitPresent = _.includes(unit, excludedUnit);
-              if (excludedUnitPresent) {
-                return true;
-              }
-            }
-          }
-          return false;
-        };
-
-        var checkForDesiredUnits = function (unitsOnPlanet, desiredUnits) {
-          var desiredUnitsPresent = 0;
-          desiredUnits.forEach(function (desiredUnit) {
-            for (var unit in unitsOnPlanet) {
-              var desiredUnitOnPlanet = _.includes(unit, desiredUnit);
-              if (desiredUnitOnPlanet) {
-                desiredUnitsPresent++;
-                break;
-              }
-            }
-          });
-          return desiredUnitsPresent;
-        };
-
-        var checkPlanetsForUnits = function (
-          aiIndex,
-          desiredUnits,
-          desiredUnitCount,
-          excludedUnits
-        ) {
-          if (!_.isArray(desiredUnits)) {
-            desiredUnits = [desiredUnits];
-          }
-
-          var deferred = $.Deferred();
-          var deferredQueue = [];
-          var results = [];
-
-          _.times(planetCount, function (planetIndex) {
-            deferredQueue.push(
-              api
-                .getWorldView()
-                .getArmyUnits(aiIndex, planetIndex)
-                .then(function (unitsOnPlanet) {
-                  var excludedUnitsOnPlanet = checkForExcludedUnits(
-                    unitsOnPlanet,
-                    excludedUnits
-                  );
-
-                  if (excludedUnitsOnPlanet) {
-                    return;
-                  }
-
-                  var desiredUnitsOnPlanet = checkForDesiredUnits(
-                    unitsOnPlanet,
-                    desiredUnits
-                  );
-
-                  if (desiredUnitsOnPlanet >= desiredUnitCount) {
-                    results.push(planetIndex);
-                  }
-                })
-            );
-          });
-
-          Promise.all(deferredQueue).then(function () {
-            deferred.resolve(results);
-          });
-
-          return deferred.promise();
-        };
-
-        var liveGameChatPanelId = 1;
-        _.defer(function () {
-          liveGameChatPanelId = _.find(api.panelsById, {
-            src: "coui://ui/main/game/live_game/live_game_chat.html",
-          }).id;
-        });
-
-        var sendMessage = function (audience, aiName, message, planet) {
-          var translatedMessage = loc(message) + " " + planet;
-          api.Panel.message(liveGameChatPanelId, "chat_message", {
-            type: audience, // "team" or "global"
-            player_name: aiName,
-            message: translatedMessage,
-          });
-        };
-
         var communicateLandingLocation = function () {
           aiAllies.forEach(function (ally, i) {
             checkPlanetsForUnits(
