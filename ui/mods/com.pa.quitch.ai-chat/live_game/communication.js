@@ -10,40 +10,36 @@ if (!aiCommunicationsLoaded) {
       ], function (messages) {
         var aiAllyArmyIndex = [];
         var aiEnemyArmyIndex = [];
-        var liveGameChatPanelId = 1;
-        _.defer(function () {
-          liveGameChatPanelId = _.find(api.panelsById, {
-            src: "coui://ui/main/game/live_game/live_game_chat.html",
-          }).id;
-        });
         var processedLanding = ko
           .observable(false)
           .extend({ session: "ai_chat_processed_landing" });
         var allyState = "allied_eco";
         // model variables may not be populated yet
-        var planetCount = model.planetListState().planets.length - 1; // last planet is not a planet
-        var ais = _.filter(model.players(), { ai: 1 });
+        var planets = model.planetListState().planets;
+        var planetCount = planets.length - 1; // last planet is not a planet
+        var players = model.players();
+        var ais = _.filter(players, { ai: 1 });
         var aiAllies = _.filter(ais, { stateToPlayer: allyState });
 
-        var identifyFriendAndFoe = function (allAis) {
+        var identifyFriendAndFoe = function (allAis, allPlayers) {
           if (!_.isEmpty(allAis)) {
             allAis.forEach(function (ai) {
-              var aiIndex = _.findIndex(model.players(), ai);
+              var aiIndex = _.findIndex(allPlayers, ai);
               ai.stateToPlayer === allyState
                 ? aiAllyArmyIndex.push(aiIndex)
                 : aiEnemyArmyIndex.push(aiIndex);
             });
           }
         };
-        identifyFriendAndFoe(ais);
+        identifyFriendAndFoe(ais, players);
 
-        var detectNewGame = function () {
-          var playerSelectingSpawn = model.player().landing;
+        var detectNewGame = function (player) {
+          var playerSelectingSpawn = player.landing;
           if (processedLanding() === true && playerSelectingSpawn === true) {
             processedLanding(false);
           }
         };
-        detectNewGame();
+        detectNewGame(model.player());
 
         var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
           if (!excludedUnits) {
@@ -123,6 +119,13 @@ if (!aiCommunicationsLoaded) {
           return deferred.promise();
         };
 
+        var liveGameChatPanelId = 1;
+        _.defer(function () {
+          liveGameChatPanelId = _.find(api.panelsById, {
+            src: "coui://ui/main/game/live_game/live_game_chat.html",
+          }).id;
+        });
+
         var sendMessage = function (audience, aiName, message, planet) {
           var translatedMessage = loc(message) + " " + planet;
           api.Panel.message(liveGameChatPanelId, "chat_message", {
@@ -148,43 +151,46 @@ if (!aiCommunicationsLoaded) {
                   "team",
                   ally.name,
                   _.sample(messages.landing),
-                  model.planetListState().planets[planetIndex].name
+                  planets[planetIndex].name
                 );
               });
             });
           });
         };
 
-        var colonisedPlanets = [];
+        var currentlyColonisedPlanets = [];
 
-        var colonisingPlanet = function (ally, index) {
+        var colonisingPlanet = function (ally, i) {
           var desiredUnits = ["lander", "teleporter", "fabrication"];
           var excludedUnits = ["factory"];
           checkPlanetsForUnits(
-            aiAllyArmyIndex[index],
+            aiAllyArmyIndex[i],
             desiredUnits,
             desiredUnits.length - 1, // we only need lander or teleporter
             excludedUnits
           ).then(function (planetsWithUnit) {
             if (_.isEmpty(planetsWithUnit)) {
-              colonisedPlanets[index] = [];
+              currentlyColonisedPlanets[i] = [];
               return;
             }
 
-            if (_.isUndefined(colonisedPlanets[index])) {
-              colonisedPlanets[index] = [];
+            if (_.isUndefined(currentlyColonisedPlanets[i])) {
+              currentlyColonisedPlanets[i] = [];
             }
 
             // remove planets which are not longer reported as colonised - this allows for future messages
-            colonisedPlanets[index] = _.intersection(
-              colonisedPlanets[index],
+            currentlyColonisedPlanets[i] = _.intersection(
+              currentlyColonisedPlanets[i],
               planetsWithUnit
             );
 
             var newPlanets = _.filter(
               planetsWithUnit,
               function (planetWithUnit) {
-                return !_.includes(colonisedPlanets[index], planetWithUnit);
+                return !_.includes(
+                  currentlyColonisedPlanets[i],
+                  planetWithUnit
+                );
               }
             );
 
@@ -193,46 +199,144 @@ if (!aiCommunicationsLoaded) {
                 "team",
                 ally.name,
                 _.sample(messages.colonise),
-                model.planetListState().planets[planetIndex].name
+                planets[planetIndex].name
               );
             });
 
-            colonisedPlanets[index] =
-              colonisedPlanets[index].concat(newPlanets);
+            currentlyColonisedPlanets[i] =
+              currentlyColonisedPlanets[i].concat(newPlanets);
           });
+        };
+
+        var countDesiredUnits = function (unitsOnPlanet, desiredUnits) {
+          var desiredUnitsCount = 0;
+          desiredUnits.forEach(function (desiredUnit) {
+            for (var unit in unitsOnPlanet) {
+              if (_.includes(unit, desiredUnit)) {
+                desiredUnitsCount += unitsOnPlanet[unit].length;
+              }
+            }
+          });
+          return desiredUnitsCount;
+        };
+
+        var countUnitsOnPlanet = function (aiIndex, desiredUnits) {
+          var deferred = $.Deferred();
+          var deferredQueue = [];
+          var desiredUnitCount = [];
+
+          _.times(planetCount, function (planetIndex) {
+            deferredQueue.push(
+              api
+                .getWorldView()
+                .getArmyUnits(aiIndex, planetIndex)
+                .then(function (unitsOnPlanet) {
+                  var desiredUnitsOnPlanet = countDesiredUnits(
+                    unitsOnPlanet,
+                    desiredUnits
+                  );
+                  desiredUnitCount.push(desiredUnitsOnPlanet);
+                })
+            );
+          });
+
+          Promise.all(deferredQueue).then(function () {
+            deferred.resolve(desiredUnitCount);
+          });
+
+          return deferred.promise();
+        };
+
+        var previousUnitCount = [];
+
+        var identifyNewlyInvadedPlanets = function (
+          allyIndex,
+          perPlanetUnitCounts
+        ) {
+          if (_.isUndefined(previousUnitCount[allyIndex])) {
+            previousUnitCount[allyIndex] = [];
+            _.times(planetCount, function () {
+              previousUnitCount[allyIndex].push(0);
+            });
+          }
+
+          var newPlanets = [];
+
+          perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
+            var armySizeMultiplier = 10;
+            // avoid multiplying by zero
+            var unitCount = Math.max(
+              previousUnitCount[allyIndex][planetIndex],
+              1
+            );
+            if (planetUnitCount >= unitCount * armySizeMultiplier) {
+              newPlanets.push(planetIndex);
+            }
+
+            previousUnitCount[allyIndex][planetIndex] = planetUnitCount;
+          });
+
+          return newPlanets;
+        };
+
+        var invadingPlanet = function (ally, allyIndex) {
+          var desiredUnits = ["bot", "tank", "orbital_"];
+          countUnitsOnPlanet(aiAllyArmyIndex[allyIndex], desiredUnits).then(
+            function (perPlanetUnitCounts) {
+              var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
+                allyIndex,
+                perPlanetUnitCounts
+              );
+
+              newlyInvadedPlanets.forEach(function (planetIndex) {
+                sendMessage(
+                  "team",
+                  ally.name,
+                  _.sample(messages.invasion),
+                  planets[planetIndex].name
+                );
+              });
+            }
+          );
         };
 
         var checksInitialised = false;
 
-        var initialiseChecks = function () {
+        var initialiseChecks = function (allies) {
           if (checksInitialised) {
             return;
           }
 
-          if (!_.isEmpty(aiAllies)) {
+          if (!_.isEmpty(allies)) {
             checksInitialised = true;
 
-            aiAllies.forEach(function (ally, i) {
-              setInterval(colonisingPlanet, 10000, ally, i);
+            allies.forEach(function (ally, i) {
+              if (planetCount > 1) {
+                setInterval(colonisingPlanet, 10000, ally, i);
+                setInterval(invadingPlanet, 10000, ally, i);
+              }
             });
           }
         };
-        initialiseChecks();
+        initialiseChecks(aiAllies);
 
         model.players.subscribe(function () {
           // model isn't always populated when these variables were first declared
-          ais = _.filter(model.players(), { ai: 1 });
+          players = model.players();
+          var player = model.player();
+          ais = _.filter(players, { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
-          planetCount = model.planetListState().planets.length - 1; // last entry in array isn't a planet
-          var startingPlanetsCount = _.filter(model.planetListState().planets, {
+          planets = model.planetListState().planets;
+          planetCount = planets.length - 1; // last entry in array isn't a planet
+          var startingPlanetsCount = _.filter(planets, {
             starting_planet: true,
           }).length;
           var playerHasAllies = !_.isEmpty(aiAllies);
-          var playerSelectingSpawn = model.player().landing;
+          var playerSelectingSpawn = player.landing;
 
-          detectNewGame();
-          identifyFriendAndFoe(ais);
-          initialiseChecks();
+          detectNewGame(player);
+          identifyFriendAndFoe(ais, players);
+          initialiseChecks(aiAllies);
 
           if (
             startingPlanetsCount > 1 &&
@@ -243,11 +347,6 @@ if (!aiCommunicationsLoaded) {
             processedLanding(true);
             _.delay(communicateLandingLocation, 10000); // delay to allow AI to spawn
           }
-        });
-
-        // We need to detect planets which spawn later
-        model.planetListState.subscribe(function () {
-          planetCount = model.planetListState().planets.length - 1; // last entry in array isn't a planet
         });
       });
     } catch (e) {
