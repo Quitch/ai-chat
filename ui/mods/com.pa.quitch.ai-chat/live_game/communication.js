@@ -302,15 +302,15 @@ if (!aiCommunicationsLoaded) {
 
         var checksInitialised = false;
 
-        var initialiseChecks = function () {
+        var initialiseChecks = function (allies) {
           if (checksInitialised) {
             return;
           }
 
-          if (!_.isEmpty(aiAllies)) {
+          if (!_.isEmpty(allies)) {
             checksInitialised = true;
 
-            aiAllies.forEach(function (ally, i) {
+            allies.forEach(function (ally, i) {
               if (planetCount > 1) {
                 setInterval(colonisingPlanet, 10000, ally, i);
                 setInterval(invadingPlanet, 10000, ally, i);
@@ -318,7 +318,7 @@ if (!aiCommunicationsLoaded) {
             });
           }
         };
-        initialiseChecks();
+        initialiseChecks(aiAllies);
 
         model.players.subscribe(function () {
           // model isn't always populated when these variables were first declared
@@ -335,7 +335,7 @@ if (!aiCommunicationsLoaded) {
 
           detectNewGame(model.player());
           identifyFriendAndFoe(ais, players);
-          initialiseChecks();
+          initialiseChecks(aiAllies);
 
           if (
             startingPlanetsCount > 1 &&
