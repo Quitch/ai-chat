@@ -8,9 +8,11 @@ if (!aiReportingLoaded) {
       model.chatLog.subscribe(function (chatLog) {
         var reportString = "Report";
         var latestMessage = chatLog[chatLog.length - 1].message;
-        var reportRequested =
-          latestMessage.toUpperCase() === reportString.toUpperCase();
-        if (reportRequested) {
+        var reportRequested = latestMessage.localeCompare(reportString, "en", {
+          sensitivity: "base",
+          ignorePunctuation: true,
+        });
+        if (reportRequested === 0) {
           console.log("Reporting in!");
         }
       });
