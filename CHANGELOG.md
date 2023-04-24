@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v0.3 - 2023-04-24
 
 - Allies inform you when they're invading a planet
 
