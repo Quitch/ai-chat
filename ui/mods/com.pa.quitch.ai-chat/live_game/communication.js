@@ -31,7 +31,7 @@ if (!aiCommunicationsLoaded) {
             });
           }
         };
-        identifyFriendAndFoe(ais);
+        identifyFriendAndFoe(ais, players);
 
         var detectNewGame = function (player) {
           var playerSelectingSpawn = player.landing;
