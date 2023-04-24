@@ -12,7 +12,7 @@ if (!aiReportingLoaded) {
           sensitivity: "base",
           ignorePunctuation: true,
         });
-        if (reportRequested === 0) {
+        if (reportRequested === 0 /* true */) {
           console.log("Reporting in!");
         }
       });
