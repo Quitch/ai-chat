@@ -207,6 +207,98 @@ if (!aiCommunicationsLoaded) {
           });
         };
 
+        var countDesiredUnits = function (unitsOnPlanet, desiredUnits) {
+          var desiredUnitsCount = 0;
+          desiredUnits.forEach(function (desiredUnit) {
+            for (var unit in unitsOnPlanet) {
+              if (_.includes(unit, desiredUnit)) {
+                desiredUnitsCount += unitsOnPlanet[unit].length;
+              }
+            }
+          });
+          return desiredUnitsCount;
+        };
+
+        var countUnitsOnPlanet = function (aiIndex, desiredUnits) {
+          var deferred = $.Deferred();
+          var deferredQueue = [];
+          var desiredUnitCount = [];
+
+          _.times(planetCount, function (planetIndex) {
+            deferredQueue.push(
+              api
+                .getWorldView()
+                .getArmyUnits(aiIndex, planetIndex)
+                .then(function (unitsOnPlanet) {
+                  var desiredUnitsOnPlanet = countDesiredUnits(
+                    unitsOnPlanet,
+                    desiredUnits
+                  );
+                  desiredUnitCount.push(desiredUnitsOnPlanet);
+                })
+            );
+          });
+
+          Promise.all(deferredQueue).then(function () {
+            deferred.resolve(desiredUnitCount);
+          });
+
+          return deferred.promise();
+        };
+
+        var previousUnitCount = [];
+
+        var identifyNewlyInvadedPlanets = function (
+          allyIndex,
+          perPlanetUnitCounts
+        ) {
+          if (_.isUndefined(previousUnitCount[allyIndex])) {
+            previousUnitCount[allyIndex] = [];
+            _.times(planetCount, function () {
+              previousUnitCount[allyIndex].push(0);
+            });
+          }
+
+          var newPlanets = [];
+
+          perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
+            var armySizeMultiplier = 10;
+            // avoid multiplying by zero
+            var unitCount = Math.max(
+              previousUnitCount[allyIndex][planetIndex],
+              1
+            );
+            if (planetUnitCount >= unitCount * armySizeMultiplier) {
+              newPlanets.push(planetIndex);
+            }
+
+            previousUnitCount[allyIndex][planetIndex] = planetUnitCount;
+          });
+
+          return newPlanets;
+        };
+
+        var invadingPlanet = function (ally, allyIndex) {
+          var desiredUnits = ["bot", "tank", "orbital_"];
+          countUnitsOnPlanet(aiAllyArmyIndex[allyIndex], desiredUnits).then(
+            function (perPlanetUnitCounts) {
+              var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
+                allyIndex,
+                perPlanetUnitCounts
+              );
+
+              newlyInvadedPlanets.forEach(function (planetIndex) {
+                sendMessage(
+                  "team",
+                  ally.name,
+                  _.sample(messages.invasion),
+                  planets[planetIndex].name
+                );
+              });
+            }
+          );
+        };
+
         var checksInitialised = false;
 
         var initialiseChecks = function () {
@@ -219,6 +311,7 @@ if (!aiCommunicationsLoaded) {
 
             aiAllies.forEach(function (ally, i) {
               setInterval(colonisingPlanet, 10000, ally, i);
+              setInterval(invadingPlanet, 10000, ally, i);
             });
           }
         };

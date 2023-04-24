@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Allies inform you when they're invading a planet
+
 ## v0.2 - 2023-04-20
 
 - Fixed issue with AI allies not telling you where they landed in some circumstances
