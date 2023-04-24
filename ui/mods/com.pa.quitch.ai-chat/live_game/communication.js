@@ -310,8 +310,10 @@ if (!aiCommunicationsLoaded) {
             checksInitialised = true;
 
             aiAllies.forEach(function (ally, i) {
-              setInterval(colonisingPlanet, 10000, ally, i);
-              setInterval(invadingPlanet, 10000, ally, i);
+              if (planetCount > 1) {
+                setInterval(colonisingPlanet, 10000, ally, i);
+                setInterval(invadingPlanet, 10000, ally, i);
+              }
             });
           }
         };
