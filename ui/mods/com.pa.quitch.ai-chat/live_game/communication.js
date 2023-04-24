@@ -323,6 +323,7 @@ if (!aiCommunicationsLoaded) {
         model.players.subscribe(function () {
           // model isn't always populated when these variables were first declared
           players = model.players();
+          var player = model.player();
           ais = _.filter(players, { ai: 1 });
           aiAllies = _.filter(ais, { stateToPlayer: allyState });
           planets = model.planetListState().planets;
@@ -331,9 +332,9 @@ if (!aiCommunicationsLoaded) {
             starting_planet: true,
           }).length;
           var playerHasAllies = !_.isEmpty(aiAllies);
-          var playerSelectingSpawn = model.player().landing;
+          var playerSelectingSpawn = player.landing;
 
-          detectNewGame(model.player());
+          detectNewGame(player);
           identifyFriendAndFoe(ais, players);
           initialiseChecks(aiAllies);
 
