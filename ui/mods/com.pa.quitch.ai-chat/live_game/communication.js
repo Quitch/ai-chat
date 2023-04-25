@@ -254,10 +254,7 @@ if (!aiCommunicationsLoaded) {
           perPlanetUnitCounts
         ) {
           if (_.isUndefined(previousUnitCount[allyIndex])) {
-            previousUnitCount[allyIndex] = [];
-            _.times(planetCount, function () {
-              previousUnitCount[allyIndex].push(0);
-            });
+            previousUnitCount[allyIndex] = _.fill(Array(planetCount), 0);
           }
 
           var newPlanets = [];
