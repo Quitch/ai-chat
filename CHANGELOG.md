@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.4 - 2023-04-27
+
+- Allies will report the situation for your team per-planet upon request, simply send "report" in team chat
+- AI more likely to call out its invasions
+- AI calls out when it establishes a presence on a gas giant
+
 ## v0.3 - 2023-04-24
 
 - Allies inform you when they're invading a planet

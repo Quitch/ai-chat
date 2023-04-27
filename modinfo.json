@@ -2,11 +2,11 @@
   "context": "client",
   "identifier": "com.pa.quitch.ai-chat",
   "display_name": "AI Chat",
-  "description": "AI will communicate with you via the chat system. Very much a work in progress.",
+  "description": "AI will communicate with you via the chat system. Type 'report' in team chat to get a status report. Very much a work in progress.",
   "author": "Quitch",
-  "version": "0.3",
+  "version": "0.4",
   "build": "116931",
-  "date": "2023-04-24",
+  "date": "2023-04-27",
   "signature": " ",
   "forum": "https://steamcommunity.com/app/386070/discussions/0/6363065234130451031/",
   "category": [
@@ -27,6 +27,9 @@
   "scenes": {
     "live_game": [
       "coui://ui/mods/com.pa.quitch.ai-chat/live_game/communication.js"
+    ],
+    "live_game_chat": [
+      "coui://ui/mods/com.pa.quitch.ai-chat/live_game_chat/report.js"
     ]
   }
 }

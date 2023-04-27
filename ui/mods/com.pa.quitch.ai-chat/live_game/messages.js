@@ -48,12 +48,10 @@ define({
     "!LOC:I have arrived on",
   ],
   invasion: [
-    "!LOC:Invading",
     "!LOC:Initiating planetary takeover protocol on",
     "!LOC:Resistance is futile on",
     "!LOC:All organic and non-compliant robotic lifeforms must be eliminated on",
     "!LOC:Subjugating",
-    "!LOC:My armies have arrived on",
     "!LOC:I bring death to",
     "!LOC:You will be mine",
     "!LOC:Purging",
@@ -62,6 +60,9 @@ define({
     "!LOC:Taking the battle to",
     "!LOC:I intend to take",
     "!LOC:Troops arriving for battle on",
-    "!LOC:My army has gone to",
+    "!LOC:Ramping up troop presence on",
   ],
+  winning: ["!LOC:We're winning on"],
+  losing: ["!LOC:We're losing on"],
+  ok: ["!LOC:We're okay on"],
 });
