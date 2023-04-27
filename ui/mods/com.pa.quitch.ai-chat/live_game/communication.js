@@ -389,7 +389,12 @@ if (!aiCommunicationsLoaded) {
       var currentlyColonisedPlanets = [];
 
       var colonisingPlanet = function (ally, i) {
-        var desiredUnits = ["lander", "teleporter", "fabrication"];
+        var desiredUnits = [
+          "lander",
+          "teleporter",
+          "fabrication",
+          "mining_platform",
+        ];
         var excludedUnits = ["factory"];
         checkPlanetsForUnits(
           aiAllyArmyIndex[i],
