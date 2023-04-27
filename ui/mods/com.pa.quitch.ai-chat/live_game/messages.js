@@ -64,4 +64,7 @@ define({
     "!LOC:Troops arriving for battle on",
     "!LOC:My army has gone to",
   ],
+  winning: ["!LOC:We're winning on"],
+  losing: ["!LOC:We're losing on"],
+  ok: ["!LOC:We're okay on"],
 });
