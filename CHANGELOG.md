@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v0.4 - 2023-04-27
 
 - Allies will report the situation for your team per-planet upon request, simply send "report" in team chat
 - AI more likely to call out its invasions
