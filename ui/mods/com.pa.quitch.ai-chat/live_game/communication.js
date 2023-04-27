@@ -395,11 +395,12 @@ if (!aiCommunicationsLoaded) {
           "fabrication",
           "mining_platform",
         ];
+        var desiredUnitCount = 2; // we only a fabber and something else
         var excludedUnits = ["factory"];
         checkPlanetsForUnits(
           aiAllyArmyIndex[i],
           desiredUnits,
-          desiredUnits.length - 1, // we only need lander or teleporter
+          desiredUnitCount,
           excludedUnits
         ).then(function (planetsWithUnit) {
           if (_.isEmpty(planetsWithUnit)) {
