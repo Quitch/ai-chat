@@ -450,6 +450,17 @@ if (!aiCommunicationsLoaded) {
             perPlanetUnitCounts
           );
 
+          var planetsPresentOn = 0;
+          perPlanetUnitCounts.forEach(function (planetUnitCount) {
+            if (planetUnitCount > 0) {
+              planetsPresentOn++;
+            }
+          });
+
+          if (planetsPresentOn < 2) {
+            return;
+          }
+
           require([
             "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
           ], function (messages) {
