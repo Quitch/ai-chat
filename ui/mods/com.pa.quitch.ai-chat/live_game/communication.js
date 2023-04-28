@@ -146,9 +146,9 @@ if (!aiCommunicationsLoaded) {
             situationReports.push("absent");
           } else if (enemyUnits === 0) {
             situationReports.push("alone");
-          } else if (alliedUnits >= enemyUnitsPerPlanet[i] * winningRatio) {
+          } else if (alliedUnits >= enemyUnits * winningRatio) {
             situationReports.push("winning");
-          } else if (alliedUnits <= enemyUnitsPerPlanet[i] * losingRatio) {
+          } else if (alliedUnits <= enemyUnits * losingRatio) {
             situationReports.push("losing");
           } else {
             situationReports.push("ok");
