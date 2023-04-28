@@ -66,4 +66,14 @@ define({
   losing: ["!LOC:We're losing on"],
   ok: ["!LOC:We're okay on"],
   alone: ["!LOC:We own"],
+  planetLost: [
+    "!LOC:I've lost",
+    "!LOC:Presence gone dark on",
+    "!LOC:I'm no longer on",
+    "!LOC:Goodbye and farewell",
+    "!LOC:The enemy has retaken",
+    "!LOC:I'm no longer on",
+    "!LOC:My time has ended on",
+    "!LOC:Our time is over on",
+  ],
 });

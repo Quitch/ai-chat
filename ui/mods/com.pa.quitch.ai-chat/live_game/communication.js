@@ -371,6 +371,37 @@ if (!aiCommunicationsLoaded) {
 
       var currentlyColonisedPlanets = [];
 
+      var sendLostPlanetMessage = function (ally, lostPlanets) {
+        require([
+          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
+        ], function (messages) {
+          lostPlanets.forEach(function (planetIndex) {
+            sendMessage(
+              "team",
+              ally.name,
+              _.sample(messages.planetLost),
+              planets[planetIndex].name
+            );
+          });
+        });
+      };
+
+      var checkForPlanetsWeLost = function (
+        ally,
+        ourPastPlanets,
+        ourCurrentPlanets
+      ) {
+        var lostPlanets = _.filter(ourPastPlanets, function (planet) {
+          return !_.includes(ourCurrentPlanets, planet);
+        });
+
+        if (_.isEmpty(lostPlanets)) {
+          return;
+        }
+
+        sendLostPlanetMessage(ally, lostPlanets);
+      };
+
       var colonisingPlanet = function (ally, i) {
         var desiredUnits = [
           "lander",
@@ -394,6 +425,12 @@ if (!aiCommunicationsLoaded) {
           if (_.isUndefined(currentlyColonisedPlanets[i])) {
             currentlyColonisedPlanets[i] = [];
           }
+
+          checkForPlanetsWeLost(
+            ally,
+            currentlyColonisedPlanets[i],
+            planetsWithUnit
+          );
 
           // remove planets which are not longer reported as colonised - this allows for future messages
           currentlyColonisedPlanets[i] = _.intersection(
