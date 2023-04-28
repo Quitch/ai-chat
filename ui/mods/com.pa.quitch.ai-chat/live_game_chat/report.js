@@ -6,7 +6,6 @@ if (!aiReportingLoaded) {
   function aiReporting() {
     try {
       model.chatLog.subscribe(function (chatLog) {
-        console.log("CHAT SUB FIRED!");
         var reportString = "Report";
         var latestChat = chatLog[chatLog.length - 1];
         var latestMessage = latestChat.message;
@@ -16,7 +15,6 @@ if (!aiReportingLoaded) {
           ignorePunctuation: true,
         });
         if (reportRequested === 0 /* true */ && isTeamMessage) {
-          console.log("Reporting in!");
           api.Panel.message(api.Panel.parentId, "reportIn");
         }
       });
