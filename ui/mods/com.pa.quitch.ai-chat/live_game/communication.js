@@ -69,9 +69,10 @@ if (!aiCommunicationsLoaded) {
         var deferred = $.Deferred();
         var deferredQueue = [];
         var unitCount = [];
+        var aiCount = aisIndex.length
 
         _.times(planetCount, function (planetIndex) {
-          _.times(aisIndex.length, function (aiIndex) {
+          _.times(aiCount, function (aiIndex) {
             deferredQueue.push(
               api
                 .getWorldView()
