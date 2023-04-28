@@ -6,6 +6,7 @@
 - Situation reports won't be issued by defeated allies
 - Situation reports are more pessimistic
 - Allies report when they're driven off a planet
+- Fixed ally reports not reporting losing situations as intended
 
 ## v0.4 - 2023-04-27
 

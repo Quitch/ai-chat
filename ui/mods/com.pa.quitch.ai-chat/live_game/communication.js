@@ -131,7 +131,7 @@ if (!aiCommunicationsLoaded) {
         enemyUnitsPerPlanet
       ) {
         var winningRatio = 5;
-        var losingRatio = 2;
+        var losingRatio = 1.5;
         var situationReports = [];
 
         alliedUnitsPerPlanet.forEach(function (alliedUnits, i) {
@@ -142,7 +142,7 @@ if (!aiCommunicationsLoaded) {
             situationReports.push("alone");
           } else if (alliedUnits >= enemyUnitsPerPlanet[i] * winningRatio) {
             situationReports.push("winning");
-          } else if (alliedUnits <= enemyUnitsPerPlanet * losingRatio) {
+          } else if (alliedUnits <= enemyUnitsPerPlanet[i] * losingRatio) {
             situationReports.push("losing");
           } else {
             situationReports.push("ok");
