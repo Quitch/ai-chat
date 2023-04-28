@@ -441,7 +441,7 @@ if (!aiCommunicationsLoaded) {
             allPlanetsWithAllyPresence
           );
 
-          // remove planets which are not longer reported as colonised - this allows for future messages
+          // remove planets which are no longer reported as colonised - this allows for future messages
           currentlyColonisedPlanets[allyIndex] = _.intersection(
             currentlyColonisedPlanets[allyIndex],
             matchedPlanets
