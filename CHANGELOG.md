@@ -4,6 +4,7 @@
 
 - Allied reports now inform you when your team is the sole presence on a planet
 - Situation reports won't be issued by defeated allies
+- Situation reports are more pessimistic
 
 ## v0.4 - 2023-04-27
 
