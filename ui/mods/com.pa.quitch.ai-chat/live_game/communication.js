@@ -235,7 +235,8 @@ if (!aiCommunicationsLoaded) {
 
         var deferred = $.Deferred();
         var deferredQueue = [];
-        var results = [];
+        var matches = [];
+        var rejections = [];
 
         _.times(planetCount, function (planetIndex) {
           deferredQueue.push(
@@ -249,6 +250,7 @@ if (!aiCommunicationsLoaded) {
                 );
 
                 if (excludedUnitsOnPlanet) {
+                  rejections.push(planetIndex);
                   return;
                 }
 
@@ -258,14 +260,14 @@ if (!aiCommunicationsLoaded) {
                 );
 
                 if (desiredUnitsOnPlanet >= desiredUnitCount) {
-                  results.push(planetIndex);
+                  matches.push(planetIndex);
                 }
               })
           );
         });
 
         Promise.all(deferredQueue).then(function () {
-          deferred.resolve(results);
+          deferred.resolve([matches, rejections]);
         });
 
         return deferred.promise();
@@ -349,14 +351,16 @@ if (!aiCommunicationsLoaded) {
             ally.commanders,
             ally.commanders.length
           ).then(function (planetsWithUnit) {
-            if (_.isEmpty(planetsWithUnit)) {
+            var matchedPlanets = planetsWithUnit[0];
+
+            if (_.isEmpty(matchedPlanets)) {
               return;
             }
 
             require([
               "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
             ], function (messages) {
-              planetsWithUnit.forEach(function (planetIndex) {
+              matchedPlanets.forEach(function (planetIndex) {
                 sendMessage(
                   "team",
                   ally.name,
@@ -402,7 +406,7 @@ if (!aiCommunicationsLoaded) {
         sendLostPlanetMessage(ally, lostPlanets);
       };
 
-      var colonisingPlanet = function (ally, i) {
+      var colonisingPlanet = function (ally, allyIndex) {
         var desiredUnits = [
           "lander",
           "teleporter",
@@ -412,34 +416,42 @@ if (!aiCommunicationsLoaded) {
         var desiredUnitCount = 2; // we only a fabber and something else
         var excludedUnits = ["factory"];
         checkPlanetsForUnits(
-          aiAllyArmyIndex[i],
+          aiAllyArmyIndex[allyIndex],
           desiredUnits,
           desiredUnitCount,
           excludedUnits
         ).then(function (planetsWithUnit) {
-          if (_.isEmpty(planetsWithUnit)) {
-            currentlyColonisedPlanets[i] = [];
+          var matchedPlanets = planetsWithUnit[0];
+          var excludedPlanets = planetsWithUnit[1];
+
+          if (_.isEmpty(matchedPlanets)) {
             return;
           }
 
-          if (_.isUndefined(currentlyColonisedPlanets[i])) {
-            currentlyColonisedPlanets[i] = [];
+          if (_.isUndefined(currentlyColonisedPlanets[allyIndex])) {
+            currentlyColonisedPlanets[allyIndex] = [];
           }
+
+          var allPlanetsWithAllyPresence =
+            matchedPlanets.concat(excludedPlanets);
 
           checkForPlanetsWeLost(
             ally,
-            currentlyColonisedPlanets[i],
-            planetsWithUnit
+            currentlyColonisedPlanets[allyIndex],
+            allPlanetsWithAllyPresence
           );
 
           // remove planets which are not longer reported as colonised - this allows for future messages
-          currentlyColonisedPlanets[i] = _.intersection(
-            currentlyColonisedPlanets[i],
-            planetsWithUnit
-          );
+          currentlyColonisedPlanets[allyIndex] = _.intersection(
+            currentlyColonisedPlanets[allyIndex],
+            matchedPlanets
+          ).concat(excludedPlanets);
 
-          var newPlanets = _.filter(planetsWithUnit, function (planetWithUnit) {
-            return !_.includes(currentlyColonisedPlanets[i], planetWithUnit);
+          var newPlanets = _.filter(matchedPlanets, function (matchedPlanet) {
+            return !_.includes(
+              currentlyColonisedPlanets[allyIndex],
+              matchedPlanet
+            );
           });
 
           require([
@@ -454,8 +466,8 @@ if (!aiCommunicationsLoaded) {
               );
             });
 
-            currentlyColonisedPlanets[i] =
-              currentlyColonisedPlanets[i].concat(newPlanets);
+            currentlyColonisedPlanets[allyIndex] =
+              currentlyColonisedPlanets[allyIndex].concat(newPlanets);
           });
         });
       };
