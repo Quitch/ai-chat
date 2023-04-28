@@ -489,15 +489,7 @@ if (!aiCommunicationsLoaded) {
         return deferred.promise();
       };
 
-      var communicateAnyInvasions = function (
-        ally,
-        allyIndex,
-        perPlanetUnitCounts
-      ) {
-        var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
-          allyIndex,
-          perPlanetUnitCounts
-        );
+      var communicateAnyInvasions = function (ally, newlyInvadedPlanets) {
         require([
           "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
         ], function (messages) {
@@ -528,7 +520,11 @@ if (!aiCommunicationsLoaded) {
             return;
           }
 
-          communicateAnyInvasions(ally, allyIndex, perPlanetUnitCounts);
+          var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
+            allyIndex,
+            perPlanetUnitCounts
+          );
+          communicateAnyInvasions(ally, newlyInvadedPlanets);
         });
       };
 
