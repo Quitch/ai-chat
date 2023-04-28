@@ -463,20 +463,18 @@ if (!aiCommunicationsLoaded) {
       var checksInitialised = false;
 
       var initialiseChecks = function (allies) {
-        if (checksInitialised) {
+        if (checksInitialised || _.isEmpty(allies)) {
           return;
         }
 
-        if (!_.isEmpty(allies)) {
-          checksInitialised = true;
+        checksInitialised = true;
 
-          allies.forEach(function (ally, i) {
-            if (planetCount > 1) {
-              setInterval(colonisingPlanet, 10000, ally, i);
-              setInterval(invadingPlanet, 10000, ally, i);
-            }
-          });
-        }
+        allies.forEach(function (ally, i) {
+          if (planetCount > 1) {
+            setInterval(colonisingPlanet, 10000, ally, i);
+            setInterval(invadingPlanet, 10000, ally, i);
+          }
+        });
       };
       initialiseChecks(aiAllies);
 
