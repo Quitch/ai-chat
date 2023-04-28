@@ -65,4 +65,5 @@ define({
   winning: ["!LOC:We're winning on"],
   losing: ["!LOC:We're losing on"],
   ok: ["!LOC:We're okay on"],
+  alone: ["!LOC:We own"],
 });

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Allied reports now inform you when your team is the sole presence on a planet
+
 ## v0.4 - 2023-04-27
 
 - Allies will report the situation for your team per-planet upon request, simply send "report" in team chat

@@ -135,8 +135,11 @@ if (!aiCommunicationsLoaded) {
         var situationReports = [];
 
         alliedUnitsPerPlanet.forEach(function (alliedUnits, i) {
+          var enemyUnits = enemyUnitsPerPlanet[i];
           if (alliedUnits === 0) {
             situationReports.push("absent");
+          } else if (enemyUnits === 0) {
+            situationReports.push("alone");
           } else if (alliedUnits >= enemyUnitsPerPlanet[i] * winningRatio) {
             situationReports.push("winning");
           } else if (alliedUnits <= enemyUnitsPerPlanet * losingRatio) {
@@ -196,6 +199,14 @@ if (!aiCommunicationsLoaded) {
                     "team",
                     ally.name,
                     _.sample(messages.ok),
+                    planets[planetIndex].name
+                  );
+                  break;
+                case "alone":
+                  sendMessage(
+                    "team",
+                    ally.name,
+                    _.sample(messages.alone),
                     planets[planetIndex].name
                   );
                 // default: no presence on planet - keep the noise to a minimum
