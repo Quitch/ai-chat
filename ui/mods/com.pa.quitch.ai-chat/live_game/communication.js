@@ -69,7 +69,7 @@ if (!aiCommunicationsLoaded) {
         var deferred = $.Deferred();
         var deferredQueue = [];
         var unitCount = [];
-        var aiCount = aisIndex.length
+        var aiCount = aisIndex.length;
 
         _.times(planetCount, function (planetIndex) {
           _.times(aiCount, function (aiIndex) {
@@ -110,17 +110,11 @@ if (!aiCommunicationsLoaded) {
         planetUnitCounts.forEach(function (planetUnitCount) {
           var unitsPerAlly = planetUnitCount.splice(teamIndex, allyCount + 1);
           var unitsPerEnemy = planetUnitCount;
-          var alliedUnits = unitsPerAlly.reduce(function (
-            accumulator,
-            currentValue
-          ) {
-            return accumulator + currentValue;
+          var alliedUnits = unitsPerAlly.reduce(function (acc, val) {
+            return acc + val;
           });
-          var enemyUnits = unitsPerEnemy.reduce(function (
-            accumulator,
-            currentValue
-          ) {
-            return accumulator + currentValue;
+          var enemyUnits = unitsPerEnemy.reduce(function (acc, val) {
+            return acc + val;
           });
           alliedUnitsPerPlanet.push(alliedUnits);
           enemyUnitsPerPlanet.push(enemyUnits);
