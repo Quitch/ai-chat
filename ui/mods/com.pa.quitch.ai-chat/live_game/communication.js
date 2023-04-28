@@ -479,7 +479,6 @@ if (!aiCommunicationsLoaded) {
       initialiseChecks(aiAllies);
 
       model.players.subscribe(function () {
-        // model isn't always populated when these variables were first declared
         players = model.players();
         var player = model.player();
         ais = _.filter(players, { ai: 1 });
