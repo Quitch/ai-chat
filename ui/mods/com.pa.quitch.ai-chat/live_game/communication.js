@@ -171,7 +171,13 @@ if (!aiCommunicationsLoaded) {
         var allAIIndex = aiAllyArmyIndex.concat(aiEnemyArmyIndex);
         countAllUnitsOnPlanets(allAIIndex).then(function (planetUnitCounts) {
           var situationReports = getSituationReports(planetUnitCounts);
-          var ally = _.shuffle(aiAllies)[0];
+          var liveAllies = _.filter(aiAllies, { defeated: false });
+
+          if (_.isEmpty(liveAllies)) {
+            return;
+          }
+
+          var ally = _.shuffle(liveAllies)[0];
 
           require([
             "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
