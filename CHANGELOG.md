@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.5 - 2023-04-28
+
+- Allied reports now inform you when your team is the sole presence on a planet
+- Situation reports won't be issued by defeated allies
+- Situation reports are more pessimistic
+- Allies report when they're driven off a planet
+- Fixed ally reports not reporting losing situations as intended
+
 ## v0.4 - 2023-04-27
 
 - Allies will report the situation for your team per-planet upon request, simply send "report" in team chat
