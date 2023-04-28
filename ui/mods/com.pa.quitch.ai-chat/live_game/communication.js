@@ -415,6 +415,7 @@ if (!aiCommunicationsLoaded) {
           "teleporter",
           "fabrication",
           "mining_platform",
+          "commander",
         ];
         var desiredUnitCount = 2; // we only a fabber and something else
         var excludedUnits = ["factory"];

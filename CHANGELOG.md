@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Correctly identifies Commanders and Colonels as fabbers for the purpose of colonisation checks
+
 ## v0.5 - 2023-04-28
 
 - Allied reports now inform you when your team is the sole presence on a planet
