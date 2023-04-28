@@ -176,41 +176,17 @@ if (!aiCommunicationsLoaded) {
           require([
             "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
           ], function (messages) {
-            situationReports.forEach(function (situationReport, planetIndex) {
-              switch (situationReport) {
-                case "winning":
-                  sendMessage(
-                    "team",
-                    ally.name,
-                    _.sample(messages.winning),
-                    planets[planetIndex].name
-                  );
-                  break;
-                case "losing":
-                  sendMessage(
-                    "team",
-                    ally.name,
-                    _.sample(messages.losing),
-                    planets[planetIndex].name
-                  );
-                  break;
-                case "ok":
-                  sendMessage(
-                    "team",
-                    ally.name,
-                    _.sample(messages.ok),
-                    planets[planetIndex].name
-                  );
-                  break;
-                case "alone":
-                  sendMessage(
-                    "team",
-                    ally.name,
-                    _.sample(messages.alone),
-                    planets[planetIndex].name
-                  );
-                // default: no presence on planet - keep the noise to a minimum
+            situationReports.forEach(function (report, planetIndex) {
+              if (report === "absent") {
+                return;
               }
+
+              sendMessage(
+                "team",
+                ally.name,
+                _.sample(messages[report]),
+                planets[planetIndex].name
+              );
             });
           });
         });
