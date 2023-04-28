@@ -164,24 +164,19 @@ if (!aiCommunicationsLoaded) {
       };
 
       handlers.reportIn = function () {
-        if (_.isEmpty(aiAllyArmyIndex)) {
+        var liveAllies = _.filter(aiAllies, { defeated: false });
+
+        if (_.isEmpty(aiAllyArmyIndex) || _.isEmpty(liveAllies)) {
           return;
         }
 
         var allAIIndex = aiAllyArmyIndex.concat(aiEnemyArmyIndex);
         countAllUnitsOnPlanets(allAIIndex).then(function (planetUnitCounts) {
-          var situationReports = getSituationReports(planetUnitCounts);
-          var liveAllies = _.filter(aiAllies, { defeated: false });
-
-          if (_.isEmpty(liveAllies)) {
-            return;
-          }
-
-          var ally = _.shuffle(liveAllies)[0];
-
           require([
             "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
           ], function (messages) {
+            var situationReports = getSituationReports(planetUnitCounts);
+            var ally = _.shuffle(liveAllies)[0];
             situationReports.forEach(function (report, planetIndex) {
               if (report === "absent") {
                 return;
