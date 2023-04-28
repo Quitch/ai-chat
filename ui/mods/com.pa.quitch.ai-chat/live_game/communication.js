@@ -130,7 +130,7 @@ if (!aiCommunicationsLoaded) {
         alliedUnitsPerPlanet,
         enemyUnitsPerPlanet
       ) {
-        var winningRatio = 5;
+        var winningRatio = 4;
         var losingRatio = 1.5;
         var situationReports = [];
 
