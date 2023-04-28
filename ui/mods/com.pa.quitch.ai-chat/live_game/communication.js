@@ -278,6 +278,7 @@ if (!aiCommunicationsLoaded) {
       ) {
         if (_.isUndefined(previousUnitCount[allyIndex])) {
           previousUnitCount[allyIndex] = [];
+          // because Array.prototype.fill() isn't supported
           _.times(planetCount, function () {
             previousUnitCount[allyIndex].push(0);
           });
