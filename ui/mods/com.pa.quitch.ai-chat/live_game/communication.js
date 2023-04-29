@@ -25,29 +25,6 @@ if (!aiCommunicationsLoaded) {
         }).id;
       });
 
-      var identifyFriendAndFoe = function (allAis, allPlayers) {
-        // avoid duplicates if this is called more than once
-        aiAllyArmyIndex = [];
-        aiEnemyArmyIndex = [];
-        if (!_.isEmpty(allAis)) {
-          allAis.forEach(function (ai) {
-            var aiIndex = _.findIndex(allPlayers, ai);
-            ai.stateToPlayer === allyState
-              ? aiAllyArmyIndex.push(aiIndex)
-              : aiEnemyArmyIndex.push(aiIndex);
-          });
-        }
-      };
-      identifyFriendAndFoe(ais, players);
-
-      var detectNewGame = function (player) {
-        var playerSelectingSpawn = player.landing;
-        if (processedLanding() === true && playerSelectingSpawn === true) {
-          processedLanding(false);
-        }
-      };
-      detectNewGame(model.player());
-
       var sendMessage = function (audience, aiName, type, planetIndex) {
         require([
           "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
@@ -496,6 +473,29 @@ if (!aiCommunicationsLoaded) {
           communicateAnyInvasions(ally, newlyInvadedPlanets);
         });
       };
+
+      var identifyFriendAndFoe = function (allAis, allPlayers) {
+        // avoid duplicates if this is called more than once
+        aiAllyArmyIndex = [];
+        aiEnemyArmyIndex = [];
+        if (!_.isEmpty(allAis)) {
+          allAis.forEach(function (ai) {
+            var aiIndex = _.findIndex(allPlayers, ai);
+            ai.stateToPlayer === allyState
+              ? aiAllyArmyIndex.push(aiIndex)
+              : aiEnemyArmyIndex.push(aiIndex);
+          });
+        }
+      };
+      identifyFriendAndFoe(ais, players);
+
+      var detectNewGame = function (player) {
+        var playerSelectingSpawn = player.landing;
+        if (processedLanding() === true && playerSelectingSpawn === true) {
+          processedLanding(false);
+        }
+      };
+      detectNewGame(model.player());
 
       var checksInitialised = false;
 
