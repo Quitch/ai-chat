@@ -25,15 +25,6 @@ if (!aiCommunicationsLoaded) {
         }).id;
       });
 
-      var sendMessage = function (audience, aiName, message, planet) {
-        var translatedMessage = loc(message) + " " + planet;
-        api.Panel.message(liveGameChatPanelId, "chat_message", {
-          type: audience, // "team" or "global"
-          player_name: aiName,
-          message: translatedMessage,
-        });
-      };
-
       var identifyFriendAndFoe = function (allAis, allPlayers) {
         // avoid duplicates if this is called more than once
         aiAllyArmyIndex = [];
@@ -56,6 +47,21 @@ if (!aiCommunicationsLoaded) {
         }
       };
       detectNewGame(model.player());
+
+      var sendMessage = function (audience, aiName, type, planetIndex) {
+        require([
+          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
+        ], function (messages) {
+          var planetName = planets[planetIndex].name;
+          var translatedMessage = loc(_.sample(messages[type]));
+          var finalMessage = translatedMessage + " " + planetName;
+          api.Panel.message(liveGameChatPanelId, "chat_message", {
+            type: audience, // "team" or "global"
+            player_name: aiName,
+            message: finalMessage,
+          });
+        });
+      };
 
       var countAllUnits = function (unitsOnPlanet) {
         var unitCount = 0;
@@ -140,9 +146,9 @@ if (!aiCommunicationsLoaded) {
             situationReports.push("absent");
           } else if (enemyUnits === 0) {
             situationReports.push("alone");
-          } else if (alliedUnits >= enemyUnitsPerPlanet[i] * winningRatio) {
+          } else if (alliedUnits >= enemyUnits * winningRatio) {
             situationReports.push("winning");
-          } else if (alliedUnits <= enemyUnitsPerPlanet[i] * losingRatio) {
+          } else if (alliedUnits <= enemyUnits * losingRatio) {
             situationReports.push("losing");
           } else {
             situationReports.push("ok");
@@ -172,23 +178,14 @@ if (!aiCommunicationsLoaded) {
 
         var allAIIndex = aiAllyArmyIndex.concat(aiEnemyArmyIndex);
         countAllUnitsOnPlanets(allAIIndex).then(function (planetUnitCounts) {
-          require([
-            "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
-          ], function (messages) {
-            var situationReports = getSituationReports(planetUnitCounts);
-            var ally = _.shuffle(liveAllies)[0];
-            situationReports.forEach(function (report, planetIndex) {
-              if (report === "absent") {
-                return;
-              }
+          var situationReports = getSituationReports(planetUnitCounts);
+          var ally = _.shuffle(liveAllies)[0];
+          situationReports.forEach(function (report, planetIndex) {
+            if (report === "absent") {
+              return;
+            }
 
-              sendMessage(
-                "team",
-                ally.name,
-                _.sample(messages[report]),
-                planets[planetIndex].name
-              );
-            });
+            sendMessage("team", ally.name, report, planetIndex);
           });
         });
       };
@@ -281,6 +278,7 @@ if (!aiCommunicationsLoaded) {
       ) {
         if (_.isUndefined(previousUnitCount[allyIndex])) {
           previousUnitCount[allyIndex] = [];
+          // because Array.prototype.fill() isn't supported
           _.times(planetCount, function () {
             previousUnitCount[allyIndex].push(0);
           });
@@ -289,13 +287,16 @@ if (!aiCommunicationsLoaded) {
         var newPlanets = [];
 
         perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
-          var armySizeMultiplier = 5;
+          var armySizeMultiplier = 1.5;
           // avoid multiplying by zero
           var unitCount = Math.max(
             previousUnitCount[allyIndex][planetIndex],
             1
           );
-          if (planetUnitCount >= unitCount * armySizeMultiplier) {
+          if (
+            planetUnitCount > unitCount * armySizeMultiplier &&
+            planetUnitCount > 20
+          ) {
             newPlanets.push(planetIndex);
           }
 
@@ -318,17 +319,8 @@ if (!aiCommunicationsLoaded) {
               return;
             }
 
-            require([
-              "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
-            ], function (messages) {
-              matchedPlanets.forEach(function (planetIndex) {
-                sendMessage(
-                  "team",
-                  ally.name,
-                  _.sample(messages.landing),
-                  planets[planetIndex].name
-                );
-              });
+            matchedPlanets.forEach(function (planetIndex) {
+              sendMessage("team", ally.name, "landing", planetIndex);
             });
           });
         });
@@ -337,17 +329,8 @@ if (!aiCommunicationsLoaded) {
       var currentlyColonisedPlanets = [];
 
       var sendLostPlanetMessage = function (ally, lostPlanets) {
-        require([
-          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
-        ], function (messages) {
-          lostPlanets.forEach(function (planetIndex) {
-            sendMessage(
-              "team",
-              ally.name,
-              _.sample(messages.planetLost),
-              planets[planetIndex].name
-            );
-          });
+        lostPlanets.forEach(function (planetIndex) {
+          sendMessage("team", ally.name, "planetLost", planetIndex);
         });
       };
 
@@ -370,17 +353,8 @@ if (!aiCommunicationsLoaded) {
       };
 
       var sendColonisedMessage = function (ally, newPlanets) {
-        require([
-          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
-        ], function (messages) {
-          newPlanets.forEach(function (planetIndex) {
-            sendMessage(
-              "team",
-              ally.name,
-              _.sample(messages.colonise),
-              planets[planetIndex].name
-            );
-          });
+        newPlanets.forEach(function (planetIndex) {
+          sendMessage("team", ally.name, "colonise", planetIndex);
         });
       };
 
@@ -415,6 +389,7 @@ if (!aiCommunicationsLoaded) {
           "teleporter",
           "fabrication",
           "mining_platform",
+          "commander",
         ];
         var desiredUnitCount = 2; // we only a fabber and something else
         var excludedUnits = ["factory"];
@@ -490,17 +465,8 @@ if (!aiCommunicationsLoaded) {
       };
 
       var communicateAnyInvasions = function (ally, newlyInvadedPlanets) {
-        require([
-          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
-        ], function (messages) {
-          newlyInvadedPlanets.forEach(function (planetIndex) {
-            sendMessage(
-              "team",
-              ally.name,
-              _.sample(messages.invasion),
-              planets[planetIndex].name
-            );
-          });
+        newlyInvadedPlanets.forEach(function (planetIndex) {
+          sendMessage("team", ally.name, "invasion", planetIndex);
         });
       };
 
@@ -510,6 +476,13 @@ if (!aiCommunicationsLoaded) {
           aiAllyArmyIndex[allyIndex],
           desiredUnits
         ).then(function (perPlanetUnitCounts) {
+          var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
+            allyIndex,
+            perPlanetUnitCounts
+          );
+
+          // we don't do this first because identifyNewlyInvadedPlanets()
+          // updates the previous unit count
           var planetsPresentOn = 0;
           perPlanetUnitCounts.forEach(function (planetUnitCount) {
             if (planetUnitCount > 0) {
@@ -520,10 +493,6 @@ if (!aiCommunicationsLoaded) {
             return;
           }
 
-          var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
-            allyIndex,
-            perPlanetUnitCounts
-          );
           communicateAnyInvasions(ally, newlyInvadedPlanets);
         });
       };
