@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Correctly identifies Commanders and Colonels as fabbers for the purpose of colonisation checks
+- Fix invasion notifications always triggering for the home planet when the AI expanded to another planet
 
 ## v0.5 - 2023-04-28
 

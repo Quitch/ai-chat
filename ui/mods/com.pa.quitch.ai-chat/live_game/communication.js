@@ -473,6 +473,13 @@ if (!aiCommunicationsLoaded) {
           aiAllyArmyIndex[allyIndex],
           desiredUnits
         ).then(function (perPlanetUnitCounts) {
+          var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
+            allyIndex,
+            perPlanetUnitCounts
+          );
+
+          // we don't do this first because identifyNewlyInvadedPlanets()
+          // updates the previous unit count
           var planetsPresentOn = 0;
           perPlanetUnitCounts.forEach(function (planetUnitCount) {
             if (planetUnitCount > 0) {
@@ -483,10 +490,6 @@ if (!aiCommunicationsLoaded) {
             return;
           }
 
-          var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
-            allyIndex,
-            perPlanetUnitCounts
-          );
           communicateAnyInvasions(ally, newlyInvadedPlanets);
         });
       };
