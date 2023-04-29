@@ -185,7 +185,7 @@ if (!aiCommunicationsLoaded) {
               return;
             }
 
-            sendMessage("team", ally.name, "report", planetIndex);
+            sendMessage("team", ally.name, report, planetIndex);
           });
         });
       };
