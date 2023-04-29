@@ -287,13 +287,16 @@ if (!aiCommunicationsLoaded) {
         var newPlanets = [];
 
         perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
-          var armySizeMultiplier = 5;
+          var armySizeMultiplier = 1.5;
           // avoid multiplying by zero
           var unitCount = Math.max(
             previousUnitCount[allyIndex][planetIndex],
             1
           );
-          if (planetUnitCount >= unitCount * armySizeMultiplier) {
+          if (
+            planetUnitCount > unitCount * armySizeMultiplier &&
+            planetUnitCount > 20
+          ) {
             newPlanets.push(planetIndex);
           }
 
