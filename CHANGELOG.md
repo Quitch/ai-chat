@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Allies inform you when they start heading into T2
+
 ## v0.6 - 2023-04-29
 
 - Correctly identifies Commanders and Colonels as fabbers for the purpose of colonisation checks

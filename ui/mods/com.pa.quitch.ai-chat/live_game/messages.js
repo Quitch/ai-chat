@@ -76,4 +76,13 @@ define({
     "!LOC:My time has ended on",
     "!LOC:My time is over on",
   ],
+  allyTech: [
+    "!LOC:I'm teching up",
+    "!LOC:I'm going for T2",
+    "!LOC:T2 is coming online",
+    "!LOC:Advanced tech coming online",
+    "!LOC:Cover me while I tech up",
+    "!LOC:Building T2",
+    "!LOC:Building advanced tech",
+  ],
 });
