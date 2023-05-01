@@ -25,34 +25,12 @@ if (!aiCommunicationsLoaded) {
         }).id;
       });
 
-      var identifyFriendAndFoe = function (allAis, allPlayers) {
-        // avoid duplicates if this is called more than once
-        aiAllyArmyIndex = [];
-        aiEnemyArmyIndex = [];
-        if (!_.isEmpty(allAis)) {
-          allAis.forEach(function (ai) {
-            var aiIndex = _.findIndex(allPlayers, ai);
-            ai.stateToPlayer === allyState
-              ? aiAllyArmyIndex.push(aiIndex)
-              : aiEnemyArmyIndex.push(aiIndex);
-          });
-        }
-      };
-      identifyFriendAndFoe(ais, players);
-
-      var detectNewGame = function (player) {
-        var playerSelectingSpawn = player.landing;
-        if (processedLanding() === true && playerSelectingSpawn === true) {
-          processedLanding(false);
-        }
-      };
-      detectNewGame(model.player());
-
       var sendMessage = function (audience, aiName, type, planetIndex) {
         require([
           "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
         ], function (messages) {
-          var planetName = planets[planetIndex].name;
+          var planetName =
+            (planets[planetIndex] && planets[planetIndex].name) || "";
           var translatedMessage = loc(_.sample(messages[type]));
           var finalMessage = translatedMessage + " " + planetName;
           api.Panel.message(liveGameChatPanelId, "chat_message", {
@@ -425,6 +403,48 @@ if (!aiCommunicationsLoaded) {
         });
       };
 
+      var alliedAdvancedTechCheckInterval = [];
+
+      var checkForAlliedAdvancedTech = function (ally, allyIndex) {
+        var desiredUnits = ["_adv"];
+        var desiredUnitCount = 1;
+        checkPlanetsForDesiredUnits(
+          aiAllyArmyIndex[allyIndex],
+          desiredUnits,
+          desiredUnitCount
+        ).then(function (planetsWithUnit) {
+          var matchedPlanets = planetsWithUnit[0];
+
+          if (_.isEmpty(matchedPlanets)) {
+            return;
+          }
+
+          sendMessage("team", ally.name, "allyAdvTech");
+          clearInterval(alliedAdvancedTechCheckInterval[allyIndex]);
+        });
+      };
+
+      var alliedOrbitalTechCheckInterval = [];
+
+      var checkForAlliedOrbitalTech = function (ally, allyIndex) {
+        var desiredUnits = ["orbital_"];
+        var desiredUnitCount = 1;
+        checkPlanetsForDesiredUnits(
+          aiAllyArmyIndex[allyIndex],
+          desiredUnits,
+          desiredUnitCount
+        ).then(function (planetsWithUnit) {
+          var matchedPlanets = planetsWithUnit[0];
+
+          if (_.isEmpty(matchedPlanets)) {
+            return;
+          }
+
+          sendMessage("team", ally.name, "allyOrbitalTech");
+          clearInterval(alliedOrbitalTechCheckInterval[allyIndex]);
+        });
+      };
+
       var countDesiredUnits = function (unitsOnPlanet, desiredUnits) {
         var desiredUnitsCount = 0;
         desiredUnits.forEach(function (desiredUnit) {
@@ -497,6 +517,38 @@ if (!aiCommunicationsLoaded) {
         });
       };
 
+      var identifyFriendAndFoe = function (allAis, allPlayers) {
+        // avoid duplicates if this is called more than once
+        aiAllyArmyIndex = [];
+        aiEnemyArmyIndex = [];
+        if (!_.isEmpty(allAis)) {
+          allAis.forEach(function (ai) {
+            var aiIndex = _.findIndex(allPlayers, ai);
+            ai.stateToPlayer === allyState
+              ? aiAllyArmyIndex.push(aiIndex)
+              : aiEnemyArmyIndex.push(aiIndex);
+          });
+        }
+      };
+      identifyFriendAndFoe(ais, players);
+
+      var detectNewGame = function (player) {
+        var playerSelectingSpawn = player.landing;
+        if (processedLanding() === true && playerSelectingSpawn === true) {
+          processedLanding(false);
+        }
+      };
+      detectNewGame(model.player());
+
+      var randomPercentageAdjustment = function (min, max) {
+        return Math.random() * (max - min) + min;
+      };
+
+      var generateInterval = function () {
+        var baseInterval = 10000; // 10 seconds
+        return baseInterval * randomPercentageAdjustment(0.8, 1.2);
+      };
+
       var checksInitialised = false;
 
       var initialiseChecks = function (allies) {
@@ -508,8 +560,20 @@ if (!aiCommunicationsLoaded) {
 
         allies.forEach(function (ally, i) {
           if (planetCount > 1) {
-            setInterval(checkForColonies, 10000, ally, i);
-            setInterval(checkForInvasions, 10000, ally, i);
+            setInterval(checkForColonies, generateInterval(), ally, i);
+            setInterval(checkForInvasions, generateInterval(), ally, i);
+            alliedAdvancedTechCheckInterval[i] = setInterval(
+              checkForAlliedAdvancedTech,
+              generateInterval(),
+              ally,
+              i
+            );
+            alliedOrbitalTechCheckInterval[i] = setInterval(
+              checkForAlliedOrbitalTech,
+              generateInterval(),
+              ally,
+              i
+            );
           }
         });
       };
