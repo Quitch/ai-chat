@@ -540,6 +540,15 @@ if (!aiCommunicationsLoaded) {
       };
       detectNewGame(model.player());
 
+      var randomPercentageAdjustment = function (min, max) {
+        return Math.random() * (max - min) + min;
+      };
+
+      var generateInterval = function () {
+        var baseInterval = 10000; // 10 seconds
+        return baseInterval * randomPercentageAdjustment(0.8, 1.2);
+      };
+
       var checksInitialised = false;
 
       var initialiseChecks = function (allies) {
@@ -551,17 +560,17 @@ if (!aiCommunicationsLoaded) {
 
         allies.forEach(function (ally, i) {
           if (planetCount > 1) {
-            setInterval(checkForColonies, 10000, ally, i);
-            setInterval(checkForInvasions, 10000, ally, i);
+            setInterval(checkForColonies, generateInterval(), ally, i);
+            setInterval(checkForInvasions, generateInterval(), ally, i);
             alliedAdvancedTechCheckInterval[i] = setInterval(
               checkForAlliedAdvancedTech,
-              10000,
+              generateInterval(),
               ally,
               i
             );
             alliedOrbitalTechCheckInterval[i] = setInterval(
               checkForAlliedOrbitalTech,
-              10000,
+              generateInterval(),
               ally,
               i
             );
