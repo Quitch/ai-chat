@@ -501,8 +501,8 @@ if (!aiCommunicationsLoaded) {
             perPlanetUnitCounts
           );
 
-          // we don't do this first because identifyNewlyInvadedPlanets()
-          // updates the previous unit count
+          // we don't check this first because identifyNewlyInvadedPlanets()
+          // has to update the previous unit count
           var planetsPresentOn = 0;
           perPlanetUnitCounts.forEach(function (planetUnitCount) {
             if (planetUnitCount > 0) {
