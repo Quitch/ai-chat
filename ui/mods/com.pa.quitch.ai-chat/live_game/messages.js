@@ -76,7 +76,7 @@ define({
     "!LOC:My time has ended on",
     "!LOC:My time is over on",
   ],
-  allyTech: [
+  allyAdvTech: [
     "!LOC:I'm teching up",
     "!LOC:I'm going for T2",
     "!LOC:T2 is coming online",
@@ -84,5 +84,18 @@ define({
     "!LOC:Cover me while I tech up",
     "!LOC:Building T2",
     "!LOC:Building advanced tech",
+  ],
+  allyOrbitalTech: [
+    "!LOC:Heading into orbit",
+    "!LOC:Launching into space",
+    "!LOC:Orbital is coming online",
+    "!LOC:Reaching for the stars",
+    "!LOC:Set course for the final frontier",
+    "!LOC:I travel between worlds now",
+    "!LOC:Orbital coming online",
+    "!LOC:Building space tech",
+    "!LOC:Building orbital tech",
+    "!LOC:Constructing space tech",
+    "!LOC:Constructing orbital tech",
   ],
 });

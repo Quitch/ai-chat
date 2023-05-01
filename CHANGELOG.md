@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Allies inform you when they start heading into T2
+- Allies inform you when they start building orbital for the first time
 
 ## v0.6 - 2023-04-29
 

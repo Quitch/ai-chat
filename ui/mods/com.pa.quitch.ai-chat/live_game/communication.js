@@ -403,7 +403,7 @@ if (!aiCommunicationsLoaded) {
         });
       };
 
-      var checkingForAlliedAdvancedTech = [];
+      var alliedAdvancedTechCheckInterval = [];
 
       var checkForAlliedAdvancedTech = function (ally, allyIndex) {
         var desiredUnits = ["_adv"];
@@ -419,8 +419,29 @@ if (!aiCommunicationsLoaded) {
             return;
           }
 
-          sendMessage("team", ally.name, "allyTech");
-          clearInterval(checkingForAlliedAdvancedTech[allyIndex]);
+          sendMessage("team", ally.name, "allyAdvTech");
+          clearInterval(alliedAdvancedTechCheckInterval[allyIndex]);
+        });
+      };
+
+      var alliedOrbitalTechCheckInterval = [];
+
+      var checkForAlliedOrbitalTech = function (ally, allyIndex) {
+        var desiredUnits = ["orbital_"];
+        var desiredUnitCount = 1;
+        checkPlanetsForDesiredUnits(
+          aiAllyArmyIndex[allyIndex],
+          desiredUnits,
+          desiredUnitCount
+        ).then(function (planetsWithUnit) {
+          var matchedPlanets = planetsWithUnit[0];
+
+          if (_.isEmpty(matchedPlanets)) {
+            return;
+          }
+
+          sendMessage("team", ally.name, "allyOrbitalTech");
+          clearInterval(alliedOrbitalTechCheckInterval[allyIndex]);
         });
       };
 
@@ -532,8 +553,14 @@ if (!aiCommunicationsLoaded) {
           if (planetCount > 1) {
             setInterval(checkForColonies, 10000, ally, i);
             setInterval(checkForInvasions, 10000, ally, i);
-            checkingForAlliedAdvancedTech[i] = setInterval(
+            alliedAdvancedTechCheckInterval[i] = setInterval(
               checkForAlliedAdvancedTech,
+              10000,
+              ally,
+              i
+            );
+            alliedOrbitalTechCheckInterval[i] = setInterval(
+              checkForAlliedOrbitalTech,
               10000,
               ally,
               i

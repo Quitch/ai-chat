@@ -10,6 +10,7 @@ A mod for Planetary Annihilation which enables the AI to talk.
 - Allies can report their situation per planet on demand, type "report" in team chat
 - Allies notify you when they're driven off a planet
 - Allies report when they start teching up
+- Allies report when they build orbital for the first time
 
 ## Planned Features
 
