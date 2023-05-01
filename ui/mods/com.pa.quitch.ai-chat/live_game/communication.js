@@ -248,42 +248,6 @@ if (!aiCommunicationsLoaded) {
         return deferred.promise();
       };
 
-      var previousUnitCount = [];
-
-      var identifyNewlyInvadedPlanets = function (
-        allyIndex,
-        perPlanetUnitCounts
-      ) {
-        if (_.isUndefined(previousUnitCount[allyIndex])) {
-          previousUnitCount[allyIndex] = [];
-          // because Array.prototype.fill() isn't supported
-          _.times(planetCount, function () {
-            previousUnitCount[allyIndex].push(0);
-          });
-        }
-
-        var newPlanets = [];
-
-        perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
-          var armySizeMultiplier = 1.5;
-          // avoid multiplying by zero
-          var unitCount = Math.max(
-            previousUnitCount[allyIndex][planetIndex],
-            1
-          );
-          if (
-            planetUnitCount > unitCount * armySizeMultiplier &&
-            planetUnitCount > 20
-          ) {
-            newPlanets.push(planetIndex);
-          }
-
-          previousUnitCount[allyIndex][planetIndex] = planetUnitCount;
-        });
-
-        return newPlanets;
-      };
-
       var communicateLandingLocation = function () {
         aiAllies.forEach(function (ally, i) {
           checkPlanetsForDesiredUnits(
@@ -482,6 +446,42 @@ if (!aiCommunicationsLoaded) {
         });
 
         return deferred.promise();
+      };
+
+      var previousUnitCount = [];
+
+      var identifyNewlyInvadedPlanets = function (
+        allyIndex,
+        perPlanetUnitCounts
+      ) {
+        if (_.isUndefined(previousUnitCount[allyIndex])) {
+          previousUnitCount[allyIndex] = [];
+          // because Array.prototype.fill() isn't supported
+          _.times(planetCount, function () {
+            previousUnitCount[allyIndex].push(0);
+          });
+        }
+
+        var newPlanets = [];
+
+        perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
+          var armySizeMultiplier = 1.5;
+          // avoid multiplying by zero
+          var unitCount = Math.max(
+            previousUnitCount[allyIndex][planetIndex],
+            1
+          );
+          if (
+            planetUnitCount > unitCount * armySizeMultiplier &&
+            planetUnitCount > 20
+          ) {
+            newPlanets.push(planetIndex);
+          }
+
+          previousUnitCount[allyIndex][planetIndex] = planetUnitCount;
+        });
+
+        return newPlanets;
       };
 
       var communicateAnyInvasions = function (ally, newlyInvadedPlanets) {
