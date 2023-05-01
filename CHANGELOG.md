@@ -1,9 +1,10 @@
 # CHANGELOG
 
-## Unreleased
+## v0.7 - 2023-05-01
 
 - Allies inform you when they start heading into T2
 - Allies inform you when they start building orbital for the first time
+- Variance added to AI checks to prevent all messages arriving at once
 
 ## v0.6 - 2023-04-29
 
