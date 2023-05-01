@@ -268,7 +268,9 @@ if (!aiCommunicationsLoaded) {
         });
       };
 
-      var currentlyColonisedPlanets = [];
+      var currentlyColonisedPlanets = ko
+        .observableArray()
+        .extend({ session: "ai_chat_colonised_planets" });
 
       var sendLostPlanetMessage = function (ally, lostPlanets) {
         lostPlanets.forEach(function (planetIndex) {
@@ -307,22 +309,22 @@ if (!aiCommunicationsLoaded) {
         excludedPlanets
       ) {
         // remove planets which are no longer reported as colonised - this allows for future messages
-        currentlyColonisedPlanets[allyIndex] = _.intersection(
-          currentlyColonisedPlanets[allyIndex],
+        currentlyColonisedPlanets()[allyIndex] = _.intersection(
+          currentlyColonisedPlanets()[allyIndex],
           matchedPlanets
         ).concat(excludedPlanets);
 
         var newPlanets = _.filter(matchedPlanets, function (matchedPlanet) {
           return !_.includes(
-            currentlyColonisedPlanets[allyIndex],
+            currentlyColonisedPlanets()[allyIndex],
             matchedPlanet
           );
         });
 
         sendColonisedMessage(ally, newPlanets);
 
-        currentlyColonisedPlanets[allyIndex] =
-          currentlyColonisedPlanets[allyIndex].concat(newPlanets);
+        currentlyColonisedPlanets()[allyIndex] =
+          currentlyColonisedPlanets()[allyIndex].concat(newPlanets);
       };
 
       var checkForColonies = function (ally, allyIndex) {
@@ -348,13 +350,13 @@ if (!aiCommunicationsLoaded) {
             return;
           }
 
-          if (_.isUndefined(currentlyColonisedPlanets[allyIndex])) {
-            currentlyColonisedPlanets[allyIndex] = [];
+          if (_.isUndefined(currentlyColonisedPlanets()[allyIndex])) {
+            currentlyColonisedPlanets()[allyIndex] = [];
           }
 
           checkForPlanetsWeLost(
             ally,
-            currentlyColonisedPlanets[allyIndex],
+            currentlyColonisedPlanets()[allyIndex],
             matchedPlanets,
             excludedPlanets
           );
@@ -367,7 +369,9 @@ if (!aiCommunicationsLoaded) {
         });
       };
 
-      var alliedAdvancedTechCheckInterval = [];
+      var alliedAdvancedTechCheckInterval = ko
+        .observableArray()
+        .extend({ session: "ai_chat_ally_t2_check" });
 
       var checkForAlliedAdvancedTech = function (ally, allyIndex) {
         var desiredUnits = ["_adv"];
@@ -384,11 +388,13 @@ if (!aiCommunicationsLoaded) {
           }
 
           sendMessage("team", ally.name, "allyAdvTech");
-          clearInterval(alliedAdvancedTechCheckInterval[allyIndex]);
+          clearInterval(alliedAdvancedTechCheckInterval()[allyIndex]);
         });
       };
 
-      var alliedOrbitalTechCheckInterval = [];
+      var alliedOrbitalTechCheckInterval = ko
+        .observableArray()
+        .extend({ session: "ai_chat_ally_orbital_check" });
 
       var checkForAlliedOrbitalTech = function (ally, allyIndex) {
         var desiredUnits = ["orbital_"];
@@ -405,7 +411,7 @@ if (!aiCommunicationsLoaded) {
           }
 
           sendMessage("team", ally.name, "allyOrbitalTech");
-          clearInterval(alliedOrbitalTechCheckInterval[allyIndex]);
+          clearInterval(alliedOrbitalTechCheckInterval()[allyIndex]);
         });
       };
 
@@ -536,6 +542,9 @@ if (!aiCommunicationsLoaded) {
         var playerSelectingSpawn = player.landing;
         if (processedLanding() === true && playerSelectingSpawn === true) {
           processedLanding(false);
+          currentlyColonisedPlanets([]);
+          alliedAdvancedTechCheckInterval([]);
+          alliedOrbitalTechCheckInterval([]);
         }
       };
       detectNewGame(model.player());
@@ -562,13 +571,13 @@ if (!aiCommunicationsLoaded) {
           if (planetCount > 1) {
             setInterval(checkForColonies, generateInterval(), ally, i);
             setInterval(checkForInvasions, generateInterval(), ally, i);
-            alliedAdvancedTechCheckInterval[i] = setInterval(
+            alliedAdvancedTechCheckInterval()[i] = setInterval(
               checkForAlliedAdvancedTech,
               generateInterval(),
               ally,
               i
             );
-            alliedOrbitalTechCheckInterval[i] = setInterval(
+            alliedOrbitalTechCheckInterval()[i] = setInterval(
               checkForAlliedOrbitalTech,
               generateInterval(),
               ally,

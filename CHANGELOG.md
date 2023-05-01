@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- AI won't reset its message state on UI refresh
+
 ## v0.7 - 2023-05-01
 
 - Allies inform you when they start heading into T2
