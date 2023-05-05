@@ -118,8 +118,8 @@ if (!aiCommunicationsLoaded) {
         var losingRatio = 1.5;
         var situationReports = [];
 
-        alliedUnitsPerPlanet.forEach(function (alliedUnits, i) {
-          var enemyUnits = enemyUnitsPerPlanet[i];
+        alliedUnitsPerPlanet.forEach(function (alliedUnits, planetIndex) {
+          var enemyUnits = enemyUnitsPerPlanet[planetIndex];
           if (alliedUnits === 0) {
             situationReports.push("absent");
           } else if (enemyUnits === 0) {
