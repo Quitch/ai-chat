@@ -185,6 +185,10 @@ if (!aiCommunicationsLoaded) {
       };
 
       var checkForDesiredUnits = function (unitsOnPlanet, desiredUnits) {
+        if (!_.isArray(desiredUnits)) {
+          desiredUnits = [desiredUnits];
+        }
+
         var desiredUnitsPresent = 0;
         desiredUnits.forEach(function (desiredUnit) {
           for (var unit in unitsOnPlanet) {
@@ -204,10 +208,6 @@ if (!aiCommunicationsLoaded) {
         desiredUnitCount,
         excludedUnits
       ) {
-        if (!_.isArray(desiredUnits)) {
-          desiredUnits = [desiredUnits];
-        }
-
         var deferred = $.Deferred();
         var deferredQueue = [];
         var matches = [];
