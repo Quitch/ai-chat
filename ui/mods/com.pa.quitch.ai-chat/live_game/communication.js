@@ -680,7 +680,7 @@ if (!aiCommunicationsLoaded) {
       handlers.kills = function (payload) {
         var defeated = payload[0];
         var killer = payload[1];
-        var killerIsAI = players[killer.index].ai === 1;
+        var killerIsAI = killer && players[killer.index].ai === 1;
         var defeatedIsAIAlly =
           players[defeated.index].ai === 1 &&
           players[defeated.index].stateToPlayer === allyState;
