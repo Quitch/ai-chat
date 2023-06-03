@@ -3,6 +3,7 @@
 ## Unreleased
 
 - AI won't reset its message state on UI refresh
+- Allies automatically report significant changes in planetary status
 
 ## v0.7 - 2023-05-01
 
