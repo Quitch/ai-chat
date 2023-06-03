@@ -6,6 +6,7 @@
 - Allies automatically report significant changes in planetary status
 - AIs comment on their kills and defeat
 - Fixed allies being blind to some enemy AIs when reporting status
+- Count non-AI enemies towards assessments
 
 ## v0.7 - 2023-05-01
 

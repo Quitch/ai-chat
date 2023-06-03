@@ -6,17 +6,19 @@ if (!aiCommunicationsLoaded) {
   function aiCommunications() {
     try {
       var aiAllyArmyIndex = [];
-      var aiEnemyArmyIndex = [];
+      var enemyArmyIndex = [];
       var processedLanding = ko
         .observable(false)
         .extend({ session: "ai_chat_processed_landing" });
       var allyState = "allied_eco";
+      var enemyState = "hostile";
       // model variables may not be populated yet
       var planets = model.planetListState().planets;
       var planetCount = planets.length - 1; // last planet is not a planet
       var players = model.players();
       var ais = _.filter(players, { ai: 1 });
       var aiAllies = _.filter(ais, { stateToPlayer: allyState });
+      var enemies = _.filter(players, { stateToPlayer: enemyState });
 
       var liveGameChatPanelId = 1;
       _.defer(function () {
@@ -187,7 +189,7 @@ if (!aiCommunicationsLoaded) {
           return;
         }
 
-        var allAIIndex = aiAllyArmyIndex.concat(aiEnemyArmyIndex);
+        var allAIIndex = aiAllyArmyIndex.concat(enemyArmyIndex);
         console.log("All AI Index", allAIIndex);
         countAllUnitsOnPlanets(allAIIndex).then(function (planetUnitCounts) {
           var situationReports = getSituationReports(planetUnitCounts);
@@ -589,20 +591,23 @@ if (!aiCommunicationsLoaded) {
       var identifyFriendAndFoe = function (allAis, allPlayers) {
         // avoid duplicates if this is called more than once
         aiAllyArmyIndex = [];
-        aiEnemyArmyIndex = [];
+        enemyArmyIndex = [];
         if (!_.isEmpty(allAis)) {
-          allAis.forEach(function (ai) {
-            var aiIndex = _.findIndex(allPlayers, ai);
-            console.log("AI Index", aiIndex);
-            ai.stateToPlayer === allyState
-              ? aiAllyArmyIndex.push(aiIndex)
-              : aiEnemyArmyIndex.push(aiIndex);
+          aiAllies.forEach(function (ai) {
+            var allyIndex = _.findIndex(allPlayers, ai);
+            aiAllyArmyIndex.push(allyIndex);
           });
+
+          enemies.forEach(function (enemy) {
+            var enemyIndex = _.findIndex(allPlayers, enemy);
+            enemyArmyIndex.push(enemyIndex);
+          });
+
           console.log(
             "Ally index",
             aiAllyArmyIndex,
             "Enemy index",
-            aiEnemyArmyIndex
+            enemyArmyIndex
           );
         }
       };
@@ -667,6 +672,7 @@ if (!aiCommunicationsLoaded) {
         var player = model.player();
         ais = _.filter(players, { ai: 1 });
         aiAllies = _.filter(ais, { stateToPlayer: allyState });
+        enemies = _.filter(players, { stateToPlayer: enemyState });
         planets = model.planetListState().planets;
         planetCount = planets.length - 1; // last entry in array isn't a planet
         var startingPlanetsCount = _.filter(planets, {
