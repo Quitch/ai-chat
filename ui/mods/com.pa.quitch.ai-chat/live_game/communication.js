@@ -147,11 +147,21 @@ if (!aiCommunicationsLoaded) {
         return situationReports;
       };
 
-      var reportIn = function () {
+      var previousPlanetStatus = ko
+        .observableArray()
+        .extend({ session: "ai_chat_planet_statuses" });
+
+      var reportIn = function (playerRequested) {
         var liveAllies = _.filter(aiAllies, { defeated: false });
 
-        if (_.isEmpty(aiAllyArmyIndex) || _.isEmpty(liveAllies)) {
+        if (_.isEmpty(liveAllies)) {
           return;
+        }
+
+        if (_.isEmpty(previousPlanetStatus())) {
+          _.times(planetCount, function () {
+            previousPlanetStatus().push("OK");
+          });
         }
 
         var allAIIndex = aiAllyArmyIndex.concat(aiEnemyArmyIndex);
@@ -163,13 +173,19 @@ if (!aiCommunicationsLoaded) {
               return;
             }
 
-            sendMessage("team", ally.name, report, planetIndex);
+            if (
+              playerRequested === true ||
+              report !== previousPlanetStatus()[planetIndex]
+            ) {
+              previousPlanetStatus()[planetIndex] = report;
+              sendMessage("team", ally.name, report, planetIndex);
+            }
           });
         });
       };
 
       handlers.reportIn = function () {
-        reportIn();
+        reportIn(true);
       };
 
       var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
@@ -583,6 +599,7 @@ if (!aiCommunicationsLoaded) {
               ally,
               i
             );
+            setInterval(reportIn, generateInterval());
           }
         });
       };
