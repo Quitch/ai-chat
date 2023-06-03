@@ -165,6 +165,7 @@ if (!aiCommunicationsLoaded) {
           importantStatus.has(report) // to avoid report spam
         ) {
           previousImportantPlanetStatus()[planetIndex] = report;
+          previousImportantPlanetStatus.valueHasMutated();
           return true;
         }
 
@@ -185,6 +186,7 @@ if (!aiCommunicationsLoaded) {
           situationReports.forEach(function (report, planetIndex) {
             if (report === "absent") {
               previousPlanetStatus()[planetIndex] = report;
+              previousPlanetStatus.valueHasMutated();
               return;
             }
 
@@ -195,6 +197,7 @@ if (!aiCommunicationsLoaded) {
             }
 
             previousPlanetStatus()[planetIndex] = report;
+            previousPlanetStatus.valueHasMutated();
           });
         });
       };
@@ -360,6 +363,7 @@ if (!aiCommunicationsLoaded) {
 
         currentlyColonisedPlanets()[allyIndex] =
           currentlyColonisedPlanets()[allyIndex].concat(newPlanets);
+        currentlyColonisedPlanets.valueHasMutated();
       };
 
       var checkForColonies = function (ally, allyIndex) {
@@ -424,6 +428,7 @@ if (!aiCommunicationsLoaded) {
 
           sendMessage("team", ally.name, "allyAdvTech");
           clearInterval(alliedAdvancedTechCheckInterval()[allyIndex]);
+          alliedAdvancedTechCheckInterval.valueHasMutated();
         });
       };
 
@@ -447,6 +452,7 @@ if (!aiCommunicationsLoaded) {
 
           sendMessage("team", ally.name, "allyOrbitalTech");
           clearInterval(alliedOrbitalTechCheckInterval()[allyIndex]);
+          alliedOrbitalTechCheckInterval.valueHasMutated();
         });
       };
 
@@ -576,6 +582,8 @@ if (!aiCommunicationsLoaded) {
           currentlyColonisedPlanets([]);
           alliedAdvancedTechCheckInterval([]);
           alliedOrbitalTechCheckInterval([]);
+          previousPlanetStatus([]);
+          previousImportantPlanetStatus([]);
         }
       };
       detectNewGame(model.player());
