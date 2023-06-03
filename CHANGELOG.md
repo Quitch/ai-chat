@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v1.0 - 2023-06-03
+
+- AI won't reset its message state on UI refresh
+- Allies automatically report significant changes in planetary status
+- AIs comment on their kills and defeat
+- Fixed allies being blind to some enemy AIs when reporting status
+- Count non-AI enemies towards assessments
+
 ## v0.7 - 2023-05-01
 
 - Allies inform you when they start heading into T2
