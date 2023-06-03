@@ -11,10 +11,10 @@ A mod for Planetary Annihilation which enables the AI to talk.
 - Allies notify you when they're driven off a planet
 - Allies report when they start teching up
 - Allies report when they build orbital for the first time
+- Allies warn you when they are in trouble
+- AIs taunt on victory
 
 ## Planned Features
 
 - Allies announce discovery of superweapons
 - Allies warn you about strategic risks such as single faction ownership of the gas giant
-- AIs taunt on victory
-- Allies warn you when they are in trouble

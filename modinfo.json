@@ -30,6 +30,9 @@
     ],
     "live_game_chat": [
       "coui://ui/mods/com.pa.quitch.ai-chat/live_game_chat/report.js"
+    ],
+    "live_game_unit_alert": [
+      "coui://ui/mods/com.pa.quitch.ai-chat/live_game_unit_alert/kills.js"
     ]
   }
 }

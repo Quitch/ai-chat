@@ -4,6 +4,7 @@
 
 - AI won't reset its message state on UI refresh
 - Allies automatically report significant changes in planetary status
+- AIs comment on their kills and defeat
 
 ## v0.7 - 2023-05-01
 

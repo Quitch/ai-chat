@@ -98,4 +98,6 @@ define({
     "!LOC:Constructing space tech",
     "!LOC:Constructing orbital tech",
   ],
+  kill: ["Another one bites the dust"],
+  defeat: ["Sorry I couldn't do more"],
 });
