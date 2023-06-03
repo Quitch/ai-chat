@@ -147,7 +147,7 @@ if (!aiCommunicationsLoaded) {
         return situationReports;
       };
 
-      handlers.reportIn = function () {
+      var reportIn = function () {
         var liveAllies = _.filter(aiAllies, { defeated: false });
 
         if (_.isEmpty(aiAllyArmyIndex) || _.isEmpty(liveAllies)) {
@@ -166,6 +166,10 @@ if (!aiCommunicationsLoaded) {
             sendMessage("team", ally.name, report, planetIndex);
           });
         });
+      };
+
+      handlers.reportIn = function () {
+        reportIn();
       };
 
       var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
