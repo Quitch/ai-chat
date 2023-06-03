@@ -16,6 +16,7 @@ if (!aiCommunicationsLoaded) {
       var planets = model.planetListState().planets;
       var planetCount = planets.length - 1; // last planet is not a planet
       var players = model.players();
+      var player = model.player();
       var ais = _.filter(players, { ai: 1 });
       var aiAllies = _.filter(ais, { stateToPlayer: allyState });
       var enemies = _.filter(players, { stateToPlayer: enemyState });
@@ -608,7 +609,7 @@ if (!aiCommunicationsLoaded) {
           alliedOrbitalTechReported([]);
         }
       };
-      detectNewGame(model.player());
+      detectNewGame(player);
 
       var randomPercentageAdjustment = function (min, max) {
         return Math.random() * (max - min) + min;
@@ -652,7 +653,7 @@ if (!aiCommunicationsLoaded) {
 
       model.players.subscribe(function () {
         players = model.players();
-        var player = model.player();
+        player = model.player();
         ais = _.filter(players, { ai: 1 });
         aiAllies = _.filter(ais, { stateToPlayer: allyState });
         enemies = _.filter(players, { stateToPlayer: enemyState });
@@ -668,14 +669,11 @@ if (!aiCommunicationsLoaded) {
         identifyFriendAndFoe(ais, players);
         initialiseChecks(aiAllies);
 
-        if (
-          startingPlanetsCount > 1 &&
-          playerHasAllies &&
-          !playerSelectingSpawn &&
-          !processedLanding()
-        ) {
+        if (!playerSelectingSpawn && !processedLanding()) {
           processedLanding(true);
-          _.delay(communicateLandingLocation, 10000); // delay to allow AI to spawn
+          if (startingPlanetsCount > 1 && playerHasAllies) {
+            _.delay(communicateLandingLocation, 10000); // delay to allow AI to spawn
+          }
         }
       });
 
