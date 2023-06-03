@@ -408,7 +408,8 @@ if (!aiCommunicationsLoaded) {
         });
       };
 
-      var alliedAdvancedTechCheckInterval = ko
+      var alliedAdvancedTechCheckInterval = [];
+      var alliedAdvancedTechReported = ko
         .observableArray()
         .extend({ session: "ai_chat_ally_t2_check" });
 
@@ -426,13 +427,20 @@ if (!aiCommunicationsLoaded) {
             return;
           }
 
+          clearInterval(alliedAdvancedTechCheckInterval[allyIndex]);
+
+          if (alliedAdvancedTechReported()[allyIndex] === true) {
+            return;
+          }
+
           sendMessage("team", ally.name, "allyAdvTech");
-          clearInterval(alliedAdvancedTechCheckInterval()[allyIndex]);
-          alliedAdvancedTechCheckInterval.valueHasMutated();
+          alliedAdvancedTechReported()[allyIndex] = true;
+          alliedAdvancedTechReported.valueHasMutated();
         });
       };
 
-      var alliedOrbitalTechCheckInterval = ko
+      var alliedOrbitalTechCheckInterval = [];
+      var alliedOrbitalTechReported = ko
         .observableArray()
         .extend({ session: "ai_chat_ally_orbital_check" });
 
@@ -450,9 +458,15 @@ if (!aiCommunicationsLoaded) {
             return;
           }
 
+          clearInterval(alliedOrbitalTechCheckInterval[allyIndex]);
+
+          if (alliedOrbitalTechReported()[allyIndex] === true) {
+            return;
+          }
+
           sendMessage("team", ally.name, "allyOrbitalTech");
-          clearInterval(alliedOrbitalTechCheckInterval()[allyIndex]);
-          alliedOrbitalTechCheckInterval.valueHasMutated();
+          alliedOrbitalTechReported()[allyIndex] = true;
+          alliedOrbitalTechReported.valueHasMutated();
         });
       };
 
@@ -583,11 +597,11 @@ if (!aiCommunicationsLoaded) {
         if (processedLanding() === true && playerSelectingSpawn === true) {
           processedLanding(false);
           currentlyColonisedPlanets([]);
-          alliedAdvancedTechCheckInterval([]);
-          alliedOrbitalTechCheckInterval([]);
           previousPlanetStatus([]);
           previousImportantPlanetStatus([]);
           previousUnitCount([]);
+          alliedAdvancedTechReported([]);
+          alliedOrbitalTechReported([]);
         }
       };
       detectNewGame(model.player());
@@ -614,13 +628,13 @@ if (!aiCommunicationsLoaded) {
           if (planetCount > 1) {
             setInterval(checkForColonies, generateInterval(), ally, i);
             setInterval(checkForInvasions, generateInterval(), ally, i);
-            alliedAdvancedTechCheckInterval()[i] = setInterval(
+            alliedAdvancedTechCheckInterval[i] = setInterval(
               checkForAlliedAdvancedTech,
               generateInterval(),
               ally,
               i
             );
-            alliedOrbitalTechCheckInterval()[i] = setInterval(
+            alliedOrbitalTechCheckInterval[i] = setInterval(
               checkForAlliedOrbitalTech,
               generateInterval(),
               ally,
