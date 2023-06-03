@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v1.0 - 2023-06-03
 
 - AI won't reset its message state on UI refresh
 - Allies automatically report significant changes in planetary status
