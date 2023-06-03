@@ -183,12 +183,6 @@ if (!aiCommunicationsLoaded) {
           var situationReports = getSituationReports(planetUnitCounts);
           var ally = _.shuffle(liveAllies)[0];
           situationReports.forEach(function (report, planetIndex) {
-            console.log(
-              planetIndex,
-              report,
-              previousPlanetStatus()[planetIndex],
-              previousImportantPlanetStatus()[planetIndex]
-            );
             if (report === "absent") {
               previousPlanetStatus()[planetIndex] = report;
               return;
