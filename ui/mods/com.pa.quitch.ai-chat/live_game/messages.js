@@ -116,7 +116,7 @@ define({
     "Get the hell out of my galaxy",
     "There isn't room enough in this system for both of us",
     "Did you really think you stood a chance? Pathetic!",
-    "Victory is sweet, and you're the bitter taste of defeat.",
+    "I hear the taste of defeat is bitter. I wouldn't know.",
     "I hope you brought your A-game because you just got served!",
     "I'm the champion, and you're just another stepping stone on my path to greatness.",
     "I'll be sure to send you a postcard from victory lane!",
