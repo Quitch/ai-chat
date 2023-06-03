@@ -158,26 +158,35 @@ if (!aiCommunicationsLoaded) {
           return;
         }
 
-        if (_.isEmpty(previousPlanetStatus())) {
-          _.times(planetCount, function () {
-            previousPlanetStatus().push("OK");
-          });
-        }
-
         var allAIIndex = aiAllyArmyIndex.concat(aiEnemyArmyIndex);
         countAllUnitsOnPlanets(allAIIndex).then(function (planetUnitCounts) {
           var situationReports = getSituationReports(planetUnitCounts);
           var ally = _.shuffle(liveAllies)[0];
           situationReports.forEach(function (report, planetIndex) {
+            console.log(
+              planetIndex,
+              report,
+              previousPlanetStatus()[planetIndex]
+            );
             if (report === "absent") {
+              previousPlanetStatus()[planetIndex] = report;
               return;
             }
 
+            var worthReporting = false;
+            var importantStatus = new Set();
+            importantStatus.add("winning");
+            importantStatus.add("losing");
+
             if (
-              playerRequested === true ||
-              report !== previousPlanetStatus()[planetIndex]
+              report !== previousPlanetStatus()[planetIndex] &&
+              importantStatus.has(report) // to avoid report spam
             ) {
               previousPlanetStatus()[planetIndex] = report;
+              worthReporting = true;
+            }
+
+            if (playerRequested === true || worthReporting === true) {
               sendMessage("team", ally.name, report, planetIndex);
             }
           });
