@@ -106,7 +106,7 @@ define({
     "No one gets in my way",
     "Hail to the king, baby!",
     "You are inferior",
-    "Remember m",
+    "Remember me",
     ">:)",
     ":D",
     "gg",
