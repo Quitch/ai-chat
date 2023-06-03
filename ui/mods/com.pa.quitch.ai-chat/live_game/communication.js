@@ -52,7 +52,6 @@ if (!aiCommunicationsLoaded) {
       };
 
       var countAllUnitsOnPlanets = function (aisIndex) {
-        console.log("Count AI Index", aisIndex);
         var deferred = $.Deferred();
         var deferredQueue = [];
         var unitCount = [];
@@ -69,14 +68,6 @@ if (!aiCommunicationsLoaded) {
                     unitCount[planetIndex] = [];
                   }
                   unitCount[planetIndex].push(unitCountOnPlanet);
-                  console.log(
-                    "AI:",
-                    aiIndex,
-                    "Planet:",
-                    planetIndex,
-                    "Count",
-                    unitCountOnPlanet
-                  );
                 })
             );
           });
@@ -190,7 +181,6 @@ if (!aiCommunicationsLoaded) {
         }
 
         var allAIIndex = aiAllyArmyIndex.concat(enemyArmyIndex);
-        console.log("All AI Index", allAIIndex);
         countAllUnitsOnPlanets(allAIIndex).then(function (planetUnitCounts) {
           var situationReports = getSituationReports(planetUnitCounts);
           var ally = _.shuffle(liveAllies)[0];
@@ -602,13 +592,6 @@ if (!aiCommunicationsLoaded) {
             var enemyIndex = _.findIndex(allPlayers, enemy);
             enemyArmyIndex.push(enemyIndex);
           });
-
-          console.log(
-            "Ally index",
-            aiAllyArmyIndex,
-            "Enemy index",
-            enemyArmyIndex
-          );
         }
       };
       identifyFriendAndFoe(ais, players);
