@@ -6,7 +6,6 @@ if (!aiKillsLoaded) {
   function aiKills() {
     try {
       model.defeatedArmyAlerts.subscribe(function (alerts) {
-        console.log("New defeat");
         alerts.forEach(function (alert) {
           var defeated = alert.defeated;
           var killer = alert.killer;

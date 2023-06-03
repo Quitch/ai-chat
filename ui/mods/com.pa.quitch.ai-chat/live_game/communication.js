@@ -649,8 +649,6 @@ if (!aiCommunicationsLoaded) {
       });
 
       handlers.kills = function (payload) {
-        console.log("Kill handler called");
-        console.log(payload);
         var defeated = payload[0];
         var killer = payload[1];
         var killerIsAI = players[killer.index].ai === 1;
@@ -659,12 +657,10 @@ if (!aiCommunicationsLoaded) {
           players[defeated.index].stateToPlayer === allyState;
 
         if (killerIsAI) {
-          console.log("Kill message sent");
           sendMessage("global", killer.name, "kill");
         }
 
         if (defeatedIsAIAlly) {
-          console.log("Defeat message sent");
           sendMessage("team", defeated.name, "defeat");
         }
       };
