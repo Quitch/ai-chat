@@ -150,6 +150,26 @@ if (!aiCommunicationsLoaded) {
       var previousPlanetStatus = ko
         .observableArray()
         .extend({ session: "ai_chat_planet_statuses" });
+      var previousImportantPlanetStatus = ko
+        .observableArray()
+        .extend({ session: "ai_chat_important_planet_statuses" });
+
+      var checkIfWorthReporting = function (planetIndex, report) {
+        var importantStatus = new Set();
+        importantStatus.add("winning");
+        importantStatus.add("losing");
+
+        if (
+          previousPlanetStatus()[planetIndex] === "ok" && // avoid swingy reporting
+          report !== previousImportantPlanetStatus()[planetIndex] &&
+          importantStatus.has(report) // to avoid report spam
+        ) {
+          previousImportantPlanetStatus()[planetIndex] = report;
+          return true;
+        }
+
+        return false;
+      };
 
       var reportIn = function (playerRequested) {
         var liveAllies = _.filter(aiAllies, { defeated: false });
@@ -166,29 +186,21 @@ if (!aiCommunicationsLoaded) {
             console.log(
               planetIndex,
               report,
-              previousPlanetStatus()[planetIndex]
+              previousPlanetStatus()[planetIndex],
+              previousImportantPlanetStatus()[planetIndex]
             );
             if (report === "absent") {
               previousPlanetStatus()[planetIndex] = report;
               return;
             }
 
-            var worthReporting = false;
-            var importantStatus = new Set();
-            importantStatus.add("winning");
-            importantStatus.add("losing");
-
-            if (
-              report !== previousPlanetStatus()[planetIndex] &&
-              importantStatus.has(report) // to avoid report spam
-            ) {
-              previousPlanetStatus()[planetIndex] = report;
-              worthReporting = true;
-            }
+            var worthReporting = checkIfWorthReporting(planetIndex, report);
 
             if (playerRequested === true || worthReporting === true) {
               sendMessage("team", ally.name, report, planetIndex);
             }
+
+            previousPlanetStatus()[planetIndex] = report;
           });
         });
       };
