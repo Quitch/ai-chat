@@ -50,13 +50,13 @@ if (!aiCommunicationsLoaded) {
       };
 
       var countAllUnitsOnPlanets = function (aisIndex) {
+        console.log("Count AI Index", aisIndex);
         var deferred = $.Deferred();
         var deferredQueue = [];
         var unitCount = [];
-        var aiCount = aisIndex.length;
 
         _.times(planetCount, function (planetIndex) {
-          _.times(aiCount, function (aiIndex) {
+          aisIndex.forEach(function (aiIndex) {
             deferredQueue.push(
               api
                 .getWorldView()
@@ -67,6 +67,14 @@ if (!aiCommunicationsLoaded) {
                     unitCount[planetIndex] = [];
                   }
                   unitCount[planetIndex].push(unitCountOnPlanet);
+                  console.log(
+                    "AI:",
+                    aiIndex,
+                    "Planet:",
+                    planetIndex,
+                    "Count",
+                    unitCountOnPlanet
+                  );
                 })
             );
           });
@@ -180,6 +188,7 @@ if (!aiCommunicationsLoaded) {
         }
 
         var allAIIndex = aiAllyArmyIndex.concat(aiEnemyArmyIndex);
+        console.log("All AI Index", allAIIndex);
         countAllUnitsOnPlanets(allAIIndex).then(function (planetUnitCounts) {
           var situationReports = getSituationReports(planetUnitCounts);
           var ally = _.shuffle(liveAllies)[0];
@@ -584,10 +593,17 @@ if (!aiCommunicationsLoaded) {
         if (!_.isEmpty(allAis)) {
           allAis.forEach(function (ai) {
             var aiIndex = _.findIndex(allPlayers, ai);
+            console.log("AI Index", aiIndex);
             ai.stateToPlayer === allyState
               ? aiAllyArmyIndex.push(aiIndex)
               : aiEnemyArmyIndex.push(aiIndex);
           });
+          console.log(
+            "Ally index",
+            aiAllyArmyIndex,
+            "Enemy index",
+            aiEnemyArmyIndex
+          );
         }
       };
       identifyFriendAndFoe(ais, players);
