@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v1.0.1 - 2023-06-04
 
 - Fixed AIs not communicating landing locations
 
