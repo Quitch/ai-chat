@@ -10,6 +10,9 @@ if (!aiCommunicationsLoaded) {
       var processedLanding = ko
         .observable(false)
         .extend({ session: "ai_chat_processed_landing" });
+      var communicatedLanding = ko
+        .observable(false)
+        .extend({ session: "ai_chat_communicated_landing" });
       var allyState = "allied_eco";
       var enemyState = "hostile";
       // model variables may not be populated yet
@@ -601,6 +604,7 @@ if (!aiCommunicationsLoaded) {
         var playerSelectingSpawn = player.landing;
         if (processedLanding() === true && playerSelectingSpawn === true) {
           processedLanding(false);
+          communicatedLanding(false);
           currentlyColonisedPlanets([]);
           previousPlanetStatus([]);
           previousImportantPlanetStatus([]);
@@ -671,9 +675,16 @@ if (!aiCommunicationsLoaded) {
 
         if (!playerSelectingSpawn && !processedLanding()) {
           processedLanding(true);
-          if (startingPlanetsCount > 1 && playerHasAllies) {
-            _.delay(communicateLandingLocation, 10000); // delay to allow AI to spawn
-          }
+        }
+
+        if (
+          !playerSelectingSpawn &&
+          !communicatedLanding() &&
+          startingPlanetsCount > 1 &&
+          playerHasAllies
+        ) {
+          _.delay(communicateLandingLocation, 10000); // delay to allow AI to spawn
+          communicatedLanding(true);
         }
       });
 
