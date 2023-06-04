@@ -2,6 +2,10 @@
 
 A mod for Planetary Annihilation which enables the AI to talk.
 
+## Installation
+
+You should download and install this mod via the Planetary Annihilation: TITANS in-game [Community Mods](https://steamcommunity.com/sharedfiles/filedetails/?id=1417396826).
+
 ## Current Features
 
 - Allies will announce which planet they landed on when there are multiple starting planets
