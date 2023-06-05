@@ -9,7 +9,6 @@ if (!aiKillsLoaded) {
         alerts.forEach(function (alert) {
           var defeated = alert.defeated;
           var killer = alert.killer;
-          console.log(defeated, killer);
           api.Panel.message(api.Panel.parentId, "kills", [defeated, killer]);
         });
       });
