@@ -106,7 +106,7 @@ define([
       }
 
       var allAIIndex = aiAllyArmyIndex.concat(enemyArmyIndex);
-      units.all(allAIIndex).then(function (planetUnitCounts) {
+      units.countAll(allAIIndex).then(function (planetUnitCounts) {
         var situationReports = getSituationReports(
           planetUnitCounts,
           aiAllyArmyIndex
