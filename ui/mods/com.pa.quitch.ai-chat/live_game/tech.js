@@ -28,7 +28,7 @@ define([
             return;
           }
 
-          clearInterval(that.alliedT2TechCheckInterval[allyIndex]);
+          clearInterval(that.alliedT2CheckInterval[allyIndex]);
 
           if (alliedT2TechReported()[allyIndex] === true) {
             return;
@@ -56,7 +56,7 @@ define([
             return;
           }
 
-          clearInterval(that.alliedOrbitalTechCheckInterval[allyIndex]);
+          clearInterval(that.alliedOrbitalCheckInterval[allyIndex]);
 
           if (alliedOrbitalTechReported()[allyIndex] === true) {
             return;
