@@ -92,6 +92,12 @@ if (!aiCommunicationsLoaded) {
         }
 
         checksInitialised = true;
+        var alliedT2CheckInterval = ko
+          .observableArray()
+          .extend({ session: "ai_chat_ally_t2_interval" });
+        var alliedOrbitalCheckInterval = ko
+          .observableArray()
+          .extend({ session: "ai_chat_ally_orbital_interval" });
 
         allies.forEach(function (ally, i) {
           require([
@@ -117,14 +123,14 @@ if (!aiCommunicationsLoaded) {
               );
             }
 
-            tech.alliedT2CheckInterval[i] = setInterval(
+            alliedT2CheckInterval[i] = setInterval(
               tech.alliedT2Check,
               generateInterval(),
               aiAllyArmyIndex,
               ally,
               i
             );
-            tech.alliedOrbitalCheckInterval[i] = setInterval(
+            alliedOrbitalCheckInterval[i] = setInterval(
               tech.alliedOrbitalCheck,
               generateInterval(),
               aiAllyArmyIndex,

@@ -2,16 +2,20 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
-  var that = this;
   var alliedT2TechReported = ko
     .observableArray()
     .extend({ session: "ai_chat_ally_t2_check" });
   var alliedOrbitalTechReported = ko
     .observableArray()
     .extend({ session: "ai_chat_ally_orbital_check" });
+  var alliedT2CheckInterval = ko
+    .observableArray()
+    .extend({ session: "ai_chat_ally_t2_interval" });
+  var alliedOrbitalCheckInterval = ko
+    .observableArray()
+    .extend({ session: "ai_chat_ally_orbital_interval" });
 
   return {
-    alliedT2CheckInterval: [],
     alliedT2Check: function (aiAllyArmyIndex, ally, allyIndex) {
       var desiredUnits = ["_adv"];
       var desiredUnitCount = 1;
@@ -28,7 +32,7 @@ define([
             return;
           }
 
-          clearInterval(that.alliedT2CheckInterval[allyIndex]);
+          clearInterval(alliedT2CheckInterval[allyIndex]);
 
           if (alliedT2TechReported()[allyIndex] === true) {
             return;
@@ -39,7 +43,6 @@ define([
           alliedT2TechReported.valueHasMutated();
         });
     },
-    alliedOrbitalCheckInterval: [],
     alliedOrbitalCheck: function (aiAllyArmyIndex, ally, allyIndex) {
       var desiredUnits = ["orbital_"];
       var desiredUnitCount = 1;
@@ -56,7 +59,7 @@ define([
             return;
           }
 
-          clearInterval(that.alliedOrbitalCheckInterval[allyIndex]);
+          clearInterval(alliedOrbitalCheckInterval[allyIndex]);
 
           if (alliedOrbitalTechReported()[allyIndex] === true) {
             return;
