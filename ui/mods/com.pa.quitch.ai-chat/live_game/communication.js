@@ -47,6 +47,23 @@ if (!aiCommunicationsLoaded) {
         });
       };
 
+      handlers.kills = function (payload) {
+        var defeated = payload[0];
+        var killer = payload[1];
+        var killerIsAI = killer && players[killer.index].ai === 1;
+        var defeatedIsAIAlly =
+          players[defeated.index].ai === 1 &&
+          players[defeated.index].stateToPlayer === allyState;
+
+        if (killerIsAI) {
+          sendMessage("global", killer.name, "kill");
+        }
+
+        if (defeatedIsAIAlly) {
+          sendMessage("team", defeated.name, "defeat");
+        }
+      };
+
       var countAllUnits = function (unitsOnPlanet) {
         var unitCount = 0;
         for (var unit in unitsOnPlanet) {
@@ -687,23 +704,6 @@ if (!aiCommunicationsLoaded) {
           communicatedLanding(true);
         }
       });
-
-      handlers.kills = function (payload) {
-        var defeated = payload[0];
-        var killer = payload[1];
-        var killerIsAI = killer && players[killer.index].ai === 1;
-        var defeatedIsAIAlly =
-          players[defeated.index].ai === 1 &&
-          players[defeated.index].stateToPlayer === allyState;
-
-        if (killerIsAI) {
-          sendMessage("global", killer.name, "kill");
-        }
-
-        if (defeatedIsAIAlly) {
-          sendMessage("team", defeated.name, "defeat");
-        }
-      };
     } catch (e) {
       console.error(e);
       console.error(JSON.stringify(e));
