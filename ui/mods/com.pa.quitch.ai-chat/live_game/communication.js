@@ -43,26 +43,26 @@ if (!aiCommunicationsLoaded) {
       identifyFriendAndFoe(ais, players);
 
       var detectNewGame = function (player) {
-        var currentlyColonisedPlanets = ko
-          .observableArray()
-          .extend({ session: "ai_chat_colonised_planets" });
-        var previousUnitCount = ko
-          .observableArray()
-          .extend({ session: "ai_chat_previous_units" });
-        var previousPlanetStatus = ko
-          .observableArray()
-          .extend({ session: "ai_chat_planet_statuses" });
-        var previousImportantPlanetStatus = ko
-          .observableArray()
-          .extend({ session: "ai_chat_important_planet_statuses" });
-        var alliedAdvancedTechReported = ko
-          .observableArray()
-          .extend({ session: "ai_chat_ally_t2_check" });
-        var alliedOrbitalTechReported = ko
-          .observableArray()
-          .extend({ session: "ai_chat_ally_orbital_check" });
         var playerSelectingSpawn = player.landing;
         if (processedLanding() === true && playerSelectingSpawn === true) {
+          var currentlyColonisedPlanets = ko
+            .observableArray()
+            .extend({ session: "ai_chat_colonised_planets" });
+          var previousUnitCount = ko
+            .observableArray()
+            .extend({ session: "ai_chat_previous_units" });
+          var previousPlanetStatus = ko
+            .observableArray()
+            .extend({ session: "ai_chat_planet_statuses" });
+          var previousImportantPlanetStatus = ko
+            .observableArray()
+            .extend({ session: "ai_chat_important_planet_statuses" });
+          var alliedAdvancedTechReported = ko
+            .observableArray()
+            .extend({ session: "ai_chat_ally_t2_check" });
+          var alliedOrbitalTechReported = ko
+            .observableArray()
+            .extend({ session: "ai_chat_ally_orbital_check" });
           processedLanding(false);
           communicatedLanding(false);
           currentlyColonisedPlanets([]);
