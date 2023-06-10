@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v1.1 - 2023-06-10
 
 - Fixed AI not reporting tech and status changes on single planet maps
 
