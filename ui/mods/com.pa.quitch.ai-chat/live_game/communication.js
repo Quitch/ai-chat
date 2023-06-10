@@ -94,13 +94,13 @@ if (!aiCommunicationsLoaded) {
         checksInitialised = true;
 
         allies.forEach(function (ally, i) {
-          if (planetCount > 1) {
-            require([
-              "coui://ui/mods/com.pa.quitch.ai-chat/live_game/colony.js",
-              "coui://ui/mods/com.pa.quitch.ai-chat/live_game/invasion.js",
-              "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
-              "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
-            ], function (colony, invasion, tech, report) {
+          require([
+            "coui://ui/mods/com.pa.quitch.ai-chat/live_game/colony.js",
+            "coui://ui/mods/com.pa.quitch.ai-chat/live_game/invasion.js",
+            "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
+            "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
+          ], function (colony, invasion, tech, report) {
+            if (planetCount > 1) {
               setInterval(
                 colony.check,
                 generateInterval(),
@@ -115,23 +115,24 @@ if (!aiCommunicationsLoaded) {
                 ally,
                 i
               );
-              tech.alliedT2CheckInterval[i] = setInterval(
-                tech.alliedT2Check,
-                generateInterval(),
-                aiAllyArmyIndex,
-                ally,
-                i
-              );
-              tech.alliedOrbitalCheckInterval[i] = setInterval(
-                tech.alliedOrbitalCheck,
-                generateInterval(),
-                aiAllyArmyIndex,
-                ally,
-                i
-              );
-              setInterval(report.status, generateInterval());
-            });
-          }
+            }
+
+            tech.alliedT2CheckInterval[i] = setInterval(
+              tech.alliedT2Check,
+              generateInterval(),
+              aiAllyArmyIndex,
+              ally,
+              i
+            );
+            tech.alliedOrbitalCheckInterval[i] = setInterval(
+              tech.alliedOrbitalCheck,
+              generateInterval(),
+              aiAllyArmyIndex,
+              ally,
+              i
+            );
+            setInterval(report.status, generateInterval());
+          });
         });
       };
       initialiseChecks(aiAllies);
