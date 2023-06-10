@@ -8,15 +8,9 @@ define([
   var alliedOrbitalTechReported = ko
     .observableArray()
     .extend({ session: "ai_chat_ally_orbital_check" });
-  var alliedT2CheckInterval = ko
-    .observableArray()
-    .extend({ session: "ai_chat_ally_t2_interval" });
-  var alliedOrbitalCheckInterval = ko
-    .observableArray()
-    .extend({ session: "ai_chat_ally_orbital_interval" });
 
   return {
-    alliedT2Check: function (aiAllyArmyIndex, ally, allyIndex) {
+    alliedT2Check: function (aiAllyArmyIndex, ally, allyIndex, interval) {
       var desiredUnits = ["_adv"];
       var desiredUnitCount = 1;
       units
@@ -32,7 +26,7 @@ define([
             return;
           }
 
-          clearInterval(alliedT2CheckInterval[allyIndex]);
+          clearInterval(interval[allyIndex]);
 
           if (alliedT2TechReported()[allyIndex] === true) {
             return;
@@ -43,7 +37,7 @@ define([
           alliedT2TechReported.valueHasMutated();
         });
     },
-    alliedOrbitalCheck: function (aiAllyArmyIndex, ally, allyIndex) {
+    alliedOrbitalCheck: function (aiAllyArmyIndex, ally, allyIndex, interval) {
       var desiredUnits = ["orbital_"];
       var desiredUnitCount = 1;
       units
@@ -59,7 +53,7 @@ define([
             return;
           }
 
-          clearInterval(alliedOrbitalCheckInterval[allyIndex]);
+          clearInterval(interval[allyIndex]);
 
           if (alliedOrbitalTechReported()[allyIndex] === true) {
             return;
