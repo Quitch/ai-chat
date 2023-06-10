@@ -131,7 +131,14 @@ if (!aiCommunicationsLoaded) {
               ally,
               i
             );
-            setInterval(report.status, generateInterval());
+            setInterval(
+              report.status,
+              generateInterval(),
+              false,
+              aiAllyArmyIndex,
+              enemyArmyIndex,
+              aiAllies
+            );
           });
         });
       };
