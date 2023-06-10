@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.1 - 2023-06-10
+
+- Fixed AI not reporting tech and status changes on single planet maps
+
 ## v1.0.1 - 2023-06-04
 
 - Fixed AIs not communicating landing locations
