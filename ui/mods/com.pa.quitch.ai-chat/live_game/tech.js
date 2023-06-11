@@ -9,6 +9,31 @@ define([
     .observableArray()
     .extend({ session: "ai_chat_ally_orbital_check" });
 
+  var reportTechStatus = function (
+    ally,
+    allyIndex,
+    interval,
+    planetsWithUnit,
+    reported,
+    message
+  ) {
+    var matchedPlanets = planetsWithUnit[0];
+
+    if (_.isEmpty(matchedPlanets)) {
+      return;
+    }
+
+    clearInterval(interval[allyIndex]);
+
+    if (reported()[allyIndex] === true) {
+      return;
+    }
+
+    chat.send("team", ally.name, message);
+    reported()[allyIndex] = true;
+    reported.valueHasMutated();
+  };
+
   return {
     alliedT2Check: function (aiAllyArmyIndex, ally, allyIndex, interval) {
       var desiredUnits = ["_adv"];
@@ -20,21 +45,14 @@ define([
           desiredUnitCount
         )
         .then(function (planetsWithUnit) {
-          var matchedPlanets = planetsWithUnit[0];
-
-          if (_.isEmpty(matchedPlanets)) {
-            return;
-          }
-
-          clearInterval(interval[allyIndex]);
-
-          if (alliedT2TechReported()[allyIndex] === true) {
-            return;
-          }
-
-          chat.send("team", ally.name, "allyAdvTech");
-          alliedT2TechReported()[allyIndex] = true;
-          alliedT2TechReported.valueHasMutated();
+          reportTechStatus(
+            ally,
+            allyIndex,
+            interval,
+            planetsWithUnit,
+            alliedT2TechReported,
+            "allyAdvTech"
+          );
         });
     },
     alliedOrbitalCheck: function (aiAllyArmyIndex, ally, allyIndex, interval) {
@@ -47,21 +65,14 @@ define([
           desiredUnitCount
         )
         .then(function (planetsWithUnit) {
-          var matchedPlanets = planetsWithUnit[0];
-
-          if (_.isEmpty(matchedPlanets)) {
-            return;
-          }
-
-          clearInterval(interval[allyIndex]);
-
-          if (alliedOrbitalTechReported()[allyIndex] === true) {
-            return;
-          }
-
-          chat.send("team", ally.name, "allyOrbitalTech");
-          alliedOrbitalTechReported()[allyIndex] = true;
-          alliedOrbitalTechReported.valueHasMutated();
+          reportTechStatus(
+            ally,
+            allyIndex,
+            interval,
+            planetsWithUnit,
+            alliedOrbitalTechReported,
+            "allyOrbitalTech"
+          );
         });
     },
   };
