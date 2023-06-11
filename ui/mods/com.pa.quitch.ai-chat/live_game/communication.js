@@ -180,8 +180,8 @@ if (!aiCommunicationsLoaded) {
             "coui://ui/mods/com.pa.quitch.ai-chat/live_game/landing.js",
           ], function (landing) {
             _.delay(landing.location, 10000, aiAllyArmyIndex, aiAllies); // delay to allow AI to spawn
+            communicatedLanding(true);
           });
-          communicatedLanding(true);
         }
       });
 
