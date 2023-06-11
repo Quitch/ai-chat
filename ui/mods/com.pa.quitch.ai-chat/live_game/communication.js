@@ -85,13 +85,13 @@ if (!aiCommunicationsLoaded) {
         var alliedT2CheckInterval = [];
         var alliedOrbitalCheckInterval = [];
 
-        allies.forEach(function (ally, i) {
-          require([
-            "coui://ui/mods/com.pa.quitch.ai-chat/live_game/colony.js",
-            "coui://ui/mods/com.pa.quitch.ai-chat/live_game/invasion.js",
-            "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
-            "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
-          ], function (colony, invasion, tech, report) {
+        require([
+          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/colony.js",
+          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/invasion.js",
+          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
+          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
+        ], function (colony, invasion, tech, report) {
+          allies.forEach(function (ally, i) {
             if (planetCount > 1) {
               setInterval(
                 colony.check,
