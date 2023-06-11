@@ -69,12 +69,14 @@ define([
     return situationReports;
   };
 
-  var previousPlanetStatus = ko
-    .observableArray()
-    .extend({ session: "ai_chat_planet_statuses" });
-  var previousImportantPlanetStatus = ko
-    .observableArray()
-    .extend({ session: "ai_chat_important_planet_statuses" });
+  var observableArray = function (string) {
+    return ko.observableArray().extend({ session: string });
+  };
+
+  var previousPlanetStatus = observableArray("aic_planet_statuses");
+  var previousImportantPlanetStatus = observableArray(
+    "aic_important_planet_statuses"
+  );
 
   var checkIfWorthReporting = function (planetIndex, report) {
     var importantStatus = new Set();

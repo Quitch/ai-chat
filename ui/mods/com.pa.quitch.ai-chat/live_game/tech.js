@@ -2,12 +2,12 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
-  var alliedT2TechReported = ko
-    .observableArray()
-    .extend({ session: "ai_chat_ally_t2_check" });
-  var alliedOrbitalTechReported = ko
-    .observableArray()
-    .extend({ session: "ai_chat_ally_orbital_check" });
+  var observableArray = function (string) {
+    return ko.observableArray().extend({ session: string });
+  };
+
+  var alliedT2TechReported = observableArray("aic_ally_t2_check");
+  var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
 
   var reportTechStatus = function (
     ally,
@@ -70,7 +70,7 @@ define([
             allyIndex,
             interval,
             planetsWithUnit,
-            alliedOrbitalTechReported,
+            alliedOrbitalReported,
             "allyOrbitalTech"
           );
         });

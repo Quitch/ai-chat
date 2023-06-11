@@ -5,14 +5,14 @@ if (!aiCommunicationsLoaded) {
 
   function aiCommunications() {
     try {
+      var observableArray = function (string) {
+        return ko.observableArray().extend({ session: string });
+      };
+
       var aiAllyArmyIndex = [];
       var enemyArmyIndex = [];
-      var processedLanding = ko
-        .observable(false)
-        .extend({ session: "ai_chat_processed_landing" });
-      var communicatedLanding = ko
-        .observable(false)
-        .extend({ session: "ai_chat_communicated_landing" });
+      var processedLanding = observableArray("aic_processed_landing");
+      var communicatedLanding = observableArray("aic_communicated_landing");
       var allyState = "allied_eco";
       var enemyState = "hostile";
       // model variables may not be populated yet
@@ -45,32 +45,22 @@ if (!aiCommunicationsLoaded) {
       var detectNewGame = function (player) {
         var playerSelectingSpawn = player.landing;
         if (processedLanding() === true && playerSelectingSpawn === true) {
-          var currentlyColonisedPlanets = ko
-            .observableArray()
-            .extend({ session: "ai_chat_colonised_planets" });
-          var previousUnitCount = ko
-            .observableArray()
-            .extend({ session: "ai_chat_previous_units" });
-          var previousPlanetStatus = ko
-            .observableArray()
-            .extend({ session: "ai_chat_planet_statuses" });
-          var previousImportantPlanetStatus = ko
-            .observableArray()
-            .extend({ session: "ai_chat_important_planet_statuses" });
-          var alliedAdvancedTechReported = ko
-            .observableArray()
-            .extend({ session: "ai_chat_ally_t2_check" });
-          var alliedOrbitalTechReported = ko
-            .observableArray()
-            .extend({ session: "ai_chat_ally_orbital_check" });
+          var colonisedPlanets = observableArray("aic_colonised_planets");
+          var previousUnitCount = observableArray("aic_previous_units");
+          var previousPlanetStatus = observableArray("aic_planet_statuses");
+          var previousImportantPlanetStatus = observableArray(
+            "aic_important_planet_statuses"
+          );
+          var alliedAdvancedReported = observableArray("aic_ally_t2_check");
+          var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
           processedLanding(false);
           communicatedLanding(false);
-          currentlyColonisedPlanets([]);
+          colonisedPlanets([]);
           previousPlanetStatus([]);
           previousImportantPlanetStatus([]);
           previousUnitCount([]);
-          alliedAdvancedTechReported([]);
-          alliedOrbitalTechReported([]);
+          alliedAdvancedReported([]);
+          alliedOrbitalReported([]);
         }
       };
       detectNewGame(player);

@@ -4,7 +4,7 @@ define([
 ], function (chat, units) {
   var previousUnitCount = ko
     .observableArray()
-    .extend({ session: "ai_chat_previous_units" });
+    .extend({ session: "aic_previous_units" });
 
   var identifyNewlyInvadedPlanets = function (allyIndex, perPlanetUnitCounts) {
     if (_.isUndefined(previousUnitCount()[allyIndex])) {
