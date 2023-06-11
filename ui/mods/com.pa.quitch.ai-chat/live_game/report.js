@@ -35,7 +35,7 @@ define([
 
   var compareArmySizes = function (alliedUnitsPerPlanet, enemyUnitsPerPlanet) {
     var winningRatio = 4;
-    var losingRatio = 1.5;
+    var losingRatio = 1.5; // assume imperfect information
     var situationReports = [];
 
     alliedUnitsPerPlanet.forEach(function (alliedUnits, planetIndex) {
