@@ -2,7 +2,7 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
-  var reduce = function (units) {
+  var sumOfArray = function (units) {
     return units.reduce(function (acc, val) {
       return acc + val;
     });
@@ -23,8 +23,8 @@ define([
     planetUnitCounts.forEach(function (planetUnitCount) {
       var unitsPerAlly = planetUnitCount.splice(teamIndex, allyCount + 1);
       var unitsPerEnemy = planetUnitCount;
-      var alliedUnits = reduce(unitsPerAlly);
-      var enemyUnits = reduce(unitsPerEnemy);
+      var alliedUnits = sumOfArray(unitsPerAlly);
+      var enemyUnits = sumOfArray(unitsPerEnemy);
       alliedUnitsPerPlanet.push(alliedUnits);
       enemyUnitsPerPlanet.push(enemyUnits);
     });
