@@ -8,15 +8,17 @@ define([
     });
   };
 
+  var indexOfPlayers = function (string) {
+    return _.findIndex(model.players(), {
+      stateToPlayer: string,
+    });
+  };
+
   var separateFriendFromFoe = function (planetUnitCounts, aiAllyArmyIndex) {
     var alliedUnitsPerPlanet = [];
     var enemyUnitsPerPlanet = [];
-    var playerIndex = _.findIndex(model.players(), {
-      stateToPlayer: "self",
-    });
-    var allyIndex = _.findIndex(model.players(), {
-      stateToPlayer: "allied_eco",
-    });
+    var playerIndex = indexOfPlayers("self");
+    var allyIndex = indexOfPlayers("allied_eco");
     var teamIndex = Math.min(playerIndex, allyIndex);
     var allyCount = aiAllyArmyIndex.length;
 
