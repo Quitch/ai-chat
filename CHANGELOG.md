@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Support detecting T2 as Bugs
+
 ## v1.1 - 2023-06-10
 
 - Fixed AI not reporting tech and status changes on single planet maps
