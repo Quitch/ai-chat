@@ -73,7 +73,10 @@ define([
         "_fab",
       ];
       var desiredUnitCount = 2; // we only need a fabber and something else
-      var excludedUnits = ["factory"];
+      var excludedUnits = [
+        "factory",
+        "_hive", //Bugs
+      ];
       units
         .checkForDesired(
           aiAllyArmyIndex[allyIndex],
