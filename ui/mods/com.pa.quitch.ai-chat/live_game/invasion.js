@@ -4,7 +4,7 @@ define([
 ], function (chat, units) {
   var previousUnitCount = ko
     .observableArray()
-    .extend({ session: "ai_chat_previous_units" });
+    .extend({ session: "aic_previous_units" });
 
   var identifyNewlyInvadedPlanets = function (allyIndex, perPlanetUnitCounts) {
     if (_.isUndefined(previousUnitCount()[allyIndex])) {
@@ -42,7 +42,12 @@ define([
 
   return {
     check: function (aiAllyArmyIndex, ally, allyIndex) {
-      var desiredUnits = ["bot", "tank", "orbital_"];
+      var desiredUnits = [
+        "bot",
+        "tank",
+        "orbital_",
+        "land/bug_", // Bugs
+      ];
       units
         .countDesired(aiAllyArmyIndex[allyIndex], desiredUnits)
         .then(function (perPlanetUnitCounts) {

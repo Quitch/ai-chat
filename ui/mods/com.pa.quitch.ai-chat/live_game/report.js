@@ -2,27 +2,31 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
+  var sumOfArray = function (units) {
+    return units.reduce(function (acc, val) {
+      return acc + val;
+    });
+  };
+
+  var indexOfPlayers = function (string) {
+    return _.findIndex(model.players(), {
+      stateToPlayer: string,
+    });
+  };
+
   var separateFriendFromFoe = function (planetUnitCounts, aiAllyArmyIndex) {
     var alliedUnitsPerPlanet = [];
     var enemyUnitsPerPlanet = [];
-    var playerIndex = _.findIndex(model.players(), {
-      stateToPlayer: "self",
-    });
-    var allyIndex = _.findIndex(model.players(), {
-      stateToPlayer: "allied_eco",
-    });
+    var playerIndex = indexOfPlayers("self");
+    var allyIndex = indexOfPlayers("allied_eco");
     var teamIndex = Math.min(playerIndex, allyIndex);
     var allyCount = aiAllyArmyIndex.length;
 
     planetUnitCounts.forEach(function (planetUnitCount) {
       var unitsPerAlly = planetUnitCount.splice(teamIndex, allyCount + 1);
       var unitsPerEnemy = planetUnitCount;
-      var alliedUnits = unitsPerAlly.reduce(function (acc, val) {
-        return acc + val;
-      });
-      var enemyUnits = unitsPerEnemy.reduce(function (acc, val) {
-        return acc + val;
-      });
+      var alliedUnits = sumOfArray(unitsPerAlly);
+      var enemyUnits = sumOfArray(unitsPerEnemy);
       alliedUnitsPerPlanet.push(alliedUnits);
       enemyUnitsPerPlanet.push(enemyUnits);
     });
@@ -35,7 +39,7 @@ define([
 
   var compareArmySizes = function (alliedUnitsPerPlanet, enemyUnitsPerPlanet) {
     var winningRatio = 4;
-    var losingRatio = 1.5;
+    var losingRatio = 1.5; // assume imperfect information
     var situationReports = [];
 
     alliedUnitsPerPlanet.forEach(function (alliedUnits, planetIndex) {
@@ -67,12 +71,14 @@ define([
     return situationReports;
   };
 
-  var previousPlanetStatus = ko
-    .observableArray()
-    .extend({ session: "ai_chat_planet_statuses" });
-  var previousImportantPlanetStatus = ko
-    .observableArray()
-    .extend({ session: "ai_chat_important_planet_statuses" });
+  var observableArray = function (string) {
+    return ko.observableArray().extend({ session: string });
+  };
+
+  var previousPlanetStatus = observableArray("aic_planet_statuses");
+  var previousImportantPlanetStatus = observableArray(
+    "aic_important_planet_statuses"
+  );
 
   var checkIfWorthReporting = function (planetIndex, report) {
     var importantStatus = new Set();

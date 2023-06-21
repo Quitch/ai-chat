@@ -2,9 +2,9 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
-  var currentlyColonisedPlanets = ko
+  var colonisedPlanets = ko
     .observableArray()
-    .extend({ session: "ai_chat_colonised_planets" });
+    .extend({ session: "aic_colonised_planets" });
 
   var sendLostPlanetMessage = function (ally, lostPlanets) {
     lostPlanets.forEach(function (planetIndex) {
@@ -43,20 +43,20 @@ define([
     excludedPlanets
   ) {
     // remove planets which are no longer reported as colonised - this allows for future messages
-    currentlyColonisedPlanets()[allyIndex] = _.intersection(
-      currentlyColonisedPlanets()[allyIndex],
+    colonisedPlanets()[allyIndex] = _.intersection(
+      colonisedPlanets()[allyIndex],
       matchedPlanets
     ).concat(excludedPlanets);
 
     var newPlanets = _.filter(matchedPlanets, function (matchedPlanet) {
-      return !_.includes(currentlyColonisedPlanets()[allyIndex], matchedPlanet);
+      return !_.includes(colonisedPlanets()[allyIndex], matchedPlanet);
     });
 
     sendColonisedMessage(ally, newPlanets);
 
-    currentlyColonisedPlanets()[allyIndex] =
-      currentlyColonisedPlanets()[allyIndex].concat(newPlanets);
-    currentlyColonisedPlanets.valueHasMutated();
+    colonisedPlanets()[allyIndex] =
+      colonisedPlanets()[allyIndex].concat(newPlanets);
+    colonisedPlanets.valueHasMutated();
   };
 
   return {
@@ -67,9 +67,16 @@ define([
         "fabrication",
         "mining_platform",
         "commander",
+        // Bugs
+        "bug_jig",
+        "fabricator",
+        "_fab",
       ];
       var desiredUnitCount = 2; // we only need a fabber and something else
-      var excludedUnits = ["factory"];
+      var excludedUnits = [
+        "factory",
+        "_hive", //Bugs
+      ];
       units
         .checkForDesired(
           aiAllyArmyIndex[allyIndex],
@@ -85,13 +92,13 @@ define([
             return;
           }
 
-          if (_.isUndefined(currentlyColonisedPlanets()[allyIndex])) {
-            currentlyColonisedPlanets()[allyIndex] = [];
+          if (_.isUndefined(colonisedPlanets()[allyIndex])) {
+            colonisedPlanets()[allyIndex] = [];
           }
 
           checkForPlanetsWeLost(
             ally,
-            currentlyColonisedPlanets()[allyIndex],
+            colonisedPlanets()[allyIndex],
             matchedPlanets,
             excludedPlanets
           );

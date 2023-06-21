@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.2 - 2023-06-21
+
+- Improved support for Bugs faction
+
 ## v1.1 - 2023-06-10
 
 - Fixed AI not reporting tech and status changes on single planet maps
