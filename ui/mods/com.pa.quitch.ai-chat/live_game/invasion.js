@@ -42,7 +42,12 @@ define([
 
   return {
     check: function (aiAllyArmyIndex, ally, allyIndex) {
-      var desiredUnits = ["bot", "tank", "orbital_"];
+      var desiredUnits = [
+        "bot",
+        "tank",
+        "orbital_",
+        "land/bug_", // Bugs
+      ];
       units
         .countDesired(aiAllyArmyIndex[allyIndex], desiredUnits)
         .then(function (perPlanetUnitCounts) {

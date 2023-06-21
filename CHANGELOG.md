@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Support detecting T2 as Bugs
+- Improved Bugs support
 
 ## v1.1 - 2023-06-10
 

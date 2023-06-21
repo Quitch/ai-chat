@@ -67,6 +67,10 @@ define([
         "fabrication",
         "mining_platform",
         "commander",
+        // Bugs
+        "bug_jig",
+        "fabricator",
+        "_fab",
       ];
       var desiredUnitCount = 2; // we only need a fabber and something else
       var excludedUnits = ["factory"];

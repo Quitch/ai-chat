@@ -36,7 +36,10 @@ define([
 
   return {
     alliedT2Check: function (aiAllyArmyIndex, ally, allyIndex, interval) {
-      var desiredUnits = ["_adv", "advanced"];
+      var desiredUnits = [
+        "_adv",
+        "advanced", // Bugs
+      ];
       var desiredUnitCount = 1;
       units
         .checkForDesired(
