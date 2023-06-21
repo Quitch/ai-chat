@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Improved Bugs support
+- Improved support for Bugs faction
 
 ## v1.1 - 2023-06-10
 
