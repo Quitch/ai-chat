@@ -42,8 +42,8 @@ if (!aiCommunicationsLoaded) {
       };
       identifyFriendAndFoe(ais, players);
 
-      var detectNewGame = function (player) {
-        var playerSelectingSpawn = player.landing;
+      var detectNewGame = function (playerInfo) {
+        var playerSelectingSpawn = playerInfo.landing;
         if (processedLanding() === true && playerSelectingSpawn === true) {
           var colonisedPlanets = observableArray("aic_colonised_planets");
           var previousUnitCount = observableArray("aic_previous_units");
