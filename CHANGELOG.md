@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v1.2.1 - 2023-08-23
 
 - Fix invalid operations in array reductions
 - Fix allies not reporting their landing locations
