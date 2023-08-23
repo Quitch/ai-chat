@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v1.2.1 - 2023-08-23
+
+- Fix invalid operations in array reductions
+- Fix allies not reporting their landing locations
+
 ## v1.2 - 2023-06-21
 
 - Improved support for Bugs faction
