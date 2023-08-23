@@ -3,8 +3,8 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
   var sumOfArray = function (units) {
-    return units.reduce(function (acc, val) {
-      return acc + val;
+    return _.reduce(units, function (total, value) {
+      return total + value;
     });
   };
 

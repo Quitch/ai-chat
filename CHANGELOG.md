@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix invalid operations in array reductions
+
 ## v1.2 - 2023-06-21
 
 - Improved support for Bugs faction
