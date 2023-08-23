@@ -9,10 +9,14 @@ if (!aiCommunicationsLoaded) {
         return ko.observableArray().extend({ session: string });
       };
 
+      var observable = function (string) {
+        return ko.observable().extend({ session: string });
+      };
+
       var aiAllyArmyIndex = [];
       var enemyArmyIndex = [];
-      var processedLanding = observableArray("aic_processed_landing");
-      var communicatedLanding = observableArray("aic_communicated_landing");
+      var processedLanding = observable("aic_processed_landing");
+      var communicatedLanding = observable("aic_communicated_landing");
       var allyState = "allied_eco";
       var enemyState = "hostile";
       // model variables may not be populated yet

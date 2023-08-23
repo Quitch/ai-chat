@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fix invalid operations in array reductions
+- Fix allies not reporting their landing locations
 
 ## v1.2 - 2023-06-21
 
