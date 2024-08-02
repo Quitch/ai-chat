@@ -2,24 +2,24 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
-  var colonisedPlanets = ko
+  const colonisedPlanets = ko
     .observableArray()
     .extend({ session: "aic_colonised_planets" });
 
-  var sendLostPlanetMessage = function (ally, lostPlanets) {
+  const sendLostPlanetMessage = function (ally, lostPlanets) {
     lostPlanets.forEach(function (planetIndex) {
       chat.send("team", ally.name, "planetLost", planetIndex);
     });
   };
 
-  var checkForPlanetsWeLost = function (
+  const checkForPlanetsWeLost = function (
     ally,
     ourPastPlanets,
     matchedPlanets,
     excludedPlanets
   ) {
-    var ourCurrentPlanets = matchedPlanets.concat(excludedPlanets);
-    var lostPlanets = _.filter(ourPastPlanets, function (planet) {
+    const ourCurrentPlanets = matchedPlanets.concat(excludedPlanets);
+    const lostPlanets = _.filter(ourPastPlanets, function (planet) {
       return !_.includes(ourCurrentPlanets, planet);
     });
 
@@ -30,13 +30,13 @@ define([
     sendLostPlanetMessage(ally, lostPlanets);
   };
 
-  var sendColonisedMessage = function (ally, newPlanets) {
+  const sendColonisedMessage = function (ally, newPlanets) {
     newPlanets.forEach(function (planetIndex) {
       chat.send("team", ally.name, "colonise", planetIndex);
     });
   };
 
-  var checkForPlanetsWeColonised = function (
+  const checkForPlanetsWeColonised = function (
     ally,
     allyIndex,
     matchedPlanets,
@@ -48,7 +48,7 @@ define([
       matchedPlanets
     ).concat(excludedPlanets);
 
-    var newPlanets = _.filter(matchedPlanets, function (matchedPlanet) {
+    const newPlanets = _.filter(matchedPlanets, function (matchedPlanet) {
       return !_.includes(colonisedPlanets()[allyIndex], matchedPlanet);
     });
 
@@ -61,7 +61,7 @@ define([
 
   return {
     check: function (aiAllyArmyIndex, ally, allyIndex) {
-      var desiredUnits = [
+      const desiredUnits = [
         "lander",
         "teleporter",
         "fabrication",
@@ -72,8 +72,8 @@ define([
         "fabricator",
         "_fab",
       ];
-      var desiredUnitCount = 2; // we only need a fabber and something else
-      var excludedUnits = [
+      const desiredUnitCount = 2; // we only need a fabber and something else
+      const excludedUnits = [
         "factory",
         "_hive", //Bugs
       ];
@@ -85,8 +85,8 @@ define([
           excludedUnits
         )
         .then(function (planetsWithUnit) {
-          var matchedPlanets = planetsWithUnit[0];
-          var excludedPlanets = planetsWithUnit[1];
+          const matchedPlanets = planetsWithUnit[0];
+          const excludedPlanets = planetsWithUnit[1];
 
           if (_.isEmpty(matchedPlanets)) {
             return;

@@ -1,4 +1,4 @@
-var aiCommunicationsLoaded;
+const aiCommunicationsLoaded;
 
 function aiCommunications() {
   if (aiCommunicationsLoaded) {
@@ -8,58 +8,58 @@ function aiCommunications() {
   aiCommunicationsLoaded = true;
 
   try {
-    var observableArray = function (string) {
+    const observableArray = function (string) {
       return ko.observableArray().extend({ session: string });
     };
 
-    var observable = function (string) {
+    const observable = function (string) {
       return ko.observable().extend({ session: string });
     };
 
-    var aiAllyArmyIndex = [];
-    var enemyArmyIndex = [];
-    var processedLanding = observable("aic_processed_landing");
-    var communicatedLanding = observable("aic_communicated_landing");
-    var allyState = "allied_eco";
-    var enemyState = "hostile";
+    const aiAllyArmyIndex = [];
+    const enemyArmyIndex = [];
+    const processedLanding = observable("aic_processed_landing");
+    const communicatedLanding = observable("aic_communicated_landing");
+    const allyState = "allied_eco";
+    const enemyState = "hostile";
     // model variables may not be populated yet
-    var planets = model.planetListState().planets;
-    var planetCount = planets.length - 1; // last planet is not a planet
-    var players = model.players();
-    var player = model.player();
-    var ais = _.filter(players, { ai: 1 });
-    var aiAllies = _.filter(ais, { stateToPlayer: allyState });
-    var enemies = _.filter(players, { stateToPlayer: enemyState });
+    const planets = model.planetListState().planets;
+    const planetCount = planets.length - 1; // last planet is not a planet
+    const players = model.players();
+    const player = model.player();
+    const ais = _.filter(players, { ai: 1 });
+    const aiAllies = _.filter(ais, { stateToPlayer: allyState });
+    const enemies = _.filter(players, { stateToPlayer: enemyState });
 
-    var identifyFriendAndFoe = function (allAis, allPlayers) {
+    const identifyFriendAndFoe = function (allAis, allPlayers) {
       // avoid duplicates if this is called more than once
       aiAllyArmyIndex = [];
       enemyArmyIndex = [];
       if (!_.isEmpty(allAis)) {
         aiAllies.forEach(function (ai) {
-          var allyIndex = _.findIndex(allPlayers, ai);
+          const allyIndex = _.findIndex(allPlayers, ai);
           aiAllyArmyIndex.push(allyIndex);
         });
 
         enemies.forEach(function (enemy) {
-          var enemyIndex = _.findIndex(allPlayers, enemy);
+          const enemyIndex = _.findIndex(allPlayers, enemy);
           enemyArmyIndex.push(enemyIndex);
         });
       }
     };
     identifyFriendAndFoe(ais, players);
 
-    var detectNewGame = function (playerInfo) {
-      var playerSelectingSpawn = playerInfo.landing;
+    const detectNewGame = function (playerInfo) {
+      const playerSelectingSpawn = playerInfo.landing;
       if (processedLanding() === true && playerSelectingSpawn === true) {
-        var colonisedPlanets = observableArray("aic_colonised_planets");
-        var previousUnitCount = observableArray("aic_previous_units");
-        var previousPlanetStatus = observableArray("aic_planet_statuses");
-        var previousImportantPlanetStatus = observableArray(
+        const colonisedPlanets = observableArray("aic_colonised_planets");
+        const previousUnitCount = observableArray("aic_previous_units");
+        const previousPlanetStatus = observableArray("aic_planet_statuses");
+        const previousImportantPlanetStatus = observableArray(
           "aic_important_planet_statuses"
         );
-        var alliedAdvancedReported = observableArray("aic_ally_t2_check");
-        var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
+        const alliedAdvancedReported = observableArray("aic_ally_t2_check");
+        const alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         processedLanding(false);
         communicatedLanding(false);
         colonisedPlanets([]);
@@ -72,18 +72,18 @@ function aiCommunications() {
     };
     detectNewGame(player);
 
-    var randomPercentageAdjustment = function (min, max) {
+    const randomPercentageAdjustment = function (min, max) {
       return Math.random() * (max - min) + min;
     };
 
-    var generateInterval = function () {
-      var baseInterval = 10000; // 10 seconds
+    const generateInterval = function () {
+      const baseInterval = 10000; // 10 seconds
       return baseInterval * randomPercentageAdjustment(0.8, 1.2);
     };
 
-    var checksInitialised = false;
+    const checksInitialised = false;
 
-    var initialiseChecks = function (allies) {
+    const initialiseChecks = function (allies) {
       if (checksInitialised || _.isEmpty(allies)) {
         return;
       }
@@ -96,8 +96,8 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
       ], function (colony, invasion, tech, report) {
-        var alliedT2CheckInterval = [];
-        var alliedOrbitalCheckInterval = [];
+        const alliedT2CheckInterval = [];
+        const alliedOrbitalCheckInterval = [];
 
         allies.forEach(function (ally, i) {
           if (planetCount > 1) {
@@ -154,11 +154,11 @@ function aiCommunications() {
       enemies = _.filter(players, { stateToPlayer: enemyState });
       planets = model.planetListState().planets;
       planetCount = planets.length - 1; // last entry in array isn't a planet
-      var startingPlanetsCount = _.filter(planets, {
+      const startingPlanetsCount = _.filter(planets, {
         starting_planet: true,
       }).length;
-      var playerHasAllies = !_.isEmpty(aiAllies);
-      var playerSelectingSpawn = player.landing;
+      const playerHasAllies = !_.isEmpty(aiAllies);
+      const playerSelectingSpawn = player.landing;
 
       detectNewGame(player);
       identifyFriendAndFoe(ais, players);
@@ -187,10 +187,10 @@ function aiCommunications() {
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
       ], function (chat) {
-        var defeated = payload[0];
-        var killer = payload[1];
-        var killerIsAI = killer && players[killer.index].ai === 1;
-        var defeatedIsAIAlly =
+        const defeated = payload[0];
+        const killer = payload[1];
+        const killerIsAI = killer && players[killer.index].ai === 1;
+        const defeatedIsAIAlly =
           players[defeated.index].ai === 1 &&
           players[defeated.index].stateToPlayer === allyState;
 

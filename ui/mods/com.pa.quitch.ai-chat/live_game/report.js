@@ -2,31 +2,31 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
-  var sumOfArray = function (units) {
+  const sumOfArray = function (units) {
     return _.reduce(units, function (total, value) {
       return total + value;
     });
   };
 
-  var indexOfPlayers = function (string) {
+  const indexOfPlayers = function (string) {
     return _.findIndex(model.players(), {
       stateToPlayer: string,
     });
   };
 
-  var separateFriendFromFoe = function (planetUnitCounts, aiAllyArmyIndex) {
-    var alliedUnitsPerPlanet = [];
-    var enemyUnitsPerPlanet = [];
-    var playerIndex = indexOfPlayers("self");
-    var allyIndex = indexOfPlayers("allied_eco");
-    var teamIndex = Math.min(playerIndex, allyIndex);
-    var allyCount = aiAllyArmyIndex.length;
+  const separateFriendFromFoe = function (planetUnitCounts, aiAllyArmyIndex) {
+    const alliedUnitsPerPlanet = [];
+    const enemyUnitsPerPlanet = [];
+    const playerIndex = indexOfPlayers("self");
+    const allyIndex = indexOfPlayers("allied_eco");
+    const teamIndex = Math.min(playerIndex, allyIndex);
+    const allyCount = aiAllyArmyIndex.length;
 
     planetUnitCounts.forEach(function (planetUnitCount) {
-      var unitsPerAlly = planetUnitCount.splice(teamIndex, allyCount + 1);
-      var unitsPerEnemy = planetUnitCount;
-      var alliedUnits = sumOfArray(unitsPerAlly);
-      var enemyUnits = sumOfArray(unitsPerEnemy);
+      const unitsPerAlly = planetUnitCount.splice(teamIndex, allyCount + 1);
+      const unitsPerEnemy = planetUnitCount;
+      const alliedUnits = sumOfArray(unitsPerAlly);
+      const enemyUnits = sumOfArray(unitsPerEnemy);
       alliedUnitsPerPlanet.push(alliedUnits);
       enemyUnitsPerPlanet.push(enemyUnits);
     });
@@ -37,13 +37,16 @@ define([
     };
   };
 
-  var compareArmySizes = function (alliedUnitsPerPlanet, enemyUnitsPerPlanet) {
-    var winningRatio = 4;
-    var losingRatio = 1.5; // assume imperfect information
-    var situationReports = [];
+  const compareArmySizes = function (
+    alliedUnitsPerPlanet,
+    enemyUnitsPerPlanet
+  ) {
+    const winningRatio = 4;
+    const losingRatio = 1.5; // assume imperfect information
+    const situationReports = [];
 
     alliedUnitsPerPlanet.forEach(function (alliedUnits, planetIndex) {
-      var enemyUnits = enemyUnitsPerPlanet[planetIndex];
+      const enemyUnits = enemyUnitsPerPlanet[planetIndex];
       if (alliedUnits === 0) {
         situationReports.push("absent");
       } else if (enemyUnits === 0) {
@@ -60,28 +63,31 @@ define([
     return situationReports;
   };
 
-  var getSituationReports = function (planetUnitCounts, aiAllyArmyIndex) {
-    var friendAndFoe = separateFriendFromFoe(planetUnitCounts, aiAllyArmyIndex);
-    var alliedUnitsPerPlanet = friendAndFoe.allies;
-    var enemyUnitsPerPlanet = friendAndFoe.enemies;
-    var situationReports = compareArmySizes(
+  const getSituationReports = function (planetUnitCounts, aiAllyArmyIndex) {
+    const friendAndFoe = separateFriendFromFoe(
+      planetUnitCounts,
+      aiAllyArmyIndex
+    );
+    const alliedUnitsPerPlanet = friendAndFoe.allies;
+    const enemyUnitsPerPlanet = friendAndFoe.enemies;
+    const situationReports = compareArmySizes(
       alliedUnitsPerPlanet,
       enemyUnitsPerPlanet
     );
     return situationReports;
   };
 
-  var observableArray = function (string) {
+  const observableArray = function (string) {
     return ko.observableArray().extend({ session: string });
   };
 
-  var previousPlanetStatus = observableArray("aic_planet_statuses");
-  var previousImportantPlanetStatus = observableArray(
+  const previousPlanetStatus = observableArray("aic_planet_statuses");
+  const previousImportantPlanetStatus = observableArray(
     "aic_important_planet_statuses"
   );
 
-  var checkIfWorthReporting = function (planetIndex, report) {
-    var importantStatus = new Set();
+  const checkIfWorthReporting = function (planetIndex, report) {
+    const importantStatus = new Set();
     importantStatus.add("winning");
     importantStatus.add("losing");
 
@@ -105,19 +111,19 @@ define([
       enemyArmyIndex,
       aiAllies
     ) {
-      var liveAllies = _.filter(aiAllies, { defeated: false });
+      const liveAllies = _.filter(aiAllies, { defeated: false });
 
       if (_.isEmpty(liveAllies)) {
         return;
       }
 
-      var allAIIndex = aiAllyArmyIndex.concat(enemyArmyIndex);
+      const allAIIndex = aiAllyArmyIndex.concat(enemyArmyIndex);
       units.countAll(allAIIndex).then(function (planetUnitCounts) {
-        var situationReports = getSituationReports(
+        const situationReports = getSituationReports(
           planetUnitCounts,
           aiAllyArmyIndex
         );
-        var ally = _.shuffle(liveAllies)[0];
+        const ally = _.shuffle(liveAllies)[0];
         situationReports.forEach(function (report, planetIndex) {
           if (report === "absent") {
             previousPlanetStatus()[planetIndex] = report;
@@ -125,7 +131,7 @@ define([
             return;
           }
 
-          var worthReporting = checkIfWorthReporting(planetIndex, report);
+          const worthReporting = checkIfWorthReporting(planetIndex, report);
 
           if (playerRequested === true || worthReporting === true) {
             chat.send("team", ally.name, report, planetIndex);

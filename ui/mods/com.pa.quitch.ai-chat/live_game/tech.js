@@ -2,14 +2,14 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
-  var observableArray = function (string) {
+  const observableArray = function (string) {
     return ko.observableArray().extend({ session: string });
   };
 
-  var alliedT2TechReported = observableArray("aic_ally_t2_check");
-  var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
+  const alliedT2TechReported = observableArray("aic_ally_t2_check");
+  const alliedOrbitalReported = observableArray("aic_ally_orbital_check");
 
-  var reportTechStatus = function (
+  const reportTechStatus = function (
     ally,
     allyIndex,
     interval,
@@ -17,7 +17,7 @@ define([
     reported,
     message
   ) {
-    var matchedPlanets = planetsWithUnit[0];
+    const matchedPlanets = planetsWithUnit[0];
 
     if (_.isEmpty(matchedPlanets)) {
       return;
@@ -36,11 +36,11 @@ define([
 
   return {
     alliedT2Check: function (aiAllyArmyIndex, ally, allyIndex, interval) {
-      var desiredUnits = [
+      const desiredUnits = [
         "_adv",
         "advanced", // Bugs
       ];
-      var desiredUnitCount = 1;
+      const desiredUnitCount = 1;
       units
         .checkForDesired(
           aiAllyArmyIndex[allyIndex],
@@ -59,8 +59,8 @@ define([
         });
     },
     alliedOrbitalCheck: function (aiAllyArmyIndex, ally, allyIndex, interval) {
-      var desiredUnits = ["orbital_"];
-      var desiredUnitCount = 1;
+      const desiredUnits = ["orbital_"];
+      const desiredUnitCount = 1;
       units
         .checkForDesired(
           aiAllyArmyIndex[allyIndex],

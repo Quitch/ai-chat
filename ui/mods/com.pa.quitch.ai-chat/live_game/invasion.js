@@ -2,24 +2,30 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
-  var previousUnitCount = ko
+  const previousUnitCount = ko
     .observableArray()
     .extend({ session: "aic_previous_units" });
 
-  var identifyNewlyInvadedPlanets = function (allyIndex, perPlanetUnitCounts) {
+  const identifyNewlyInvadedPlanets = function (
+    allyIndex,
+    perPlanetUnitCounts
+  ) {
     if (_.isUndefined(previousUnitCount()[allyIndex])) {
-      var planets = model.planetListState().planets;
-      var planetCount = planets.length - 1; // last planet is not a planet
+      const planets = model.planetListState().planets;
+      const planetCount = planets.length - 1; // last planet is not a planet
 
       previousUnitCount()[allyIndex] = _.range(0, planetCount, 0);
     }
 
-    var newPlanets = [];
+    const newPlanets = [];
 
     perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
-      var armySizeMultiplier = 1.5;
+      const armySizeMultiplier = 1.5;
       // avoid multiplying by zero
-      var unitCount = Math.max(previousUnitCount()[allyIndex][planetIndex], 1);
+      const unitCount = Math.max(
+        previousUnitCount()[allyIndex][planetIndex],
+        1
+      );
       if (
         planetUnitCount > unitCount * armySizeMultiplier &&
         planetUnitCount > 20
@@ -34,7 +40,7 @@ define([
     return newPlanets;
   };
 
-  var communicateAnyInvasions = function (ally, newlyInvadedPlanets) {
+  const communicateAnyInvasions = function (ally, newlyInvadedPlanets) {
     newlyInvadedPlanets.forEach(function (planetIndex) {
       chat.send("team", ally.name, "invasion", planetIndex);
     });
@@ -42,7 +48,7 @@ define([
 
   return {
     check: function (aiAllyArmyIndex, ally, allyIndex) {
-      var desiredUnits = [
+      const desiredUnits = [
         "bot",
         "tank",
         "orbital_",
@@ -51,7 +57,7 @@ define([
       units
         .countDesired(aiAllyArmyIndex[allyIndex], desiredUnits)
         .then(function (perPlanetUnitCounts) {
-          var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
+          const newlyInvadedPlanets = identifyNewlyInvadedPlanets(
             allyIndex,
             perPlanetUnitCounts
           );
