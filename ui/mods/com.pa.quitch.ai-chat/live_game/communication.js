@@ -1,4 +1,4 @@
-const aiCommunicationsLoaded;
+var aiCommunicationsLoaded;
 
 function aiCommunications() {
   if (aiCommunicationsLoaded) {
@@ -16,20 +16,20 @@ function aiCommunications() {
       return ko.observable().extend({ session: string });
     };
 
-    const aiAllyArmyIndex = [];
-    const enemyArmyIndex = [];
+    var aiAllyArmyIndex = [];
+    var enemyArmyIndex = [];
     const processedLanding = observable("aic_processed_landing");
     const communicatedLanding = observable("aic_communicated_landing");
     const allyState = "allied_eco";
     const enemyState = "hostile";
     // model variables may not be populated yet
-    const planets = model.planetListState().planets;
-    const planetCount = planets.length - 1; // last planet is not a planet
-    const players = model.players();
-    const player = model.player();
-    const ais = _.filter(players, { ai: 1 });
-    const aiAllies = _.filter(ais, { stateToPlayer: allyState });
-    const enemies = _.filter(players, { stateToPlayer: enemyState });
+    var planets = model.planetListState().planets;
+    var planetCount = planets.length - 1; // last planet is not a planet
+    var players = model.players();
+    var player = model.player();
+    var ais = _.filter(players, { ai: 1 });
+    var aiAllies = _.filter(ais, { stateToPlayer: allyState });
+    var enemies = _.filter(players, { stateToPlayer: enemyState });
 
     const identifyFriendAndFoe = function (allAis, allPlayers) {
       // avoid duplicates if this is called more than once
@@ -81,7 +81,7 @@ function aiCommunications() {
       return baseInterval * randomPercentageAdjustment(0.8, 1.2);
     };
 
-    const checksInitialised = false;
+    var checksInitialised = false;
 
     const initialiseChecks = function (allies) {
       if (checksInitialised || _.isEmpty(allies)) {
