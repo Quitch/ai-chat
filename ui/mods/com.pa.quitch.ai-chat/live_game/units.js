@@ -1,7 +1,7 @@
 define(function () {
   const countAllUnits = function (unitsOnPlanet) {
     var unitCount = 0;
-    for (const unit in unitsOnPlanet) {
+    for (var unit in unitsOnPlanet) {
       unitCount += unitsOnPlanet[unit].length;
     }
     return unitCount;
@@ -10,7 +10,7 @@ define(function () {
   const countDesiredUnits = function (unitsOnPlanet, desiredUnits) {
     var desiredUnitsCount = 0;
     desiredUnits.forEach(function (desiredUnit) {
-      for (const unit in unitsOnPlanet) {
+      for (var unit in unitsOnPlanet) {
         if (_.includes(unit, desiredUnit)) {
           desiredUnitsCount += unitsOnPlanet[unit].length;
         }
@@ -24,8 +24,8 @@ define(function () {
       return false;
     }
 
-    for (const excludedUnit of excludedUnits) {
-      for (const unit in unitsOnPlanet) {
+    for (var excludedUnit of excludedUnits) {
+      for (var unit in unitsOnPlanet) {
         const excludedUnitPresent = _.includes(unit, excludedUnit);
         if (excludedUnitPresent) {
           return true;
@@ -42,7 +42,7 @@ define(function () {
 
     var desiredUnitsPresent = 0;
     desiredUnits.forEach(function (desiredUnit) {
-      for (const unit in unitsOnPlanet) {
+      for (var unit in unitsOnPlanet) {
         const desiredUnitOnPlanet = _.includes(unit, desiredUnit);
         if (desiredUnitOnPlanet) {
           desiredUnitsPresent++;
