@@ -98,6 +98,7 @@ function aiCommunications() {
       ], function (colony, invasion, tech, report) {
         const alliedT2CheckInterval = [];
         const alliedOrbitalCheckInterval = [];
+        const alliedCatalystCheckInterval = [];
 
         allies.forEach(function (ally, i) {
           if (planetCount > 1) {
@@ -132,6 +133,14 @@ function aiCommunications() {
             ally,
             i,
             alliedOrbitalCheckInterval
+          );
+          alliedCatalystCheckInterval[i] = setInterval(
+            tech.alliedCatalystCheck,
+            generateInterval(),
+            aiAllyArmyIndex,
+            ally,
+            i,
+            alliedCatalystCheckInterval
           );
           setInterval(
             report.status,

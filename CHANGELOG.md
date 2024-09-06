@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Report when building a Catalyst
+
 ## v1.2.1 - 2023-08-23
 
 - Fix invalid operations in array reductions

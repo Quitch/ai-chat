@@ -8,6 +8,7 @@ define([
 
   const alliedT2TechReported = observableArray("aic_ally_t2_check");
   const alliedOrbitalReported = observableArray("aic_ally_orbital_check");
+  const alliedCatalystReported = observableArray("aic_ally_catalyst_check");
 
   const reportTechStatus = function (
     ally,
@@ -75,6 +76,26 @@ define([
             planetsWithUnit,
             alliedOrbitalReported,
             "allyOrbitalTech"
+          );
+        });
+    },
+    alliedCatalystCheck: function (aiAllyArmyIndex, ally, allyIndex, interval) {
+      const desiredUnits = ["control_module"];
+      const desiredUnitCount = 1;
+      units
+        .checkForDesired(
+          aiAllyArmyIndex[allyIndex],
+          desiredUnits,
+          desiredUnitCount
+        )
+        .then(function (planetsWithUnit) {
+          reportTechStatus(
+            ally,
+            allyIndex,
+            interval,
+            planetsWithUnit,
+            alliedCatalystReported,
+            "allyCatalystTech"
           );
         });
     },
