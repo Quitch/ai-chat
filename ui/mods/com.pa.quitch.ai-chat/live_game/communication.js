@@ -92,6 +92,7 @@ function aiCommunications() {
           "aic_important_planet_statuses"
         );
         var enemyContact = observableArray("aic_enemy_contact");
+        var reportedThreats = observableArray("aic_enemy_threats");
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
@@ -101,6 +102,7 @@ function aiCommunications() {
         previousPlanetStatus([]);
         previousImportantPlanetStatus([]);
         enemyContact([]);
+        reportedThreats([]);
         previousUnitCount([]);
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);
@@ -150,14 +152,18 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/invasion.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
-      ], function (colony, invasion, tech, report) {
+        "coui://ui/mods/com.pa.quitch.ai-chat/live_game/threats.js",
+      ], function (colony, invasion, tech, report, threats) {
         // the army indices and ally list are rebuilt whenever the player
         // list changes, so each check reads them when it fires rather than
         // taking a copy now
 
-        // one report covers the whole team, so it is not per ally
+        // one report covers the whole team, so it is not per ally. The threat
+        // check rides the same tick because the report has just looked up
+        // every enemy army on every planet, which is exactly what it needs
         setInterval(function () {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
+          threats.check(enemyArmyIndex, aiAllies);
         }, generateInterval());
 
         // one interval per ally rather than one per check, so an ally's
