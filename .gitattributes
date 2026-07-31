@@ -7,9 +7,12 @@
 images/ export-ignore
 .gitattributes export-ignore
 .gitignore export-ignore
+.markdownlint.json export-ignore
 .prettierignore export-ignore
 .prettierrc export-ignore
+.sonarcloud.properties export-ignore
 CLAUDE.md export-ignore
+CONTRIBUTING.md export-ignore
 eslint.config.mjs export-ignore
 package-lock.json export-ignore
 package.json export-ignore
