@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix Bugs allies never reporting Catalyst construction
+
 ## v1.2.2 - 2026-07-31
 
 - Report when building a Catalyst

@@ -23,7 +23,10 @@ define([
       message: "allyOrbitalTech",
     },
     {
-      desiredUnits: ["control_module"],
+      desiredUnits: [
+        "control_module",
+        "bug_catalyst", // Bugs
+      ],
       reported: observableArray("aic_ally_catalyst_check"),
       message: "allyCatalystTech",
     },
