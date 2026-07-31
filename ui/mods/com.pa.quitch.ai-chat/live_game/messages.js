@@ -98,6 +98,16 @@ define({
     "!LOC:Constructing space tech",
     "!LOC:Constructing orbital tech",
   ],
+  allyCatalystTech: [
+    "!LOC:Starting on Annihilaser",
+    "!LOC:Bring metal planet online",
+    "!LOC:Preparing the biggest gun",
+    "!LOC:First Catalyst is online",
+    "!LOC:Building Catalysts",
+    "!LOC:Getting the superweapon ready",
+    "!LOC:Control module placed on metal planet",
+    "!LOC:Getting ready to end this with the Annihilaser",
+  ],
   kill: [
     "!LOC:Another one bites the dust",
     "!LOC:I'm just too good",

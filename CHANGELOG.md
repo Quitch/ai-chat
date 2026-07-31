@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v1.2.2 - 2026-07-31
+
+- Report when building a Catalyst
+- Fix situation reports counting an enemy army as friendly
+- Fix planets held outright reporting as okay rather than owned
+- Fix checks using stale army indices after a player leaves
+- Fix defeated allies continuing to issue situation reports
+- Fix situation reports being duplicated when you have multiple AI allies
+- Fix allies with multiple commanders not reporting their landing location
+- Fix an orbital fabber alone triggering a colonisation message
+- Fix Bugs gas giant colonisation never being reported
+- Fix fabbers counting towards the size of an invasion force
+- Fix duplicate messages when several players are defeated at once
+
 ## v1.2.1 - 2023-08-23
 
 - Fix invalid operations in array reductions

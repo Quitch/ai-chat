@@ -7,29 +7,44 @@ define(function () {
     return unitCount;
   };
 
-  var countDesiredUnits = function (unitsOnPlanet, desiredUnits) {
-    var desiredUnitsCount = 0;
-    desiredUnits.forEach(function (desiredUnit) {
-      for (var unit in unitsOnPlanet) {
-        if (_.includes(unit, desiredUnit)) {
-          desiredUnitsCount += unitsOnPlanet[unit].length;
-        }
-      }
-    });
-    return desiredUnitsCount;
-  };
-
-  var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
+  var isExcludedUnit = function (unit, excludedUnits) {
     if (!excludedUnits) {
       return false;
     }
 
     for (var excludedUnit of excludedUnits) {
-      for (var unit in unitsOnPlanet) {
-        var excludedUnitPresent = _.includes(unit, excludedUnit);
-        if (excludedUnitPresent) {
-          return true;
+      if (_.includes(unit, excludedUnit)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  var countDesiredUnits = function (
+    unitsOnPlanet,
+    desiredUnits,
+    excludedUnits
+  ) {
+    var desiredUnitsCount = 0;
+    for (var unit in unitsOnPlanet) {
+      if (isExcludedUnit(unit, excludedUnits)) {
+        continue;
+      }
+
+      for (var desiredUnit of desiredUnits) {
+        if (_.includes(unit, desiredUnit)) {
+          desiredUnitsCount += unitsOnPlanet[unit].length;
+          break; // a unit path can contain more than one desired unit
         }
+      }
+    }
+    return desiredUnitsCount;
+  };
+
+  var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
+    for (var unit in unitsOnPlanet) {
+      if (isExcludedUnit(unit, excludedUnits)) {
+        return true;
       }
     }
     return false;
@@ -40,17 +55,20 @@ define(function () {
       desiredUnits = [desiredUnits];
     }
 
-    var desiredUnitsPresent = 0;
-    desiredUnits.forEach(function (desiredUnit) {
-      for (var unit in unitsOnPlanet) {
-        var desiredUnitOnPlanet = _.includes(unit, desiredUnit);
-        if (desiredUnitOnPlanet) {
-          desiredUnitsPresent++;
+    // a unit path can contain more than one desired unit, so match on the
+    // unit rather than the desired unit to stop one unit counting twice
+    var matchedDesiredUnits = [];
+    for (var unit in unitsOnPlanet) {
+      for (var i = 0; i < desiredUnits.length; i++) {
+        if (_.includes(unit, desiredUnits[i])) {
+          if (!_.includes(matchedDesiredUnits, i)) {
+            matchedDesiredUnits.push(i);
+          }
           break;
         }
       }
-    });
-    return desiredUnitsPresent;
+    }
+    return matchedDesiredUnits.length;
   };
 
   return {
@@ -62,7 +80,7 @@ define(function () {
       var planetCount = planets.length - 1; // last planet is not a planet
 
       _.times(planetCount, function (planetIndex) {
-        aisIndex.forEach(function (aiIndex) {
+        aisIndex.forEach(function (aiIndex, armyPosition) {
           deferredQueue.push(
             api
               .getWorldView()
@@ -72,7 +90,8 @@ define(function () {
                 if (_.isUndefined(unitCount[planetIndex])) {
                   unitCount[planetIndex] = [];
                 }
-                unitCount[planetIndex].push(unitCountOnPlanet);
+                // assign rather than push - these resolve out of order
+                unitCount[planetIndex][armyPosition] = unitCountOnPlanet;
               })
           );
         });
@@ -84,7 +103,7 @@ define(function () {
 
       return deferred.promise();
     },
-    countDesired: function (aiIndex, desiredUnits) {
+    countDesired: function (aiIndex, desiredUnits, excludedUnits) {
       var deferred = $.Deferred();
       var deferredQueue = [];
       var desiredUnitCount = [];
@@ -99,9 +118,11 @@ define(function () {
             .then(function (unitsOnPlanet) {
               var desiredUnitsOnPlanet = countDesiredUnits(
                 unitsOnPlanet,
-                desiredUnits
+                desiredUnits,
+                excludedUnits
               );
-              desiredUnitCount.push(desiredUnitsOnPlanet);
+              // assign rather than push - these resolve out of order
+              desiredUnitCount[planetIndex] = desiredUnitsOnPlanet;
             })
         );
       });

@@ -1,11 +1,18 @@
 define(function () {
   var liveGameChatPanelId = 1;
 
-  _.defer(function () {
-    liveGameChatPanelId = _.find(api.panelsById, {
+  var findChatPanel = function () {
+    var chatPanel = _.find(api.panelsById, {
       src: "coui://ui/main/game/live_game/live_game_chat.html",
-    }).id;
-  });
+    });
+
+    if (chatPanel) {
+      liveGameChatPanelId = chatPanel.id;
+    } else {
+      _.delay(findChatPanel, 100); // the panel isn't registered yet
+    }
+  };
+  _.defer(findChatPanel);
 
   return {
     send: function (audience, aiName, type, planetIndex) {
@@ -16,7 +23,9 @@ define(function () {
         var planetName =
           (planets[planetIndex] && planets[planetIndex].name) || "";
         var translatedMessage = loc(_.sample(messages[type]));
-        var finalMessage = translatedMessage + " " + planetName;
+        var finalMessage = planetName
+          ? translatedMessage + " " + planetName
+          : translatedMessage;
         api.Panel.message(liveGameChatPanelId, "chat_message", {
           type: audience, // "team" or "global"
           player_name: aiName,

@@ -48,8 +48,12 @@ define([
         "orbital_",
         "land/bug_", // Bugs
       ];
+      var excludedUnits = [
+        "fabrication",
+        "_fab", // Bugs
+      ];
       units
-        .countDesired(aiAllyArmyIndex[allyIndex], desiredUnits)
+        .countDesired(aiAllyArmyIndex[allyIndex], desiredUnits, excludedUnits)
         .then(function (perPlanetUnitCounts) {
           var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
             allyIndex,
