@@ -40,17 +40,20 @@ define(function () {
       desiredUnits = [desiredUnits];
     }
 
-    var desiredUnitsPresent = 0;
-    desiredUnits.forEach(function (desiredUnit) {
-      for (var unit in unitsOnPlanet) {
-        var desiredUnitOnPlanet = _.includes(unit, desiredUnit);
-        if (desiredUnitOnPlanet) {
-          desiredUnitsPresent++;
+    // a unit path can contain more than one desired unit, so match on the
+    // unit rather than the desired unit to stop one unit counting twice
+    var matchedDesiredUnits = [];
+    for (var unit in unitsOnPlanet) {
+      for (var i = 0; i < desiredUnits.length; i++) {
+        if (_.includes(unit, desiredUnits[i])) {
+          if (!_.includes(matchedDesiredUnits, i)) {
+            matchedDesiredUnits.push(i);
+          }
           break;
         }
       }
-    });
-    return desiredUnitsPresent;
+    }
+    return matchedDesiredUnits.length;
   };
 
   return {

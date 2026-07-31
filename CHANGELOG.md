@@ -10,6 +10,7 @@
 - Fix defeated allies continuing to issue situation reports
 - Fix situation reports being duplicated when you have multiple AI allies
 - Fix allies with multiple commanders not reporting their landing location
+- Fix an orbital fabber alone triggering a colonisation message
 
 ## v1.2.1 - 2023-08-23
 
