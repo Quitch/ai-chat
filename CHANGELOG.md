@@ -13,6 +13,7 @@
 - Fix an orbital fabber alone triggering a colonisation message
 - Fix Bugs gas giant colonisation never being reported
 - Fix fabbers counting towards the size of an invasion force
+- Fix duplicate messages when several players are defeated at once
 
 ## v1.2.1 - 2023-08-23
 
