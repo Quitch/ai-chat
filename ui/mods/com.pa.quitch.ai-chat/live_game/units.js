@@ -1,4 +1,43 @@
 define(function () {
+  // the colony, invasion and tech checks all ask about the same ally, and the
+  // situation report asks about that ally again, so within a tick the same
+  // army and planet is fetched several times over. The in-flight promise is
+  // what gets cached, not just the result, so callers that overlap share one
+  // round trip rather than only ones that follow it.
+  //
+  // The lifetime is comfortably shorter than the ~10s check interval, so an
+  // entry never spans two ticks and no check ever sees data from the tick
+  // before its own
+  var lookupLifetime = 5000;
+  var lookups = {};
+
+  var dropExpiredLookups = function (now) {
+    for (var key in lookups) {
+      if (now - lookups[key].fetched >= lookupLifetime) {
+        delete lookups[key];
+      }
+    }
+  };
+
+  var getArmyUnits = function (armyIndex, planetIndex) {
+    var key = armyIndex + ":" + planetIndex;
+    var now = Date.now();
+    var lookup = lookups[key];
+
+    if (lookup && now - lookup.fetched < lookupLifetime) {
+      return lookup.units;
+    }
+
+    // nothing mutates a unit map, so handing the same one to several callers
+    // is safe
+    dropExpiredLookups(now);
+    lookups[key] = {
+      fetched: now,
+      units: api.getWorldView().getArmyUnits(armyIndex, planetIndex),
+    };
+    return lookups[key].units;
+  };
+
   var planetCount = function () {
     // the last entry in the planet list is not a planet, and planets can be
     // destroyed mid-game, so this is read per call rather than cached
@@ -115,25 +154,22 @@ define(function () {
 
     _.times(planetCount(), function (planetIndex) {
       pendingLookups.push(
-        api
-          .getWorldView()
-          .getArmyUnits(aiIndex, planetIndex)
-          .then(function (unitsOnPlanet) {
-            results.forEach(function (result) {
-              var planet = matchPlanet(
-                unitsOnPlanet,
-                result.desiredUnits,
-                result.desiredUnitCount,
-                result.excludedUnits
-              );
+        getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
+          results.forEach(function (result) {
+            var planet = matchPlanet(
+              unitsOnPlanet,
+              result.desiredUnits,
+              result.desiredUnitCount,
+              result.excludedUnits
+            );
 
-              if (planet.excluded) {
-                result.rejections.push(planetIndex);
-              } else if (planet.matches >= result.desiredUnitCount) {
-                result.matches.push(planetIndex);
-              }
-            });
-          })
+            if (planet.excluded) {
+              result.rejections.push(planetIndex);
+            } else if (planet.matches >= result.desiredUnitCount) {
+              result.matches.push(planetIndex);
+            }
+          });
+        })
       );
     });
 
@@ -152,17 +188,14 @@ define(function () {
       _.times(planetCount(), function (planetIndex) {
         aisIndex.forEach(function (aiIndex, armyPosition) {
           pendingLookups.push(
-            api
-              .getWorldView()
-              .getArmyUnits(aiIndex, planetIndex)
-              .then(function (unitsOnPlanet) {
-                var unitCountOnPlanet = countAllUnits(unitsOnPlanet);
-                if (_.isUndefined(unitCount[planetIndex])) {
-                  unitCount[planetIndex] = [];
-                }
-                // assign rather than push - these resolve out of order
-                unitCount[planetIndex][armyPosition] = unitCountOnPlanet;
-              })
+            getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
+              var unitCountOnPlanet = countAllUnits(unitsOnPlanet);
+              if (_.isUndefined(unitCount[planetIndex])) {
+                unitCount[planetIndex] = [];
+              }
+              // assign rather than push - these resolve out of order
+              unitCount[planetIndex][armyPosition] = unitCountOnPlanet;
+            })
           );
         });
       });
@@ -177,18 +210,15 @@ define(function () {
 
       _.times(planetCount(), function (planetIndex) {
         pendingLookups.push(
-          api
-            .getWorldView()
-            .getArmyUnits(aiIndex, planetIndex)
-            .then(function (unitsOnPlanet) {
-              var desiredUnitsOnPlanet = countDesiredUnits(
-                unitsOnPlanet,
-                desiredUnits,
-                excludedUnits
-              );
-              // assign rather than push - these resolve out of order
-              desiredUnitCount[planetIndex] = desiredUnitsOnPlanet;
-            })
+          getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
+            var desiredUnitsOnPlanet = countDesiredUnits(
+              unitsOnPlanet,
+              desiredUnits,
+              excludedUnits
+            );
+            // assign rather than push - these resolve out of order
+            desiredUnitCount[planetIndex] = desiredUnitsOnPlanet;
+          })
         );
       });
 
