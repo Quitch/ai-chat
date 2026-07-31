@@ -110,56 +110,41 @@ function aiCommunications() {
         var alliedOrbitalCheckInterval = [];
         var alliedCatalystCheckInterval = [];
 
+        // the army indices and ally list are rebuilt whenever the player
+        // list changes, so each check reads them when it fires rather than
+        // taking a copy now
         allies.forEach(function (ally, i) {
           if (planetCount > 1) {
-            setInterval(
-              colony.check,
-              generateInterval(),
-              aiAllyArmyIndex,
-              ally,
-              i
-            );
-            setInterval(
-              invasion.check,
-              generateInterval(),
-              aiAllyArmyIndex,
-              ally,
-              i
-            );
+            setInterval(function () {
+              colony.check(aiAllyArmyIndex, ally, i);
+            }, generateInterval());
+            setInterval(function () {
+              invasion.check(aiAllyArmyIndex, ally, i);
+            }, generateInterval());
           }
 
-          alliedT2CheckInterval[i] = setInterval(
-            tech.alliedT2Check,
-            generateInterval(),
-            aiAllyArmyIndex,
-            ally,
-            i,
-            alliedT2CheckInterval
-          );
-          alliedOrbitalCheckInterval[i] = setInterval(
-            tech.alliedOrbitalCheck,
-            generateInterval(),
-            aiAllyArmyIndex,
-            ally,
-            i,
-            alliedOrbitalCheckInterval
-          );
-          alliedCatalystCheckInterval[i] = setInterval(
-            tech.alliedCatalystCheck,
-            generateInterval(),
-            aiAllyArmyIndex,
-            ally,
-            i,
-            alliedCatalystCheckInterval
-          );
-          setInterval(
-            report.status,
-            generateInterval(),
-            false,
-            teamArmyIndex,
-            enemyArmyIndex,
-            aiAllies
-          );
+          alliedT2CheckInterval[i] = setInterval(function () {
+            tech.alliedT2Check(aiAllyArmyIndex, ally, i, alliedT2CheckInterval);
+          }, generateInterval());
+          alliedOrbitalCheckInterval[i] = setInterval(function () {
+            tech.alliedOrbitalCheck(
+              aiAllyArmyIndex,
+              ally,
+              i,
+              alliedOrbitalCheckInterval
+            );
+          }, generateInterval());
+          alliedCatalystCheckInterval[i] = setInterval(function () {
+            tech.alliedCatalystCheck(
+              aiAllyArmyIndex,
+              ally,
+              i,
+              alliedCatalystCheckInterval
+            );
+          }, generateInterval());
+          setInterval(function () {
+            report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
+          }, generateInterval());
         });
       });
     };

@@ -6,6 +6,8 @@
 - Fix situation reports counting an enemy army as friendly
 - Fix planets held outright reporting as okay rather than owned
 - Fix Catalyst construction being reported only once per session
+- Fix checks using stale army indices after a player leaves
+- Fix defeated allies continuing to issue situation reports
 
 ## v1.2.1 - 2023-08-23
 
