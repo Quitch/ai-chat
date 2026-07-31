@@ -94,6 +94,56 @@ define(function () {
     return { excluded: false, matches: matches };
   };
 
+  // several sets of desired units resolved against one pass over the planets,
+  // so callers looking for more than one thing about the same army do not each
+  // pay for their own lookup. Each set is
+  // {desiredUnits, desiredUnitCount, excludedUnits}, and the results come back
+  // in the order the sets were given
+  var checkForDesiredSets = function (aiIndex, sets) {
+    var pendingLookups = [];
+    var results = sets.map(function (set) {
+      return {
+        desiredUnits: _.isArray(set.desiredUnits)
+          ? set.desiredUnits
+          : [set.desiredUnits],
+        desiredUnitCount: set.desiredUnitCount,
+        excludedUnits: set.excludedUnits,
+        matches: [],
+        rejections: [],
+      };
+    });
+
+    _.times(planetCount(), function (planetIndex) {
+      pendingLookups.push(
+        api
+          .getWorldView()
+          .getArmyUnits(aiIndex, planetIndex)
+          .then(function (unitsOnPlanet) {
+            results.forEach(function (result) {
+              var planet = matchPlanet(
+                unitsOnPlanet,
+                result.desiredUnits,
+                result.desiredUnitCount,
+                result.excludedUnits
+              );
+
+              if (planet.excluded) {
+                result.rejections.push(planetIndex);
+              } else if (planet.matches >= result.desiredUnitCount) {
+                result.matches.push(planetIndex);
+              }
+            });
+          })
+      );
+    });
+
+    return Promise.all(pendingLookups).then(function () {
+      return results.map(function (result) {
+        return [result.matches, result.rejections];
+      });
+    });
+  };
+
   return {
     countAll: function (aisIndex) {
       var pendingLookups = [];
@@ -146,44 +196,21 @@ define(function () {
         return desiredUnitCount;
       });
     },
+    checkForDesiredSets: checkForDesiredSets,
     checkForDesired: function (
       aiIndex,
       desiredUnits,
       desiredUnitCount,
       excludedUnits
     ) {
-      var pendingLookups = [];
-      var matches = [];
-      var rejections = [];
-
-      if (!_.isArray(desiredUnits)) {
-        desiredUnits = [desiredUnits];
-      }
-
-      _.times(planetCount(), function (planetIndex) {
-        pendingLookups.push(
-          api
-            .getWorldView()
-            .getArmyUnits(aiIndex, planetIndex)
-            .then(function (unitsOnPlanet) {
-              var planet = matchPlanet(
-                unitsOnPlanet,
-                desiredUnits,
-                desiredUnitCount,
-                excludedUnits
-              );
-
-              if (planet.excluded) {
-                rejections.push(planetIndex);
-              } else if (planet.matches >= desiredUnitCount) {
-                matches.push(planetIndex);
-              }
-            })
-        );
-      });
-
-      return Promise.all(pendingLookups).then(function () {
-        return [matches, rejections];
+      return checkForDesiredSets(aiIndex, [
+        {
+          desiredUnits: desiredUnits,
+          desiredUnitCount: desiredUnitCount,
+          excludedUnits: excludedUnits,
+        },
+      ]).then(function (results) {
+        return results[0];
       });
     },
   };

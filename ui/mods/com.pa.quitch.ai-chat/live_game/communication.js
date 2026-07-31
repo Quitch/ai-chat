@@ -149,9 +149,7 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
       ], function (colony, invasion, tech, report) {
-        var alliedT2CheckInterval = [];
-        var alliedOrbitalCheckInterval = [];
-        var alliedCatalystCheckInterval = [];
+        var techCheckInterval = [];
 
         // the army indices and ally list are rebuilt whenever the player
         // list changes, so each check reads them when it fires rather than
@@ -178,34 +176,13 @@ function aiCommunications() {
             );
           }
 
-          alliedT2CheckInterval[i] = setInterval(function () {
-            tech.alliedT2Check(aiAllyArmyIndex, ally, i, alliedT2CheckInterval);
+          // the tech check also clears itself once it has announced every
+          // milestone, which is why it keeps its own array. Clearing an
+          // already cleared handle is a no-op, so both routes are safe
+          techCheckInterval[i] = setInterval(function () {
+            tech.check(aiAllyArmyIndex, ally, i, techCheckInterval);
           }, generateInterval());
-          alliedOrbitalCheckInterval[i] = setInterval(function () {
-            tech.alliedOrbitalCheck(
-              aiAllyArmyIndex,
-              ally,
-              i,
-              alliedOrbitalCheckInterval
-            );
-          }, generateInterval());
-          alliedCatalystCheckInterval[i] = setInterval(function () {
-            tech.alliedCatalystCheck(
-              aiAllyArmyIndex,
-              ally,
-              i,
-              alliedCatalystCheckInterval
-            );
-          }, generateInterval());
-
-          // the tech checks also clear themselves once they have reported,
-          // which is why they keep their own arrays. Clearing an already
-          // cleared handle is a no-op, so both routes are safe
-          handles.push(
-            alliedT2CheckInterval[i],
-            alliedOrbitalCheckInterval[i],
-            alliedCatalystCheckInterval[i]
-          );
+          handles.push(techCheckInterval[i]);
           allyCheckIntervals.push({
             name: ally.name,
             handles: handles,
