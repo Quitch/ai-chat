@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v1.2.2 - 2026-07-31
 
 - Report when building a Catalyst
 - Fix situation reports counting an enemy army as friendly
