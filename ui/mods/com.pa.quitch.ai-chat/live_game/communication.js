@@ -68,6 +68,7 @@ function aiCommunications() {
         );
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
+        var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
         processedLanding(false);
         communicatedLanding(false);
         colonisedPlanets([]);
@@ -76,6 +77,7 @@ function aiCommunications() {
         previousUnitCount([]);
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);
+        alliedCatalystReported([]);
       }
     };
     detectNewGame(player);

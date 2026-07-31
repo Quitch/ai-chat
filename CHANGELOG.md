@@ -5,6 +5,7 @@
 - Report when building a Catalyst
 - Fix situation reports counting an enemy army as friendly
 - Fix planets held outright reporting as okay rather than owned
+- Fix Catalyst construction being reported only once per session
 
 ## v1.2.1 - 2023-08-23
 
