@@ -7,29 +7,44 @@ define(function () {
     return unitCount;
   };
 
-  var countDesiredUnits = function (unitsOnPlanet, desiredUnits) {
-    var desiredUnitsCount = 0;
-    desiredUnits.forEach(function (desiredUnit) {
-      for (var unit in unitsOnPlanet) {
-        if (_.includes(unit, desiredUnit)) {
-          desiredUnitsCount += unitsOnPlanet[unit].length;
-        }
-      }
-    });
-    return desiredUnitsCount;
-  };
-
-  var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
+  var isExcludedUnit = function (unit, excludedUnits) {
     if (!excludedUnits) {
       return false;
     }
 
     for (var excludedUnit of excludedUnits) {
-      for (var unit in unitsOnPlanet) {
-        var excludedUnitPresent = _.includes(unit, excludedUnit);
-        if (excludedUnitPresent) {
-          return true;
+      if (_.includes(unit, excludedUnit)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  var countDesiredUnits = function (
+    unitsOnPlanet,
+    desiredUnits,
+    excludedUnits
+  ) {
+    var desiredUnitsCount = 0;
+    for (var unit in unitsOnPlanet) {
+      if (isExcludedUnit(unit, excludedUnits)) {
+        continue;
+      }
+
+      for (var desiredUnit of desiredUnits) {
+        if (_.includes(unit, desiredUnit)) {
+          desiredUnitsCount += unitsOnPlanet[unit].length;
+          break; // a unit path can contain more than one desired unit
         }
+      }
+    }
+    return desiredUnitsCount;
+  };
+
+  var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
+    for (var unit in unitsOnPlanet) {
+      if (isExcludedUnit(unit, excludedUnits)) {
+        return true;
       }
     }
     return false;
@@ -88,7 +103,7 @@ define(function () {
 
       return deferred.promise();
     },
-    countDesired: function (aiIndex, desiredUnits) {
+    countDesired: function (aiIndex, desiredUnits, excludedUnits) {
       var deferred = $.Deferred();
       var deferredQueue = [];
       var desiredUnitCount = [];
@@ -103,7 +118,8 @@ define(function () {
             .then(function (unitsOnPlanet) {
               var desiredUnitsOnPlanet = countDesiredUnits(
                 unitsOnPlanet,
-                desiredUnits
+                desiredUnits,
+                excludedUnits
               );
               // assign rather than push - these resolve out of order
               desiredUnitCount[planetIndex] = desiredUnitsOnPlanet;

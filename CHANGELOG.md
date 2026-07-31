@@ -12,6 +12,7 @@
 - Fix allies with multiple commanders not reporting their landing location
 - Fix an orbital fabber alone triggering a colonisation message
 - Fix Bugs gas giant colonisation never being reported
+- Fix fabbers counting towards the size of an invasion force
 
 ## v1.2.1 - 2023-08-23
 
