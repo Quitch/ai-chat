@@ -9,11 +9,11 @@ function aiReporting() {
 
   try {
     model.chatLog.subscribe(function (chatLog) {
-      const reportString = "Report";
-      const latestChat = chatLog[chatLog.length - 1];
-      const latestMessage = latestChat.message;
-      const isTeamMessage = latestChat.type === "team";
-      const reportRequested = latestMessage.localeCompare(reportString, "en", {
+      var reportString = "Report";
+      var latestChat = chatLog[chatLog.length - 1];
+      var latestMessage = latestChat.message;
+      var isTeamMessage = latestChat.type === "team";
+      var reportRequested = latestMessage.localeCompare(reportString, "en", {
         sensitivity: "base",
         ignorePunctuation: true,
       });

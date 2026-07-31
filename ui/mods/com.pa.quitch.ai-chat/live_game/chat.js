@@ -12,11 +12,11 @@ define(function () {
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/messages.js",
       ], function (messages) {
-        const planets = model.planetListState().planets;
-        const planetName =
+        var planets = model.planetListState().planets;
+        var planetName =
           (planets[planetIndex] && planets[planetIndex].name) || "";
-        const translatedMessage = loc(_.sample(messages[type]));
-        const finalMessage = translatedMessage + " " + planetName;
+        var translatedMessage = loc(_.sample(messages[type]));
+        var finalMessage = translatedMessage + " " + planetName;
         api.Panel.message(liveGameChatPanelId, "chat_message", {
           type: audience, // "team" or "global"
           player_name: aiName,

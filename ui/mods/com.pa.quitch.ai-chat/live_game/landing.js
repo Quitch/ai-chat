@@ -12,7 +12,7 @@ define([
             ally.commanders.length
           )
           .then(function (planetsWithUnit) {
-            const matchedPlanets = planetsWithUnit[0];
+            var matchedPlanets = planetsWithUnit[0];
 
             if (_.isEmpty(matchedPlanets)) {
               return;

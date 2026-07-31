@@ -1,5 +1,5 @@
 define(function () {
-  const countAllUnits = function (unitsOnPlanet) {
+  var countAllUnits = function (unitsOnPlanet) {
     var unitCount = 0;
     for (var unit in unitsOnPlanet) {
       unitCount += unitsOnPlanet[unit].length;
@@ -7,7 +7,7 @@ define(function () {
     return unitCount;
   };
 
-  const countDesiredUnits = function (unitsOnPlanet, desiredUnits) {
+  var countDesiredUnits = function (unitsOnPlanet, desiredUnits) {
     var desiredUnitsCount = 0;
     desiredUnits.forEach(function (desiredUnit) {
       for (var unit in unitsOnPlanet) {
@@ -19,14 +19,14 @@ define(function () {
     return desiredUnitsCount;
   };
 
-  const checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
+  var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
     if (!excludedUnits) {
       return false;
     }
 
     for (var excludedUnit of excludedUnits) {
       for (var unit in unitsOnPlanet) {
-        const excludedUnitPresent = _.includes(unit, excludedUnit);
+        var excludedUnitPresent = _.includes(unit, excludedUnit);
         if (excludedUnitPresent) {
           return true;
         }
@@ -35,7 +35,7 @@ define(function () {
     return false;
   };
 
-  const checkForDesiredUnits = function (unitsOnPlanet, desiredUnits) {
+  var checkForDesiredUnits = function (unitsOnPlanet, desiredUnits) {
     if (!_.isArray(desiredUnits)) {
       desiredUnits = [desiredUnits];
     }
@@ -43,7 +43,7 @@ define(function () {
     var desiredUnitsPresent = 0;
     desiredUnits.forEach(function (desiredUnit) {
       for (var unit in unitsOnPlanet) {
-        const desiredUnitOnPlanet = _.includes(unit, desiredUnit);
+        var desiredUnitOnPlanet = _.includes(unit, desiredUnit);
         if (desiredUnitOnPlanet) {
           desiredUnitsPresent++;
           break;
@@ -55,11 +55,11 @@ define(function () {
 
   return {
     countAll: function (aisIndex) {
-      const deferred = $.Deferred();
-      const deferredQueue = [];
-      const unitCount = [];
-      const planets = model.planetListState().planets;
-      const planetCount = planets.length - 1; // last planet is not a planet
+      var deferred = $.Deferred();
+      var deferredQueue = [];
+      var unitCount = [];
+      var planets = model.planetListState().planets;
+      var planetCount = planets.length - 1; // last planet is not a planet
 
       _.times(planetCount, function (planetIndex) {
         aisIndex.forEach(function (aiIndex) {
@@ -68,7 +68,7 @@ define(function () {
               .getWorldView()
               .getArmyUnits(aiIndex, planetIndex)
               .then(function (unitsOnPlanet) {
-                const unitCountOnPlanet = countAllUnits(unitsOnPlanet);
+                var unitCountOnPlanet = countAllUnits(unitsOnPlanet);
                 if (_.isUndefined(unitCount[planetIndex])) {
                   unitCount[planetIndex] = [];
                 }
@@ -85,11 +85,11 @@ define(function () {
       return deferred.promise();
     },
     countDesired: function (aiIndex, desiredUnits) {
-      const deferred = $.Deferred();
-      const deferredQueue = [];
-      const desiredUnitCount = [];
-      const planets = model.planetListState().planets;
-      const planetCount = planets.length - 1; // last planet is not a planet
+      var deferred = $.Deferred();
+      var deferredQueue = [];
+      var desiredUnitCount = [];
+      var planets = model.planetListState().planets;
+      var planetCount = planets.length - 1; // last planet is not a planet
 
       _.times(planetCount, function (planetIndex) {
         deferredQueue.push(
@@ -97,7 +97,7 @@ define(function () {
             .getWorldView()
             .getArmyUnits(aiIndex, planetIndex)
             .then(function (unitsOnPlanet) {
-              const desiredUnitsOnPlanet = countDesiredUnits(
+              var desiredUnitsOnPlanet = countDesiredUnits(
                 unitsOnPlanet,
                 desiredUnits
               );
@@ -118,12 +118,12 @@ define(function () {
       desiredUnitCount,
       excludedUnits
     ) {
-      const deferred = $.Deferred();
-      const deferredQueue = [];
-      const matches = [];
-      const rejections = [];
-      const planets = model.planetListState().planets;
-      const planetCount = planets.length - 1; // last planet is not a planet
+      var deferred = $.Deferred();
+      var deferredQueue = [];
+      var matches = [];
+      var rejections = [];
+      var planets = model.planetListState().planets;
+      var planetCount = planets.length - 1; // last planet is not a planet
 
       _.times(planetCount, function (planetIndex) {
         deferredQueue.push(
@@ -131,7 +131,7 @@ define(function () {
             .getWorldView()
             .getArmyUnits(aiIndex, planetIndex)
             .then(function (unitsOnPlanet) {
-              const excludedUnitsOnPlanet = checkForExcludedUnits(
+              var excludedUnitsOnPlanet = checkForExcludedUnits(
                 unitsOnPlanet,
                 excludedUnits
               );
@@ -141,7 +141,7 @@ define(function () {
                 return;
               }
 
-              const desiredUnitsOnPlanet = checkForDesiredUnits(
+              var desiredUnitsOnPlanet = checkForDesiredUnits(
                 unitsOnPlanet,
                 desiredUnits
               );

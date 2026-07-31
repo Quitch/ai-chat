@@ -2,15 +2,15 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
-  const observableArray = function (string) {
+  var observableArray = function (string) {
     return ko.observableArray().extend({ session: string });
   };
 
-  const alliedT2TechReported = observableArray("aic_ally_t2_check");
-  const alliedOrbitalReported = observableArray("aic_ally_orbital_check");
-  const alliedCatalystReported = observableArray("aic_ally_catalyst_check");
+  var alliedT2TechReported = observableArray("aic_ally_t2_check");
+  var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
+  var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
 
-  const reportTechStatus = function (
+  var reportTechStatus = function (
     ally,
     allyIndex,
     interval,
@@ -18,7 +18,7 @@ define([
     reported,
     message
   ) {
-    const matchedPlanets = planetsWithUnit[0];
+    var matchedPlanets = planetsWithUnit[0];
 
     if (_.isEmpty(matchedPlanets)) {
       return;
@@ -37,11 +37,11 @@ define([
 
   return {
     alliedT2Check: function (aiAllyArmyIndex, ally, allyIndex, interval) {
-      const desiredUnits = [
+      var desiredUnits = [
         "_adv",
         "advanced", // Bugs
       ];
-      const desiredUnitCount = 1;
+      var desiredUnitCount = 1;
       units
         .checkForDesired(
           aiAllyArmyIndex[allyIndex],
@@ -60,8 +60,8 @@ define([
         });
     },
     alliedOrbitalCheck: function (aiAllyArmyIndex, ally, allyIndex, interval) {
-      const desiredUnits = ["orbital_"];
-      const desiredUnitCount = 1;
+      var desiredUnits = ["orbital_"];
+      var desiredUnitCount = 1;
       units
         .checkForDesired(
           aiAllyArmyIndex[allyIndex],
@@ -80,8 +80,8 @@ define([
         });
     },
     alliedCatalystCheck: function (aiAllyArmyIndex, ally, allyIndex, interval) {
-      const desiredUnits = ["control_module"];
-      const desiredUnitCount = 1;
+      var desiredUnits = ["control_module"];
+      var desiredUnitCount = 1;
       units
         .checkForDesired(
           aiAllyArmyIndex[allyIndex],

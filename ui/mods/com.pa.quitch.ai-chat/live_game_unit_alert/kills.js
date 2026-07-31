@@ -10,8 +10,8 @@ function aiKills() {
   try {
     model.defeatedArmyAlerts.subscribe(function (alerts) {
       alerts.forEach(function (alert) {
-        const defeated = alert.defeated;
-        const killer = alert.killer;
+        var defeated = alert.defeated;
+        var killer = alert.killer;
         api.Panel.message(api.Panel.parentId, "kills", [defeated, killer]);
       });
     });
