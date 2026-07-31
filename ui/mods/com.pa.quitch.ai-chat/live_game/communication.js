@@ -21,6 +21,31 @@ function aiCommunications() {
     var enemyArmyIndex = [];
     var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
+    // the interval handles for each ally's checks, so they can be stopped when
+    // that ally is defeated. Allies are held by name because the ally objects
+    // captured when the checks were created are snapshots, and the ally list
+    // is rebuilt - and reordered - whenever a player leaves
+    var allyCheckIntervals = [];
+
+    var stopChecks = function (ally) {
+      ally.handles.forEach(function (handle) {
+        clearInterval(handle);
+      });
+      ally.stopped = true;
+    };
+
+    var stopDefeatedAllyChecks = function (allPlayers) {
+      allyCheckIntervals.forEach(function (ally) {
+        if (ally.stopped) {
+          return;
+        }
+
+        var currentAlly = _.find(allPlayers, { name: ally.name });
+        if (currentAlly && currentAlly.defeated) {
+          stopChecks(ally);
+        }
+      });
+    };
     var allyState = "allied_eco";
     var enemyState = "hostile";
     // model variables may not be populated yet
@@ -78,6 +103,11 @@ function aiCommunications() {
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);
         alliedCatalystReported([]);
+        // the running checks hold snapshots of the last game's allies, so they
+        // are torn down here and rebuilt by initialiseChecks for the new game
+        allyCheckIntervals.forEach(stopChecks);
+        allyCheckIntervals = [];
+        checksInitialised = false;
       }
     };
     detectNewGame(player);
@@ -133,13 +163,19 @@ function aiCommunications() {
         }, generateInterval());
 
         allies.forEach(function (ally, i) {
+          var handles = [];
+
           if (planetCount > 1) {
-            setInterval(function () {
-              colony.check(aiAllyArmyIndex, ally, i);
-            }, generateInterval());
-            setInterval(function () {
-              invasion.check(aiAllyArmyIndex, ally, i);
-            }, generateInterval());
+            handles.push(
+              setInterval(function () {
+                colony.check(aiAllyArmyIndex, ally, i);
+              }, generateInterval())
+            );
+            handles.push(
+              setInterval(function () {
+                invasion.check(aiAllyArmyIndex, ally, i);
+              }, generateInterval())
+            );
           }
 
           alliedT2CheckInterval[i] = setInterval(function () {
@@ -161,6 +197,20 @@ function aiCommunications() {
               alliedCatalystCheckInterval
             );
           }, generateInterval());
+
+          // the tech checks also clear themselves once they have reported,
+          // which is why they keep their own arrays. Clearing an already
+          // cleared handle is a no-op, so both routes are safe
+          handles.push(
+            alliedT2CheckInterval[i],
+            alliedOrbitalCheckInterval[i],
+            alliedCatalystCheckInterval[i]
+          );
+          allyCheckIntervals.push({
+            name: ally.name,
+            handles: handles,
+            stopped: false,
+          });
         });
       });
     };
@@ -182,6 +232,7 @@ function aiCommunications() {
 
       detectNewGame(player);
       identifyFriendAndFoe(ais, players);
+      stopDefeatedAllyChecks(players);
       initialiseChecks(aiAllies);
 
       if (!playerSelectingSpawn && !processedLanding()) {
