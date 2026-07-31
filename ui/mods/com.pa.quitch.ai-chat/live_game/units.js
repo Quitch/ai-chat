@@ -96,13 +96,12 @@ define(function () {
 
   return {
     countAll: function (aisIndex) {
-      var deferred = $.Deferred();
-      var deferredQueue = [];
+      var pendingLookups = [];
       var unitCount = [];
 
       _.times(planetCount(), function (planetIndex) {
         aisIndex.forEach(function (aiIndex, armyPosition) {
-          deferredQueue.push(
+          pendingLookups.push(
             api
               .getWorldView()
               .getArmyUnits(aiIndex, planetIndex)
@@ -118,19 +117,16 @@ define(function () {
         });
       });
 
-      Promise.all(deferredQueue).then(function () {
-        deferred.resolve(unitCount);
+      return Promise.all(pendingLookups).then(function () {
+        return unitCount;
       });
-
-      return deferred.promise();
     },
     countDesired: function (aiIndex, desiredUnits, excludedUnits) {
-      var deferred = $.Deferred();
-      var deferredQueue = [];
+      var pendingLookups = [];
       var desiredUnitCount = [];
 
       _.times(planetCount(), function (planetIndex) {
-        deferredQueue.push(
+        pendingLookups.push(
           api
             .getWorldView()
             .getArmyUnits(aiIndex, planetIndex)
@@ -146,11 +142,9 @@ define(function () {
         );
       });
 
-      Promise.all(deferredQueue).then(function () {
-        deferred.resolve(desiredUnitCount);
+      return Promise.all(pendingLookups).then(function () {
+        return desiredUnitCount;
       });
-
-      return deferred.promise();
     },
     checkForDesired: function (
       aiIndex,
@@ -158,8 +152,7 @@ define(function () {
       desiredUnitCount,
       excludedUnits
     ) {
-      var deferred = $.Deferred();
-      var deferredQueue = [];
+      var pendingLookups = [];
       var matches = [];
       var rejections = [];
 
@@ -168,7 +161,7 @@ define(function () {
       }
 
       _.times(planetCount(), function (planetIndex) {
-        deferredQueue.push(
+        pendingLookups.push(
           api
             .getWorldView()
             .getArmyUnits(aiIndex, planetIndex)
@@ -189,11 +182,9 @@ define(function () {
         );
       });
 
-      Promise.all(deferredQueue).then(function () {
-        deferred.resolve([matches, rejections]);
+      return Promise.all(pendingLookups).then(function () {
+        return [matches, rejections];
       });
-
-      return deferred.promise();
     },
   };
 });
