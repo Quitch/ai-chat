@@ -1,4 +1,10 @@
 define(function () {
+  var planetCount = function () {
+    // the last entry in the planet list is not a planet, and planets can be
+    // destroyed mid-game, so this is read per call rather than cached
+    return model.planetListState().planets.length - 1;
+  };
+
   var countAllUnits = function (unitsOnPlanet) {
     var unitCount = 0;
     for (var unit in unitsOnPlanet) {
@@ -41,34 +47,51 @@ define(function () {
     return desiredUnitsCount;
   };
 
-  var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
-    for (var unit in unitsOnPlanet) {
-      if (isExcludedUnit(unit, excludedUnits)) {
+  // a unit path can contain more than one desired unit, so match on the unit
+  // rather than the desired unit to stop one unit counting twice. seenDesiredUnit
+  // is indexed by desired unit, making the seen test a lookup rather than a scan
+  var isNewDesiredUnit = function (unit, desiredUnits, seenDesiredUnit) {
+    for (var i = 0; i < desiredUnits.length; i++) {
+      if (_.includes(unit, desiredUnits[i])) {
+        if (seenDesiredUnit[i]) {
+          return false;
+        }
+        seenDesiredUnit[i] = true;
         return true;
       }
     }
     return false;
   };
 
-  var checkForDesiredUnits = function (unitsOnPlanet, desiredUnits) {
-    if (!_.isArray(desiredUnits)) {
-      desiredUnits = [desiredUnits];
-    }
+  // a single excluded unit rejects the whole planet, so exclusions and desired
+  // units are resolved in one pass rather than two
+  var matchPlanet = function (
+    unitsOnPlanet,
+    desiredUnits,
+    desiredUnitCount,
+    excludedUnits
+  ) {
+    var seenDesiredUnit = [];
+    var matches = 0;
 
-    // a unit path can contain more than one desired unit, so match on the
-    // unit rather than the desired unit to stop one unit counting twice
-    var matchedDesiredUnits = [];
     for (var unit in unitsOnPlanet) {
-      for (var i = 0; i < desiredUnits.length; i++) {
-        if (_.includes(unit, desiredUnits[i])) {
-          if (!_.includes(matchedDesiredUnits, i)) {
-            matchedDesiredUnits.push(i);
-          }
-          break;
+      if (isExcludedUnit(unit, excludedUnits)) {
+        return { excluded: true, matches: 0 };
+      }
+
+      if (matches >= desiredUnitCount) {
+        if (excludedUnits) {
+          continue; // an excluded unit could still reject the planet
         }
+        break; // nothing left that could change the answer
+      }
+
+      if (isNewDesiredUnit(unit, desiredUnits, seenDesiredUnit)) {
+        matches++;
       }
     }
-    return matchedDesiredUnits.length;
+
+    return { excluded: false, matches: matches };
   };
 
   return {
@@ -76,10 +99,8 @@ define(function () {
       var deferred = $.Deferred();
       var deferredQueue = [];
       var unitCount = [];
-      var planets = model.planetListState().planets;
-      var planetCount = planets.length - 1; // last planet is not a planet
 
-      _.times(planetCount, function (planetIndex) {
+      _.times(planetCount(), function (planetIndex) {
         aisIndex.forEach(function (aiIndex, armyPosition) {
           deferredQueue.push(
             api
@@ -107,10 +128,8 @@ define(function () {
       var deferred = $.Deferred();
       var deferredQueue = [];
       var desiredUnitCount = [];
-      var planets = model.planetListState().planets;
-      var planetCount = planets.length - 1; // last planet is not a planet
 
-      _.times(planetCount, function (planetIndex) {
+      _.times(planetCount(), function (planetIndex) {
         deferredQueue.push(
           api
             .getWorldView()
@@ -143,31 +162,27 @@ define(function () {
       var deferredQueue = [];
       var matches = [];
       var rejections = [];
-      var planets = model.planetListState().planets;
-      var planetCount = planets.length - 1; // last planet is not a planet
 
-      _.times(planetCount, function (planetIndex) {
+      if (!_.isArray(desiredUnits)) {
+        desiredUnits = [desiredUnits];
+      }
+
+      _.times(planetCount(), function (planetIndex) {
         deferredQueue.push(
           api
             .getWorldView()
             .getArmyUnits(aiIndex, planetIndex)
             .then(function (unitsOnPlanet) {
-              var excludedUnitsOnPlanet = checkForExcludedUnits(
+              var planet = matchPlanet(
                 unitsOnPlanet,
+                desiredUnits,
+                desiredUnitCount,
                 excludedUnits
               );
 
-              if (excludedUnitsOnPlanet) {
+              if (planet.excluded) {
                 rejections.push(planetIndex);
-                return;
-              }
-
-              var desiredUnitsOnPlanet = checkForDesiredUnits(
-                unitsOnPlanet,
-                desiredUnits
-              );
-
-              if (desiredUnitsOnPlanet >= desiredUnitCount) {
+              } else if (planet.matches >= desiredUnitCount) {
                 matches.push(planetIndex);
               }
             })
