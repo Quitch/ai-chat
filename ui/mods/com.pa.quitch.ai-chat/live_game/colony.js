@@ -71,11 +71,17 @@ define([
         "bug_jig",
         "fabricator",
         "_fab",
+        "bug_gas_hive", // their mining platform
       ];
       var desiredUnitCount = 2; // we only need a fabber and something else
       var excludedUnits = [
         "factory",
-        "_hive", //Bugs
+        // Bugs - naming every factory a hive, but not every hive is one
+        "advanced_hive",
+        "basic_hive",
+        "swarm_hive",
+        "air_hive",
+        "naval_hive",
       ];
       units
         .checkForDesired(
