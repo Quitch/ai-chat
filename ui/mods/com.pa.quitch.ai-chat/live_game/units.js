@@ -62,7 +62,7 @@ define(function () {
       var planetCount = planets.length - 1; // last planet is not a planet
 
       _.times(planetCount, function (planetIndex) {
-        aisIndex.forEach(function (aiIndex) {
+        aisIndex.forEach(function (aiIndex, armyPosition) {
           deferredQueue.push(
             api
               .getWorldView()
@@ -72,7 +72,8 @@ define(function () {
                 if (_.isUndefined(unitCount[planetIndex])) {
                   unitCount[planetIndex] = [];
                 }
-                unitCount[planetIndex].push(unitCountOnPlanet);
+                // assign rather than push - these resolve out of order
+                unitCount[planetIndex][armyPosition] = unitCountOnPlanet;
               })
           );
         });
@@ -101,7 +102,8 @@ define(function () {
                 unitsOnPlanet,
                 desiredUnits
               );
-              desiredUnitCount.push(desiredUnitsOnPlanet);
+              // assign rather than push - these resolve out of order
+              desiredUnitCount[planetIndex] = desiredUnitsOnPlanet;
             })
         );
       });
