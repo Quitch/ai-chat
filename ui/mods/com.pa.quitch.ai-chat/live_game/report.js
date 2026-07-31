@@ -3,9 +3,13 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
 ], function (chat, units) {
   var sumOfArray = function (units) {
-    return _.reduce(units, function (total, value) {
-      return total + value;
-    });
+    return _.reduce(
+      units,
+      function (total, value) {
+        return total + value;
+      },
+      0
+    );
   };
 
   var separateFriendFromFoe = function (planetUnitCounts, teamArmyIndex) {
