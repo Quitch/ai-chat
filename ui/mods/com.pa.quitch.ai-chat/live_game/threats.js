@@ -61,6 +61,10 @@ define([
   var orbitalMassing = ko
     .observableArray()
     .extend({ session: "aic_enemy_orbital" });
+  var movingPlanets = ko
+    .observableArray()
+    .extend({ session: "aic_moving_planets" });
+
   var livingArmies = function (armyIndex) {
     var players = model.players();
     return _.filter(armyIndex, function (index) {
@@ -102,6 +106,27 @@ define([
     });
   };
 
+  // read straight off the planet list, which is already on the player's own
+  // screen, so this draws attention to something rather than revealing it.
+  // It deliberately does not say whose planet it is: thrust_control is
+  // relative to the local player and does not tell a teammate from an enemy
+  var checkForPlanetMovement = function (ally) {
+    var planets = model.planetListState().planets;
+    var planetCount = planets.length - 1; // last planet is not a planet
+
+    for (var planetIndex = 0; planetIndex < planetCount; planetIndex++) {
+      var planet = planets[planetIndex];
+      reportEdge(
+        movingPlanets,
+        planetIndex,
+        Boolean(planet && planet.thrust_active),
+        ally,
+        "planetMoving",
+        planetIndex
+      );
+    }
+  };
+
   // once per army, threat and planet. A launcher that is destroyed and rebuilt
   // in the same place is not news; one built somewhere new is
   var reportThreats = function (ally, armyIndex, threat, planets) {
@@ -124,7 +149,14 @@ define([
       var liveAllies = _.filter(aiAllies, { defeated: false });
       var liveEnemies = livingArmies(enemyArmyIndex);
 
-      if (_.isEmpty(liveAllies) || _.isEmpty(liveEnemies)) {
+      if (_.isEmpty(liveAllies)) {
+        return;
+      }
+
+      // a planet under thrust is worth mentioning whoever is left to see it
+      checkForPlanetMovement(_.shuffle(liveAllies)[0]);
+
+      if (_.isEmpty(liveEnemies)) {
         return;
       }
 

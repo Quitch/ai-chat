@@ -94,6 +94,7 @@ function aiCommunications() {
         var enemyContact = observableArray("aic_enemy_contact");
         var reportedThreats = observableArray("aic_enemy_threats");
         var orbitalMassing = observableArray("aic_enemy_orbital");
+        var movingPlanets = observableArray("aic_moving_planets");
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
@@ -105,6 +106,7 @@ function aiCommunications() {
         enemyContact([]);
         reportedThreats([]);
         orbitalMassing([]);
+        movingPlanets([]);
         previousUnitCount([]);
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);

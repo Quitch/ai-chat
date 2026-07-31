@@ -101,6 +101,14 @@ define({
     "!LOC:Look up. Enemy fleet above",
     "!LOC:Enemy orbital buildup detected over",
   ],
+  planetMoving: [
+    "!LOC:Planetary thrust detected on",
+    "!LOC:Engines are burning on",
+    "!LOC:Warning - thrust detected on",
+    "!LOC:Somebody is steering",
+    "!LOC:That is no longer where it was -",
+    "!LOC:A planet is under way -",
+  ],
   enemyTitan: [
     "!LOC:Enemy Titan sighted on",
     "!LOC:They have a Titan on",
