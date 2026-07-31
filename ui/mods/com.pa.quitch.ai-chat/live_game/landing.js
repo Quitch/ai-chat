@@ -5,11 +5,12 @@ define([
   return {
     location: function (aiAllyArmyIndex, aiAllies) {
       aiAllies.forEach(function (ally, i) {
+        var desiredUnitCount = 1; // a shared army's commanders can land apart
         units
           .checkForDesired(
             aiAllyArmyIndex[i],
             ally.commanders,
-            ally.commanders.length
+            desiredUnitCount
           )
           .then(function (planetsWithUnit) {
             var matchedPlanets = planetsWithUnit[0];
