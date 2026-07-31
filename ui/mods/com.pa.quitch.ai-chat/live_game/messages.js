@@ -93,6 +93,14 @@ define({
     "!LOC:The enemy is bringing a metal planet online at",
     "!LOC:Enemy superweapon under construction on",
   ],
+  enemyOrbital: [
+    "!LOC:Enemy orbital forces massing over",
+    "!LOC:They're gathering in orbit above",
+    "!LOC:Expect an invasion. Enemy fleet over",
+    "!LOC:Enemy staging in orbit around",
+    "!LOC:Look up. Enemy fleet above",
+    "!LOC:Enemy orbital buildup detected over",
+  ],
   enemyTitan: [
     "!LOC:Enemy Titan sighted on",
     "!LOC:They have a Titan on",

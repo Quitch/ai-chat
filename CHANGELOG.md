@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Allies warn you about enemy nukes, unit cannons, Halleys, Catalysts and Titans they have scouted
+- Allies warn you when an enemy fleet masses in orbit above one of your planets
 - Allies warn you when the enemy reaches a planet your team holds
 - Allies call for help when their army on a planet is being destroyed
 - Fix Bugs allies never reporting Catalyst construction

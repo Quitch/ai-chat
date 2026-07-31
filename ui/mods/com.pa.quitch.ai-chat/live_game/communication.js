@@ -93,6 +93,7 @@ function aiCommunications() {
         );
         var enemyContact = observableArray("aic_enemy_contact");
         var reportedThreats = observableArray("aic_enemy_threats");
+        var orbitalMassing = observableArray("aic_enemy_orbital");
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
@@ -103,6 +104,7 @@ function aiCommunications() {
         previousImportantPlanetStatus([]);
         enemyContact([]);
         reportedThreats([]);
+        orbitalMassing([]);
         previousUnitCount([]);
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);
@@ -163,7 +165,7 @@ function aiCommunications() {
         // every enemy army on every planet, which is exactly what it needs
         setInterval(function () {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
-          threats.check(enemyArmyIndex, aiAllies);
+          threats.check(enemyArmyIndex, aiAllies, teamArmyIndex);
         }, generateInterval());
 
         // one interval per ally rather than one per check, so an ally's

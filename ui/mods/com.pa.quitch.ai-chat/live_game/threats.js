@@ -55,10 +55,50 @@ define([
     },
   ];
 
+  // an orbital force this size over a planet we hold is a staging area, not a
+  // patrol, and it precedes almost every invasion
+  var orbitalForce = 8;
+  var orbitalMassing = ko
+    .observableArray()
+    .extend({ session: "aic_enemy_orbital" });
   var livingArmies = function (armyIndex) {
     var players = model.players();
     return _.filter(armyIndex, function (index) {
       return players[index] && !players[index].defeated;
+    });
+  };
+
+  // held as edges rather than one-shot flags, so a force that disperses and
+  // returns is reported both times
+  var reportEdge = function (state, seen, active, ally, message, planetIndex) {
+    if (active === _.includes(state(), seen)) {
+      return;
+    }
+
+    if (!active) {
+      state.remove(seen);
+      return;
+    }
+
+    state.push(seen);
+    chat.send("team", ally.name, message, planetIndex);
+  };
+
+  var checkOrbitalMassing = function (
+    ally,
+    armyIndex,
+    orbitalCounts,
+    teamUnits
+  ) {
+    orbitalCounts.forEach(function (orbitalCount, planetIndex) {
+      reportEdge(
+        orbitalMassing,
+        armyIndex + ":" + planetIndex,
+        orbitalCount >= orbitalForce && teamUnits[planetIndex] > 0,
+        ally,
+        "enemyOrbital",
+        planetIndex
+      );
     });
   };
 
@@ -80,7 +120,7 @@ define([
   return {
     // deliberately reports only what the AI can see. Fog of war limits this to
     // scouted planets, which is the difference between intel and cheating
-    check: function (enemyArmyIndex, aiAllies) {
+    check: function (enemyArmyIndex, aiAllies, teamArmyIndex) {
       var liveAllies = _.filter(aiAllies, { defeated: false });
       var liveEnemies = livingArmies(enemyArmyIndex);
 
@@ -96,6 +136,22 @@ define([
         };
       });
 
+      // where our team is, so an orbital force is only called out when it is
+      // gathering over something of ours
+      var teamPresence = units
+        .countAll(livingArmies(teamArmyIndex))
+        .then(function (planetUnitCounts) {
+          return planetUnitCounts.map(function (perArmy) {
+            return _.reduce(
+              perArmy,
+              function (total, count) {
+                return total + count;
+              },
+              0
+            );
+          });
+        });
+
       liveEnemies.forEach(function (armyIndex) {
         units
           .checkForDesiredSets(armyIndex, sets)
@@ -106,6 +162,18 @@ define([
               reportThreats(ally, armyIndex, threat, planetsWithThreat[i][0]);
             });
           });
+
+        Promise.all([
+          units.countDesired(armyIndex, ["orbital_"]),
+          teamPresence,
+        ]).then(function (counts) {
+          checkOrbitalMassing(
+            _.shuffle(liveAllies)[0],
+            armyIndex,
+            counts[0],
+            counts[1]
+          );
+        });
       });
     },
   };
