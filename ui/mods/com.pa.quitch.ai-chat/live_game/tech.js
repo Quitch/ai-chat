@@ -1,13 +1,15 @@
 define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
-], function (chat, units) {
+  "coui://ui/mods/com.pa.quitch.ai-chat/live_game/superweapons.js",
+], function (chat, units, superweapons) {
   var observableArray = function (string) {
     return ko.observableArray().extend({ session: string });
   };
 
   // each milestone is announced once per ally per game. They share one pass
-  // over the planets because they are all asking about the same army
+  // over the planets because they are all asking about the same army, so
+  // adding one costs matching work rather than another lookup
   var milestones = [
     {
       desiredUnits: [
@@ -23,12 +25,24 @@ define([
       message: "allyOrbitalTech",
     },
     {
-      desiredUnits: [
-        "control_module",
-        "bug_catalyst", // Bugs
-      ],
+      desiredUnits: superweapons.catalyst,
       reported: observableArray("aic_ally_catalyst_check"),
       message: "allyCatalystTech",
+    },
+    {
+      desiredUnits: superweapons.nuke,
+      reported: observableArray("aic_ally_nuke_check"),
+      message: "allyNuke",
+    },
+    {
+      desiredUnits: superweapons.titan,
+      reported: observableArray("aic_ally_titan_check"),
+      message: "allyTitan",
+    },
+    {
+      desiredUnits: superweapons.unitCannon,
+      reported: observableArray("aic_ally_unit_cannon_check"),
+      message: "allyUnitCannon",
     },
   ];
 

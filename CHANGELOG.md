@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Allies warn you about enemy nukes, unit cannons, Halleys, Catalysts and Titans they have scouted
+- Allies tell you when they complete a nuclear launcher, Titan or unit cannon
 - Allies warn you when a planet starts moving under its own engines
 - Allies warn you when an enemy fleet masses in orbit above one of your planets
 - Allies warn you when the enemy reaches a planet your team holds

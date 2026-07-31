@@ -98,6 +98,11 @@ function aiCommunications() {
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
+        var alliedNukeReported = observableArray("aic_ally_nuke_check");
+        var alliedTitanReported = observableArray("aic_ally_titan_check");
+        var alliedUnitCannonReported = observableArray(
+          "aic_ally_unit_cannon_check"
+        );
         processedLanding(false);
         communicatedLanding(false);
         colonisedPlanets([]);
@@ -111,6 +116,9 @@ function aiCommunications() {
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);
         alliedCatalystReported([]);
+        alliedNukeReported([]);
+        alliedTitanReported([]);
+        alliedUnitCannonReported([]);
         // the running checks hold snapshots of the last game's allies, so they
         // are torn down here and rebuilt by initialiseChecks for the new game
         allyCheckIntervals.forEach(stopChecks);
