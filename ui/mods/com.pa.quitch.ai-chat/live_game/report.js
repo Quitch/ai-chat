@@ -76,6 +76,15 @@ define([
     "aic_important_planet_statuses"
   );
 
+  // a defeated player owns no units, so polling them costs a call per planet
+  // per tick to learn a count we already know is zero
+  var livingArmies = function (armyIndex) {
+    var players = model.players();
+    return _.filter(armyIndex, function (index) {
+      return players[index] && !players[index].defeated;
+    });
+  };
+
   var checkIfWorthReporting = function (planetIndex, report) {
     var importantStatus = new Set();
     importantStatus.add("winning");
@@ -107,11 +116,14 @@ define([
         return;
       }
 
-      var allArmyIndex = teamArmyIndex.concat(enemyArmyIndex);
+      // countAll returns its counts in the order it was given the armies, so
+      // the team it is split on must be the same filtered list we passed in
+      var liveTeamArmyIndex = livingArmies(teamArmyIndex);
+      var allArmyIndex = liveTeamArmyIndex.concat(livingArmies(enemyArmyIndex));
       units.countAll(allArmyIndex).then(function (planetUnitCounts) {
         var situationReports = getSituationReports(
           planetUnitCounts,
-          teamArmyIndex
+          liveTeamArmyIndex
         );
         var ally = _.shuffle(liveAllies)[0];
         situationReports.forEach(function (report, planetIndex) {
