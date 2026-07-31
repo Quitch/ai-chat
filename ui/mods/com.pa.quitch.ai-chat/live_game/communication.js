@@ -91,6 +91,7 @@ function aiCommunications() {
         var previousImportantPlanetStatus = observableArray(
           "aic_important_planet_statuses"
         );
+        var enemyContact = observableArray("aic_enemy_contact");
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
@@ -99,6 +100,7 @@ function aiCommunications() {
         colonisedPlanets([]);
         previousPlanetStatus([]);
         previousImportantPlanetStatus([]);
+        enemyContact([]);
         previousUnitCount([]);
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);

@@ -58,13 +58,11 @@ define([
 
   var getSituationReports = function (planetUnitCounts, teamArmyIndex) {
     var friendAndFoe = separateFriendFromFoe(planetUnitCounts, teamArmyIndex);
-    var alliedUnitsPerPlanet = friendAndFoe.allies;
-    var enemyUnitsPerPlanet = friendAndFoe.enemies;
-    var situationReports = compareArmySizes(
-      alliedUnitsPerPlanet,
-      enemyUnitsPerPlanet
-    );
-    return situationReports;
+    return {
+      reports: compareArmySizes(friendAndFoe.allies, friendAndFoe.enemies),
+      allies: friendAndFoe.allies,
+      enemies: friendAndFoe.enemies,
+    };
   };
 
   var observableArray = function (string) {
@@ -75,6 +73,24 @@ define([
   var previousImportantPlanetStatus = observableArray(
     "aic_important_planet_statuses"
   );
+  var enemyContact = observableArray("aic_enemy_contact");
+
+  // the enemy reaching a planet we hold is the most actionable thing the
+  // report sees, and the status buckets do not surface it - a planet can go
+  // from alone to ok without a word being said. Tracked as an edge so an
+  // incursion is announced once, and announced again if a later one follows
+  // the first being driven off
+  var checkForFirstContact = function (planetIndex, alliedUnits, enemyUnits) {
+    var contested = alliedUnits > 0 && enemyUnits > 0;
+
+    if (contested === (enemyContact()[planetIndex] === true)) {
+      return false;
+    }
+
+    enemyContact()[planetIndex] = contested;
+    enemyContact.valueHasMutated();
+    return contested;
+  };
 
   // a defeated player owns no units, so polling them costs a call per planet
   // per tick to learn a count we already know is zero
@@ -121,12 +137,22 @@ define([
       var liveTeamArmyIndex = livingArmies(teamArmyIndex);
       var allArmyIndex = liveTeamArmyIndex.concat(livingArmies(enemyArmyIndex));
       units.countAll(allArmyIndex).then(function (planetUnitCounts) {
-        var situationReports = getSituationReports(
+        var situation = getSituationReports(
           planetUnitCounts,
           liveTeamArmyIndex
         );
         var ally = _.shuffle(liveAllies)[0];
-        situationReports.forEach(function (report, planetIndex) {
+        situation.reports.forEach(function (report, planetIndex) {
+          var firstContact = checkForFirstContact(
+            planetIndex,
+            situation.allies[planetIndex],
+            situation.enemies[planetIndex]
+          );
+
+          if (firstContact) {
+            chat.send("team", ally.name, "enemyContact", planetIndex);
+          }
+
           if (report === "absent") {
             previousPlanetStatus()[planetIndex] = report;
             previousPlanetStatus.valueHasMutated();

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Allies warn you when the enemy reaches a planet your team holds
 - Fix Bugs allies never reporting Catalyst construction
 
 ## v1.2.2 - 2026-07-31
