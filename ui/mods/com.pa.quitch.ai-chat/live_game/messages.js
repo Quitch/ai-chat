@@ -101,6 +101,15 @@ define({
     "!LOC:Look up. Enemy fleet above",
     "!LOC:Enemy orbital buildup detected over",
   ],
+  commanderMoved: [
+    "!LOC:Moving my commander to",
+    "!LOC:I'm relocating to",
+    "!LOC:Setting up a new base on",
+    "!LOC:My commander has arrived on",
+    "!LOC:Taking personal charge of",
+    "!LOC:Committing myself to",
+    "!LOC:I'll run things from",
+  ],
   planetMoving: [
     "!LOC:Planetary thrust detected on",
     "!LOC:Engines are burning on",

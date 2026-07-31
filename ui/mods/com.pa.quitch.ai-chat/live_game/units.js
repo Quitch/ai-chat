@@ -86,6 +86,15 @@ define(function () {
     return desiredUnitsCount;
   };
 
+  var matchesAnyUnit = function (unit, desiredUnits) {
+    for (var i = 0; i < desiredUnits.length; i++) {
+      if (_.includes(unit, desiredUnits[i])) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   // a unit path can contain more than one desired unit, so match on the unit
   // rather than the desired unit to stop one unit counting twice. seenDesiredUnit
   // is indexed by desired unit, making the seen test a lookup rather than a scan
@@ -224,6 +233,32 @@ define(function () {
 
       return Promise.all(pendingLookups).then(function () {
         return desiredUnitCount;
+      });
+    },
+    // the ids of matching units rather than a count of them, for the callers
+    // that need to ask getUnitState about a specific unit
+    findUnits: function (aiIndex, desiredUnits) {
+      var pendingLookups = [];
+      var found = [];
+
+      if (!_.isArray(desiredUnits)) {
+        desiredUnits = [desiredUnits];
+      }
+
+      _.times(planetCount(), function (planetIndex) {
+        pendingLookups.push(
+          getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
+            for (var unit in unitsOnPlanet) {
+              if (matchesAnyUnit(unit, desiredUnits)) {
+                found = found.concat(unitsOnPlanet[unit]);
+              }
+            }
+          })
+        );
+      });
+
+      return Promise.all(pendingLookups).then(function () {
+        return found;
       });
     },
     checkForDesiredSets: checkForDesiredSets,

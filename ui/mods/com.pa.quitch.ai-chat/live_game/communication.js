@@ -95,6 +95,7 @@ function aiCommunications() {
         var reportedThreats = observableArray("aic_enemy_threats");
         var orbitalMassing = observableArray("aic_enemy_orbital");
         var movingPlanets = observableArray("aic_moving_planets");
+        var commanderPlanets = observableArray("aic_commander_planet");
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
@@ -112,6 +113,7 @@ function aiCommunications() {
         reportedThreats([]);
         orbitalMassing([]);
         movingPlanets([]);
+        commanderPlanets([]);
         previousUnitCount([]);
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);
@@ -165,7 +167,8 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/threats.js",
-      ], function (colony, invasion, tech, report, threats) {
+        "coui://ui/mods/com.pa.quitch.ai-chat/live_game/commander.js",
+      ], function (colony, invasion, tech, report, threats, commander) {
         // the army indices and ally list are rebuilt whenever the player
         // list changes, so each check reads them when it fires rather than
         // taking a copy now
@@ -190,6 +193,7 @@ function aiCommunications() {
             if (planetCount > 1) {
               colony.check(aiAllyArmyIndex, ally, i);
               invasion.check(aiAllyArmyIndex, ally, i);
+              commander.check(aiAllyArmyIndex, ally, i);
             }
 
             tech.check(aiAllyArmyIndex, ally, i);
