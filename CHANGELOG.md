@@ -8,6 +8,7 @@
 - Fix Catalyst construction being reported only once per session
 - Fix checks using stale army indices after a player leaves
 - Fix defeated allies continuing to issue situation reports
+- Fix situation reports being duplicated when you have multiple AI allies
 
 ## v1.2.1 - 2023-08-23
 

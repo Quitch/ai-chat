@@ -113,6 +113,12 @@ function aiCommunications() {
         // the army indices and ally list are rebuilt whenever the player
         // list changes, so each check reads them when it fires rather than
         // taking a copy now
+
+        // one report covers the whole team, so it is not per ally
+        setInterval(function () {
+          report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
+        }, generateInterval());
+
         allies.forEach(function (ally, i) {
           if (planetCount > 1) {
             setInterval(function () {
@@ -141,9 +147,6 @@ function aiCommunications() {
               i,
               alliedCatalystCheckInterval
             );
-          }, generateInterval());
-          setInterval(function () {
-            report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
           }, generateInterval());
         });
       });
