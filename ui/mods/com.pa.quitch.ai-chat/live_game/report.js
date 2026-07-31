@@ -17,14 +17,14 @@ define([
     var enemyUnitsPerPlanet = [];
 
     // units.countAll() was given the team first, then the enemies, and
-    // returns its counts in that same order
+    // returns its counts in that same order. Read rather than splice - the
+    // counts are the caller's array, and will be a shared one once the unit
+    // lookups are cached
     planetUnitCounts.forEach(function (planetUnitCount) {
-      var unitsPerAlly = planetUnitCount.splice(0, teamArmyIndex.length);
-      var unitsPerEnemy = planetUnitCount;
-      var alliedUnits = sumOfArray(unitsPerAlly);
-      var enemyUnits = sumOfArray(unitsPerEnemy);
-      alliedUnitsPerPlanet.push(alliedUnits);
-      enemyUnitsPerPlanet.push(enemyUnits);
+      var unitsPerAlly = _.take(planetUnitCount, teamArmyIndex.length);
+      var unitsPerEnemy = _.drop(planetUnitCount, teamArmyIndex.length);
+      alliedUnitsPerPlanet.push(sumOfArray(unitsPerAlly));
+      enemyUnitsPerPlanet.push(sumOfArray(unitsPerEnemy));
     });
 
     return {
