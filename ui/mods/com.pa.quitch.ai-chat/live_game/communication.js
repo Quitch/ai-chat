@@ -141,25 +141,12 @@ function aiCommunications() {
 
     var checksInitialised = false;
 
-    // SPIKE-1: temporary, reverted once the probe has reported
-    var aiChatProbeEnabled = true;
-
     var initialiseChecks = function (allies) {
       if (checksInitialised || _.isEmpty(allies)) {
         return;
       }
 
       checksInitialised = true;
-
-      // SPIKE-1: two runs so we see both an early and a developed army
-      if (aiChatProbeEnabled) {
-        require([
-          "coui://ui/mods/com.pa.quitch.ai-chat/live_game/probe.js",
-        ], function (probe) {
-          _.delay(probe.run, 30000, aiAllyArmyIndex, allies);
-          _.delay(probe.run, 120000, aiAllyArmyIndex, allies);
-        });
-      }
 
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/colony.js",
