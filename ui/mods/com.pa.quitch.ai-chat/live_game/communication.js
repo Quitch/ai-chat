@@ -219,7 +219,15 @@ function aiCommunications() {
         require([
           "coui://ui/mods/com.pa.quitch.ai-chat/live_game/landing.js",
         ], function (landing) {
-          _.delay(landing.location, 10000, aiAllyArmyIndex, aiAllies); // delay to allow AI to spawn
+          // wait for the world to exist rather than guessing at how long that
+          // takes. Commanders still have to spawn into it afterwards, which
+          // landing.location() handles by retrying
+          api
+            .getWorldView()
+            .whenPlanetsReady()
+            .then(function () {
+              landing.location(aiAllyArmyIndex, aiAllies);
+            });
           communicatedLanding(true);
         });
       }
