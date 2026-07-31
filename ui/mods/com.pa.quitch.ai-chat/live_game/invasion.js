@@ -6,7 +6,13 @@ define([
     .observableArray()
     .extend({ session: "aic_previous_units" });
 
-  var identifyNewlyInvadedPlanets = function (allyIndex, perPlanetUnitCounts) {
+  var armySizeMultiplier = 1.5; // a force this much bigger has just arrived
+  var collapseMultiplier = 0.4; // most of the force that was here is gone
+  var significantForce = 20;
+
+  // the same counts answer both questions, so a force arriving and a force
+  // being destroyed are identified together
+  var identifyArmyChanges = function (allyIndex, perPlanetUnitCounts) {
     if (_.isUndefined(previousUnitCount()[allyIndex])) {
       var planets = model.planetListState().planets;
       var planetCount = planets.length - 1; // last planet is not a planet
@@ -14,29 +20,37 @@ define([
       previousUnitCount()[allyIndex] = _.range(0, planetCount, 0);
     }
 
-    var newPlanets = [];
+    var invaded = [];
+    var collapsed = [];
 
     perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
-      var armySizeMultiplier = 1.5;
+      var previousUnits = previousUnitCount()[allyIndex][planetIndex];
       // avoid multiplying by zero
-      var unitCount = Math.max(previousUnitCount()[allyIndex][planetIndex], 1);
+      var unitCount = Math.max(previousUnits, 1);
+
       if (
         planetUnitCount > unitCount * armySizeMultiplier &&
-        planetUnitCount > 20
+        planetUnitCount > significantForce
       ) {
-        newPlanets.push(planetIndex);
+        invaded.push(planetIndex);
+      } else if (
+        previousUnits > significantForce &&
+        planetUnitCount > 0 && // losing the planet outright is colony.js's to report
+        planetUnitCount < previousUnits * collapseMultiplier
+      ) {
+        collapsed.push(planetIndex);
       }
 
       previousUnitCount()[allyIndex][planetIndex] = planetUnitCount;
       previousUnitCount.valueHasMutated();
     });
 
-    return newPlanets;
+    return { invaded: invaded, collapsed: collapsed };
   };
 
-  var communicateAnyInvasions = function (ally, newlyInvadedPlanets) {
-    newlyInvadedPlanets.forEach(function (planetIndex) {
-      chat.send("team", ally.name, "invasion", planetIndex);
+  var communicate = function (ally, planets, message) {
+    planets.forEach(function (planetIndex) {
+      chat.send("team", ally.name, message, planetIndex);
     });
   };
 
@@ -55,13 +69,14 @@ define([
       units
         .countDesired(aiAllyArmyIndex[allyIndex], desiredUnits, excludedUnits)
         .then(function (perPlanetUnitCounts) {
-          var newlyInvadedPlanets = identifyNewlyInvadedPlanets(
-            allyIndex,
-            perPlanetUnitCounts
-          );
+          var changes = identifyArmyChanges(allyIndex, perPlanetUnitCounts);
 
-          // we don't check this first because identifyNewlyInvadedPlanets()
-          // has to update the previous unit count
+          // losing an army is worth saying wherever it happens, unlike an
+          // invasion, which needs somewhere to have been invaded from
+          communicate(ally, changes.collapsed, "armyCollapse");
+
+          // we don't check this first because identifyArmyChanges() has to
+          // update the previous unit count
           var planetsPresentOn = 0;
           perPlanetUnitCounts.forEach(function (planetUnitCount) {
             if (planetUnitCount > 0) {
@@ -72,7 +87,7 @@ define([
             return;
           }
 
-          communicateAnyInvasions(ally, newlyInvadedPlanets);
+          communicate(ally, changes.invaded, "invasion");
         });
     },
   };
