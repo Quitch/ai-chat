@@ -17,6 +17,7 @@ function aiCommunications() {
     };
 
     var aiAllyArmyIndex = [];
+    var teamArmyIndex = []; // the player and their AI allies
     var enemyArmyIndex = [];
     var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
@@ -34,11 +35,18 @@ function aiCommunications() {
     var identifyFriendAndFoe = function (allAis, allPlayers) {
       // avoid duplicates if this is called more than once
       aiAllyArmyIndex = [];
+      teamArmyIndex = [];
       enemyArmyIndex = [];
       if (!_.isEmpty(allAis)) {
+        var playerIndex = _.findIndex(allPlayers, { stateToPlayer: "self" });
+        if (playerIndex !== -1) {
+          teamArmyIndex.push(playerIndex);
+        }
+
         aiAllies.forEach(function (ai) {
           var allyIndex = _.findIndex(allPlayers, ai);
           aiAllyArmyIndex.push(allyIndex);
+          teamArmyIndex.push(allyIndex);
         });
 
         enemies.forEach(function (enemy) {
@@ -146,7 +154,7 @@ function aiCommunications() {
             report.status,
             generateInterval(),
             false,
-            aiAllyArmyIndex,
+            teamArmyIndex,
             enemyArmyIndex,
             aiAllies
           );
@@ -217,7 +225,7 @@ function aiCommunications() {
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
       ], function (report) {
-        report.status(true, aiAllyArmyIndex, enemyArmyIndex, aiAllies);
+        report.status(true, teamArmyIndex, enemyArmyIndex, aiAllies);
       });
     };
   } catch (e) {

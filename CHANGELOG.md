@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Report when building a Catalyst
+- Fix situation reports counting an enemy army as friendly
 
 ## v1.2.1 - 2023-08-23
 

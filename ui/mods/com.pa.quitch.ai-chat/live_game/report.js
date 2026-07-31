@@ -8,22 +8,14 @@ define([
     });
   };
 
-  var indexOfPlayers = function (string) {
-    return _.findIndex(model.players(), {
-      stateToPlayer: string,
-    });
-  };
-
-  var separateFriendFromFoe = function (planetUnitCounts, aiAllyArmyIndex) {
+  var separateFriendFromFoe = function (planetUnitCounts, teamArmyIndex) {
     var alliedUnitsPerPlanet = [];
     var enemyUnitsPerPlanet = [];
-    var playerIndex = indexOfPlayers("self");
-    var allyIndex = indexOfPlayers("allied_eco");
-    var teamIndex = Math.min(playerIndex, allyIndex);
-    var allyCount = aiAllyArmyIndex.length;
 
+    // units.countAll() was given the team first, then the enemies, and
+    // returns its counts in that same order
     planetUnitCounts.forEach(function (planetUnitCount) {
-      var unitsPerAlly = planetUnitCount.splice(teamIndex, allyCount + 1);
+      var unitsPerAlly = planetUnitCount.splice(0, teamArmyIndex.length);
       var unitsPerEnemy = planetUnitCount;
       var alliedUnits = sumOfArray(unitsPerAlly);
       var enemyUnits = sumOfArray(unitsPerEnemy);
@@ -60,8 +52,8 @@ define([
     return situationReports;
   };
 
-  var getSituationReports = function (planetUnitCounts, aiAllyArmyIndex) {
-    var friendAndFoe = separateFriendFromFoe(planetUnitCounts, aiAllyArmyIndex);
+  var getSituationReports = function (planetUnitCounts, teamArmyIndex) {
+    var friendAndFoe = separateFriendFromFoe(planetUnitCounts, teamArmyIndex);
     var alliedUnitsPerPlanet = friendAndFoe.allies;
     var enemyUnitsPerPlanet = friendAndFoe.enemies;
     var situationReports = compareArmySizes(
@@ -101,7 +93,7 @@ define([
   return {
     status: function (
       playerRequested,
-      aiAllyArmyIndex,
+      teamArmyIndex,
       enemyArmyIndex,
       aiAllies
     ) {
@@ -111,11 +103,11 @@ define([
         return;
       }
 
-      var allAIIndex = aiAllyArmyIndex.concat(enemyArmyIndex);
-      units.countAll(allAIIndex).then(function (planetUnitCounts) {
+      var allArmyIndex = teamArmyIndex.concat(enemyArmyIndex);
+      units.countAll(allArmyIndex).then(function (planetUnitCounts) {
         var situationReports = getSituationReports(
           planetUnitCounts,
-          aiAllyArmyIndex
+          teamArmyIndex
         );
         var ally = _.shuffle(liveAllies)[0];
         situationReports.forEach(function (report, planetIndex) {
