@@ -45,12 +45,13 @@ define([
   };
 
   return {
-    check: function (aiAllyArmyIndex, ally, allyIndex, interval) {
+    check: function (aiAllyArmyIndex, ally, allyIndex) {
       var outstanding = outstandingMilestones(allyIndex);
 
-      // everything has been announced, so there is nothing left to look for
+      // everything has been announced, so there is nothing left to look for.
+      // The interval this runs on is shared with the ally's other checks, so
+      // it cannot be cleared - returning here costs nothing either way
       if (_.isEmpty(outstanding)) {
-        clearInterval(interval[allyIndex]);
         return;
       }
 
@@ -74,10 +75,6 @@ define([
 
             reportMilestone(ally, allyIndex, milestone);
           });
-
-          if (_.isEmpty(outstandingMilestones(allyIndex))) {
-            clearInterval(interval[allyIndex]);
-          }
         });
     },
   };

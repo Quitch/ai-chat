@@ -149,8 +149,6 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
       ], function (colony, invasion, tech, report) {
-        var techCheckInterval = [];
-
         // the army indices and ally list are rebuilt whenever the player
         // list changes, so each check reads them when it fires rather than
         // taking a copy now
@@ -160,32 +158,26 @@ function aiCommunications() {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
         }, generateInterval());
 
+        // one interval per ally rather than one per check, so an ally's
+        // checks land on the same tick and share their unit lookups. The
+        // jitter stays between allies, which is what stops every ally
+        // speaking at once
         allies.forEach(function (ally, i) {
-          var handles = [];
+          var handle = setInterval(function () {
+            // read per tick rather than when the interval was created, so
+            // colony and invasion fall silent if the system is reduced to a
+            // single planet
+            if (planetCount > 1) {
+              colony.check(aiAllyArmyIndex, ally, i);
+              invasion.check(aiAllyArmyIndex, ally, i);
+            }
 
-          if (planetCount > 1) {
-            handles.push(
-              setInterval(function () {
-                colony.check(aiAllyArmyIndex, ally, i);
-              }, generateInterval())
-            );
-            handles.push(
-              setInterval(function () {
-                invasion.check(aiAllyArmyIndex, ally, i);
-              }, generateInterval())
-            );
-          }
-
-          // the tech check also clears itself once it has announced every
-          // milestone, which is why it keeps its own array. Clearing an
-          // already cleared handle is a no-op, so both routes are safe
-          techCheckInterval[i] = setInterval(function () {
-            tech.check(aiAllyArmyIndex, ally, i, techCheckInterval);
+            tech.check(aiAllyArmyIndex, ally, i);
           }, generateInterval());
-          handles.push(techCheckInterval[i]);
+
           allyCheckIntervals.push({
             name: ally.name,
-            handles: handles,
+            handles: [handle],
             stopped: false,
           });
         });
