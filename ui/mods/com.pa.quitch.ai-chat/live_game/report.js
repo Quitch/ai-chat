@@ -18,8 +18,8 @@ define([
 
     // units.countAll() was given the team first, then the enemies, and
     // returns its counts in that same order. Read rather than splice - the
-    // counts are the caller's array, and will be a shared one once the unit
-    // lookups are cached
+    // counts belong to the caller, and emptying them leaves whatever reads
+    // them next holding only the enemy half
     planetUnitCounts.forEach(function (planetUnitCount) {
       var unitsPerAlly = _.take(planetUnitCount, teamArmyIndex.length);
       var unitsPerEnemy = _.drop(planetUnitCount, teamArmyIndex.length);
