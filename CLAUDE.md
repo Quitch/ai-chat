@@ -73,7 +73,7 @@ The session key **is** the identity — modules re-declare the same observable w
 Two recurring gotchas:
 
 - `model.planetListState().planets` has a trailing entry that is not a planet, so planet counts are always `planets.length - 1`. Every loop over planets repeats this.
-- The Bugs faction names things differently, so most desired-unit lists carry a parallel entry (`"advanced"`, `"bug_jig"`, `"_fab"`, `"land/bug_"`, `"_hive"`) marked with a `// Bugs` comment. New unit checks need the Bugs equivalent too.
+- Faction mods name things differently, so most desired-unit lists carry parallel entries marked with a `// Bugs`, `// Legion` or `// Exiles` comment. Bugs and Legion prefix their spec paths (`bug_`, `l_`), so one fragment usually covers a whole category (`"land/bug_"`, `"_fab"`, `"_hive"`). Exiles has no prefix and reuses generic directory names (`land/can`, `land/tin`, `land/tripod`), so each unit needs its own fragment anchored to its directory (`"land/can/"`) — an unanchored word would collide with the other factions. New unit checks need the equivalent for all three.
 
 Army indices are not player indices: `identifyFriendAndFoe` builds `aiAllyArmyIndex` / `enemyArmyIndex` by `_.findIndex(model.players(), …)` and those arrays are threaded through every check. `communication.js` rebuilds them on each `model.players` change, since a player leaving reorders the list.
 

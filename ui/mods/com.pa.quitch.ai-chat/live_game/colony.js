@@ -81,13 +81,23 @@ define([
         "bug_swarm_hive", // anchored so it cannot match Legion's l_swarm_hive turret
         "air_hive",
         "naval_hive",
+        // Exiles - only their Fabber Foundry is named a factory, and each of
+        // these also covers the _adv form
+        "t_air_fac",
+        "t_bot_fac",
+        "t_naval_fac",
+        "t_tank_fac",
       ];
+      // Exiles' Puma is a factory built bot that lives in the commanders
+      // directory, so it must not stand in for a commander
+      var ignoredUnits = ["ft_commander"];
       units
         .checkForDesired(
           aiAllyArmyIndex[allyIndex],
           desiredUnits,
           desiredUnitCount,
-          excludedUnits
+          excludedUnits,
+          ignoredUnits
         )
         .then(function (planetsWithUnit) {
           var matchedPlanets = planetsWithUnit[0];

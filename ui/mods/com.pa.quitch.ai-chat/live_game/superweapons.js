@@ -3,14 +3,17 @@ define({
     "land/nuke_launcher", // anchored so it cannot match anti_nuke_launcher
     "bug_nuke", // Bugs
     "land/l_nuke_launcher", // Legion, anchored so it cannot match l_anti_nuke_launcher
+    "missile_facility", // Exiles
   ],
   unitCannon: ["unit_cannon"],
   halley: [
-    "delta_v_engine", // also matches Legion's l_delta_v_engine
+    // also matches Legion's l_delta_v_engine and Exiles' t_delta_v_engine
+    "delta_v_engine",
     "bug_halley", // Bugs
   ],
   catalyst: [
-    "control_module", // also matches Legion's l_control_module
+    // also matches Legion's l_control_module and Exiles' t_control_module
+    "control_module",
     "bug_catalyst", // Bugs
   ],
   // named individually - "titan" alone also matches the tutorial commander.
@@ -27,5 +30,9 @@ define({
     "bug_laser_spider",
     "bug_matriarch",
     "bug_rag",
+    // Exiles
+    "land/cyclone",
+    "land/t_chimera",
+    "mass_tele_titan",
   ],
 });

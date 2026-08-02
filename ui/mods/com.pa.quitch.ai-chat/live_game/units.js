@@ -253,13 +253,15 @@ define(function () {
       aiIndex,
       desiredUnits,
       desiredUnitCount,
-      excludedUnits
+      excludedUnits,
+      ignoredUnits
     ) {
       return checkForDesiredSets(aiIndex, [
         {
           desiredUnits: desiredUnits,
           desiredUnitCount: desiredUnitCount,
           excludedUnits: excludedUnits,
+          ignoredUnits: ignoredUnits,
         },
       ]).then(function (results) {
         return results[0];

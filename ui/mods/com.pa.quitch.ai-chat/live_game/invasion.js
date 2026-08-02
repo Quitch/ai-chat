@@ -64,13 +64,37 @@ define([
         "land_scout",
         "land/bug_", // Bugs
         "necromancer", // Legion, and the Purgers it spawns
+        // Exiles - no faction prefix and mostly generic names, so every mobile
+        // land unit that is not already caught by bot/tank/vehicle needs its
+        // own fragment, anchored to its directory
+        "land/can/",
+        "land/cyclone/",
+        "land/gale/",
+        "land/hail/",
+        "land/hunter/",
+        "land/jelly/",
+        "land/lice/",
+        "land/lightning/",
+        "land/luddite/",
+        "land/meerkat/",
+        "land/roamer/",
+        "land/shah/",
+        "land/stalker/",
+        "land/sword_dox/",
+        "land/t_chimera/",
+        "land/tin/",
+        "land/torch/",
+        "land/tripod/",
+        "mass_tele_titan",
+        "ft_commander", // their Puma, a bot despite the directory it is in
       ];
       var excludedUnits = [
         "fabrication",
         "factory",
         "sea_", // Legion names a ship l_sea_tank
         "spawner",
-        "_fab", // Bugs
+        "_fab", // Bugs, and every Exiles fabber
+        "_mine", // a laid mine is a structure, not part of a force that arrived
       ];
       units
         .countDesired(aiAllyArmyIndex[allyIndex], desiredUnits, excludedUnits)
