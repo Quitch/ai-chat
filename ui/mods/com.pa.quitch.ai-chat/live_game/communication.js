@@ -21,10 +21,7 @@ function aiCommunications() {
     var enemyArmyIndex = [];
     var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
-    // the interval handles for each ally's checks, so they can be stopped when
-    // that ally is defeated. Allies are held by name because the ally objects
-    // captured when the checks were created are snapshots, and the ally list
-    // is rebuilt - and reordered - whenever a player leaves
+    // held by name because the ally list is rebuilt and reordered whenever a player leaves
     var allyCheckIntervals = [];
 
     var stopChecks = function (ally) {
@@ -121,8 +118,6 @@ function aiCommunications() {
         alliedNukeReported([]);
         alliedTitanReported([]);
         alliedUnitCannonReported([]);
-        // the running checks hold snapshots of the last game's allies, so they
-        // are torn down here and rebuilt by initialiseChecks for the new game
         allyCheckIntervals.forEach(stopChecks);
         allyCheckIntervals = [];
         checksInitialised = false;
@@ -160,9 +155,6 @@ function aiCommunications() {
         // list changes, so each check reads them when it fires rather than
         // taking a copy now
 
-        // one report covers the whole team, so it is not per ally. The threat
-        // check rides the same tick because the report has just looked up
-        // every enemy army on every planet, which is exactly what it needs
         setInterval(function () {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
           threats.check(enemyArmyIndex, aiAllies, teamArmyIndex);
@@ -228,9 +220,6 @@ function aiCommunications() {
         require([
           "coui://ui/mods/com.pa.quitch.ai-chat/live_game/landing.js",
         ], function (landing) {
-          // wait for the world to exist rather than guessing at how long that
-          // takes. Commanders still have to spawn into it afterwards, which
-          // landing.location() handles by retrying
           api
             .getWorldView()
             .whenPlanetsReady()

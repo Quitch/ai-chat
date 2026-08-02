@@ -15,8 +15,6 @@ define([
     { desiredUnits: superweapons.titan, message: "enemyTitan" },
   ];
 
-  // an orbital force this size over a planet we hold is a staging area, not a
-  // patrol, and it precedes almost every invasion
   var orbitalForce = 8;
   var orbitalMassing = ko
     .observableArray()
@@ -32,8 +30,6 @@ define([
     });
   };
 
-  // held as edges rather than one-shot flags, so a force that disperses and
-  // returns is reported both times
   var reportEdge = function (state, seen, active, ally, message, planetIndex) {
     if (active === _.includes(state(), seen)) {
       return;
@@ -66,10 +62,6 @@ define([
     });
   };
 
-  // read straight off the planet list, which is already on the player's own
-  // screen, so this draws attention to something rather than revealing it.
-  // It deliberately does not say whose planet it is: thrust_control is
-  // relative to the local player and does not tell a teammate from an enemy
   var checkForPlanetMovement = function (ally) {
     var planets = model.planetListState().planets;
     var planetCount = planets.length - 1; // last planet is not a planet
@@ -87,8 +79,6 @@ define([
     }
   };
 
-  // once per army, threat and planet. A launcher that is destroyed and rebuilt
-  // in the same place is not news; one built somewhere new is
   var reportThreats = function (ally, armyIndex, threat, planets) {
     planets.forEach(function (planetIndex) {
       var seen = armyIndex + ":" + threat.message + ":" + planetIndex;
@@ -103,8 +93,6 @@ define([
   };
 
   return {
-    // deliberately reports only what the AI can see. Fog of war limits this to
-    // scouted planets, which is the difference between intel and cheating
     check: function (enemyArmyIndex, aiAllies, teamArmyIndex) {
       var liveAllies = _.filter(aiAllies, { defeated: false });
       var liveEnemies = livingArmies(enemyArmyIndex);
@@ -113,7 +101,6 @@ define([
         return;
       }
 
-      // a planet under thrust is worth mentioning whoever is left to see it
       checkForPlanetMovement(_.shuffle(liveAllies)[0]);
 
       if (_.isEmpty(liveEnemies)) {
@@ -128,8 +115,6 @@ define([
         };
       });
 
-      // where our team is, so an orbital force is only called out when it is
-      // gathering over something of ours
       var teamPresence = units
         .countAll(livingArmies(teamArmyIndex))
         .then(function (planetUnitCounts) {

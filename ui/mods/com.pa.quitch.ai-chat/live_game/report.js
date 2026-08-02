@@ -16,10 +16,6 @@ define([
     var alliedUnitsPerPlanet = [];
     var enemyUnitsPerPlanet = [];
 
-    // units.countAll() was given the team first, then the enemies, and
-    // returns its counts in that same order. Read rather than splice - the
-    // counts belong to the caller, and emptying them leaves whatever reads
-    // them next holding only the enemy half
     planetUnitCounts.forEach(function (planetUnitCount) {
       var unitsPerAlly = _.take(planetUnitCount, teamArmyIndex.length);
       var unitsPerEnemy = _.drop(planetUnitCount, teamArmyIndex.length);
@@ -75,11 +71,6 @@ define([
   );
   var enemyContact = observableArray("aic_enemy_contact");
 
-  // the enemy reaching a planet we hold is the most actionable thing the
-  // report sees, and the status buckets do not surface it - a planet can go
-  // from alone to ok without a word being said. Tracked as an edge so an
-  // incursion is announced once, and announced again if a later one follows
-  // the first being driven off
   var checkForFirstContact = function (planetIndex, alliedUnits, enemyUnits) {
     var contested = alliedUnits > 0 && enemyUnits > 0;
 
@@ -92,8 +83,6 @@ define([
     return contested;
   };
 
-  // a defeated player owns no units, so polling them costs a call per planet
-  // per tick to learn a count we already know is zero
   var livingArmies = function (armyIndex) {
     var players = model.players();
     return _.filter(armyIndex, function (index) {
@@ -132,8 +121,6 @@ define([
         return;
       }
 
-      // countAll returns its counts in the order it was given the armies, so
-      // the team it is split on must be the same filtered list we passed in
       var liveTeamArmyIndex = livingArmies(teamArmyIndex);
       var allArmyIndex = liveTeamArmyIndex.concat(livingArmies(enemyArmyIndex));
       units.countAll(allArmyIndex).then(function (planetUnitCounts) {

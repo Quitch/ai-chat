@@ -20,8 +20,6 @@ define([
         var matchedPlanets = planetsWithUnit[0];
 
         if (_.isEmpty(matchedPlanets)) {
-          // the commander may simply not have spawned yet, so keep looking
-          // rather than going quiet
           if (attempt < attemptLimit) {
             _.delay(
               reportLanding,

@@ -42,7 +42,6 @@ define([
     matchedPlanets,
     excludedPlanets
   ) {
-    // remove planets which are no longer reported as colonised - this allows for future messages
     colonisedPlanets()[allyIndex] = _.intersection(
       colonisedPlanets()[allyIndex],
       matchedPlanets

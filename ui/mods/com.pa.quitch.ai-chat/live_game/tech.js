@@ -6,10 +6,6 @@ define([
   var observableArray = function (string) {
     return ko.observableArray().extend({ session: string });
   };
-
-  // each milestone is announced once per ally per game. They share one pass
-  // over the planets because they are all asking about the same army, so
-  // adding one costs matching work rather than another lookup
   var milestones = [
     {
       desiredUnits: [
@@ -62,9 +58,6 @@ define([
     check: function (aiAllyArmyIndex, ally, allyIndex) {
       var outstanding = outstandingMilestones(allyIndex);
 
-      // everything has been announced, so there is nothing left to look for.
-      // The interval this runs on is shared with the ally's other checks, so
-      // it cannot be cleared - returning here costs nothing either way
       if (_.isEmpty(outstanding)) {
         return;
       }

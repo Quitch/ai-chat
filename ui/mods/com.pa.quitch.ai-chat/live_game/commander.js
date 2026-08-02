@@ -21,8 +21,6 @@ define([
   var reportArrivals = function (ally, allyIndex, currentPlanets) {
     var previousPlanets = commanderPlanets()[allyIndex];
 
-    // the first sighting is where the commander landed, which the landing
-    // announcement has already covered
     if (!_.isUndefined(previousPlanets)) {
       currentPlanets.forEach(function (planetIndex) {
         if (!_.includes(previousPlanets, planetIndex)) {
@@ -36,8 +34,6 @@ define([
   };
 
   return {
-    // an ally moving its commander to another planet is a commitment the
-    // player will want to know about, and nothing else in the mod reports it
     check: function (aiAllyArmyIndex, ally, allyIndex) {
       units
         .findUnits(aiAllyArmyIndex[allyIndex], ally.commanders)
@@ -46,8 +42,7 @@ define([
             return;
           }
 
-          // a shared army can have several commanders on different planets,
-          // so this tracks the set rather than a single location
+          // shared army commander tracking
           api
             .getWorldView()
             .getUnitState(commanderIds)

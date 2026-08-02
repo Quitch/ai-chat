@@ -10,8 +10,6 @@ define([
   var collapseMultiplier = 0.4; // most of the force that was here is gone
   var significantForce = 20;
 
-  // the same counts answer both questions, so a force arriving and a force
-  // being destroyed are identified together
   var identifyArmyChanges = function (allyIndex, perPlanetUnitCounts) {
     if (_.isUndefined(previousUnitCount()[allyIndex])) {
       var planets = model.planetListState().planets;
@@ -25,8 +23,7 @@ define([
 
     perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
       var previousUnits = previousUnitCount()[allyIndex][planetIndex];
-      // avoid multiplying by zero
-      var unitCount = Math.max(previousUnits, 1);
+      var unitCount = Math.max(previousUnits, 1); // avoid multiplying by zero
 
       if (
         planetUnitCount > unitCount * armySizeMultiplier &&
@@ -71,12 +68,9 @@ define([
         .then(function (perPlanetUnitCounts) {
           var changes = identifyArmyChanges(allyIndex, perPlanetUnitCounts);
 
-          // losing an army is worth saying wherever it happens, unlike an
-          // invasion, which needs somewhere to have been invaded from
           communicate(ally, changes.collapsed, "armyCollapse");
 
-          // we don't check this first because identifyArmyChanges() has to
-          // update the previous unit count
+          // dependent on identifyArmyChanges() updating the previous unit count
           var planetsPresentOn = 0;
           perPlanetUnitCounts.forEach(function (planetUnitCount) {
             if (planetUnitCount > 0) {

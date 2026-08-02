@@ -1,13 +1,4 @@
 define(function () {
-  // the colony, invasion and tech checks all ask about the same ally, and the
-  // situation report asks about that ally again, so within a tick the same
-  // army and planet is fetched several times over. The in-flight promise is
-  // what gets cached, not just the result, so callers that overlap share one
-  // round trip rather than only ones that follow it.
-  //
-  // The lifetime is comfortably shorter than the ~10s check interval, so an
-  // entry never spans two ticks and no check ever sees data from the tick
-  // before its own
   var lookupLifetime = 5000;
   var lookups = {};
 
@@ -28,8 +19,6 @@ define(function () {
       return lookup.units;
     }
 
-    // nothing mutates a unit map, so handing the same one to several callers
-    // is safe
     dropExpiredLookups(now);
     lookups[key] = {
       fetched: now,
@@ -79,7 +68,7 @@ define(function () {
       for (var desiredUnit of desiredUnits) {
         if (_.includes(unit, desiredUnit)) {
           desiredUnitsCount += unitsOnPlanet[unit].length;
-          break; // a unit path can contain more than one desired unit
+          break;
         }
       }
     }
@@ -95,9 +84,6 @@ define(function () {
     return false;
   };
 
-  // a unit path can contain more than one desired unit, so match on the unit
-  // rather than the desired unit to stop one unit counting twice. seenDesiredUnit
-  // is indexed by desired unit, making the seen test a lookup rather than a scan
   var isNewDesiredUnit = function (unit, desiredUnits, seenDesiredUnit) {
     for (var i = 0; i < desiredUnits.length; i++) {
       if (_.includes(unit, desiredUnits[i])) {
@@ -111,8 +97,6 @@ define(function () {
     return false;
   };
 
-  // a single excluded unit rejects the whole planet, so exclusions and desired
-  // units are resolved in one pass rather than two
   var matchPlanet = function (
     unitsOnPlanet,
     desiredUnits,
@@ -129,9 +113,9 @@ define(function () {
 
       if (matches >= desiredUnitCount) {
         if (excludedUnits) {
-          continue; // an excluded unit could still reject the planet
+          continue;
         }
-        break; // nothing left that could change the answer
+        break;
       }
 
       if (isNewDesiredUnit(unit, desiredUnits, seenDesiredUnit)) {
@@ -142,11 +126,6 @@ define(function () {
     return { excluded: false, matches: matches };
   };
 
-  // several sets of desired units resolved against one pass over the planets,
-  // so callers looking for more than one thing about the same army do not each
-  // pay for their own lookup. Each set is
-  // {desiredUnits, desiredUnitCount, excludedUnits}, and the results come back
-  // in the order the sets were given
   var checkForDesiredSets = function (aiIndex, sets) {
     var pendingLookups = [];
     var results = sets.map(function (set) {
@@ -235,8 +214,6 @@ define(function () {
         return desiredUnitCount;
       });
     },
-    // the ids of matching units rather than a count of them, for the callers
-    // that need to ask getUnitState about a specific unit
     findUnits: function (aiIndex, desiredUnits) {
       var pendingLookups = [];
       var found = [];
