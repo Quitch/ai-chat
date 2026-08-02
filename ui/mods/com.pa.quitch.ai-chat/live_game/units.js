@@ -97,11 +97,15 @@ define(function () {
     return false;
   };
 
+  // an excluded unit rejects the whole planet, an ignored unit only fails to
+  // count towards a match - what a unit that merely shares a name fragment with
+  // the desired units needs
   var matchPlanet = function (
     unitsOnPlanet,
     desiredUnits,
     desiredUnitCount,
-    excludedUnits
+    excludedUnits,
+    ignoredUnits
   ) {
     var seenDesiredUnit = [];
     var matches = 0;
@@ -109,6 +113,10 @@ define(function () {
     for (var unit in unitsOnPlanet) {
       if (isExcludedUnit(unit, excludedUnits)) {
         return { excluded: true, matches: 0 };
+      }
+
+      if (isExcludedUnit(unit, ignoredUnits)) {
+        continue;
       }
 
       if (matches >= desiredUnitCount) {
@@ -135,6 +143,7 @@ define(function () {
           : [set.desiredUnits],
         desiredUnitCount: set.desiredUnitCount,
         excludedUnits: set.excludedUnits,
+        ignoredUnits: set.ignoredUnits,
         matches: [],
         rejections: [],
       };
@@ -148,7 +157,8 @@ define(function () {
               unitsOnPlanet,
               result.desiredUnits,
               result.desiredUnitCount,
-              result.excludedUnits
+              result.excludedUnits,
+              result.ignoredUnits
             );
 
             if (planet.excluded) {

@@ -12,6 +12,8 @@ define([
         "_adv",
         "advanced", // Bugs
       ],
+      // Legion's basic heavy turret is named as though it were advanced
+      ignoredUnits: ["t1_turret_adv"],
       reported: observableArray("aic_ally_t2_check"),
       message: "allyAdvTech",
     },
@@ -67,6 +69,7 @@ define([
         return {
           desiredUnits: milestone.desiredUnits,
           desiredUnitCount: desiredUnitCount,
+          ignoredUnits: milestone.ignoredUnits,
         };
       });
 

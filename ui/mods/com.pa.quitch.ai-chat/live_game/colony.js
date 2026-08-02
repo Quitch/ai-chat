@@ -78,7 +78,7 @@ define([
         // Bugs - naming every factory a hive, but not every hive is one
         "advanced_hive",
         "basic_hive",
-        "swarm_hive",
+        "bug_swarm_hive", // anchored so it cannot match Legion's l_swarm_hive turret
         "air_hive",
         "naval_hive",
       ];

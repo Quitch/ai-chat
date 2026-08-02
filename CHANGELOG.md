@@ -9,6 +9,9 @@
 - Allies warn you when an enemy fleet masses in orbit above one of your planets
 - Allies warn you when the enemy reaches a planet your team holds
 - Allies call for help when their army on a planet is being destroyed
+- Fix issues with Legion Expansion unit detection
+- Fix vehicles (not tanks) and scouts not counting towards an ally's army size
+- Fix factories counting towards an ally's army size
 - Fix Bugs allies never reporting Catalyst construction
 - Fix allies staying silent about their landing location on slow-loading systems
 

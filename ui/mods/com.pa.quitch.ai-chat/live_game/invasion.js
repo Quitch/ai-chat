@@ -53,14 +53,23 @@ define([
 
   return {
     check: function (aiAllyArmyIndex, ally, allyIndex) {
+      // mobile land and orbital units - air and naval do not take a planet,
+      // and a structure is not part of the force that arrived
       var desiredUnits = [
         "bot",
         "tank",
+        "vehicle",
         "orbital_",
+        "titan_orbital", // the only titan named the other way around
+        "land_scout",
         "land/bug_", // Bugs
+        "necromancer", // Legion, and the Purgers it spawns
       ];
       var excludedUnits = [
         "fabrication",
+        "factory",
+        "sea_", // Legion names a ship l_sea_tank
+        "spawner",
         "_fab", // Bugs
       ];
       units
