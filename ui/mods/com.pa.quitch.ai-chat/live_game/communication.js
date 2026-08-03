@@ -21,6 +21,28 @@ function aiCommunications() {
     var enemyArmyIndex = [];
     var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
+    // held by name because the ally list is rebuilt and reordered whenever a player leaves
+    var allyCheckIntervals = [];
+
+    var stopChecks = function (ally) {
+      ally.handles.forEach(function (handle) {
+        clearInterval(handle);
+      });
+      ally.stopped = true;
+    };
+
+    var stopDefeatedAllyChecks = function (allPlayers) {
+      allyCheckIntervals.forEach(function (ally) {
+        if (ally.stopped) {
+          return;
+        }
+
+        var currentAlly = _.find(allPlayers, { name: ally.name });
+        if (currentAlly && currentAlly.defeated) {
+          stopChecks(ally);
+        }
+      });
+    };
     var allyState = "allied_eco";
     var enemyState = "hostile";
     // model variables may not be populated yet
@@ -66,18 +88,39 @@ function aiCommunications() {
         var previousImportantPlanetStatus = observableArray(
           "aic_important_planet_statuses"
         );
+        var enemyContact = observableArray("aic_enemy_contact");
+        var reportedThreats = observableArray("aic_enemy_threats");
+        var orbitalMassing = observableArray("aic_enemy_orbital");
+        var movingPlanets = observableArray("aic_moving_planets");
+        var commanderPlanets = observableArray("aic_commander_planet");
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
+        var alliedNukeReported = observableArray("aic_ally_nuke_check");
+        var alliedTitanReported = observableArray("aic_ally_titan_check");
+        var alliedUnitCannonReported = observableArray(
+          "aic_ally_unit_cannon_check"
+        );
         processedLanding(false);
         communicatedLanding(false);
         colonisedPlanets([]);
         previousPlanetStatus([]);
         previousImportantPlanetStatus([]);
+        enemyContact([]);
+        reportedThreats([]);
+        orbitalMassing([]);
+        movingPlanets([]);
+        commanderPlanets([]);
         previousUnitCount([]);
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);
         alliedCatalystReported([]);
+        alliedNukeReported([]);
+        alliedTitanReported([]);
+        alliedUnitCannonReported([]);
+        allyCheckIntervals.forEach(stopChecks);
+        allyCheckIntervals = [];
+        checksInitialised = false;
       }
     };
     detectNewGame(player);
@@ -105,49 +148,41 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/invasion.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/tech.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
-      ], function (colony, invasion, tech, report) {
-        var alliedT2CheckInterval = [];
-        var alliedOrbitalCheckInterval = [];
-        var alliedCatalystCheckInterval = [];
-
+        "coui://ui/mods/com.pa.quitch.ai-chat/live_game/threats.js",
+        "coui://ui/mods/com.pa.quitch.ai-chat/live_game/commander.js",
+      ], function (colony, invasion, tech, report, threats, commander) {
         // the army indices and ally list are rebuilt whenever the player
         // list changes, so each check reads them when it fires rather than
         // taking a copy now
 
-        // one report covers the whole team, so it is not per ally
         setInterval(function () {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
+          threats.check(enemyArmyIndex, aiAllies, teamArmyIndex);
         }, generateInterval());
 
+        // one interval per ally rather than one per check, so an ally's
+        // checks land on the same tick and share their unit lookups. The
+        // jitter stays between allies, which is what stops every ally
+        // speaking at once
         allies.forEach(function (ally, i) {
-          if (planetCount > 1) {
-            setInterval(function () {
+          var handle = setInterval(function () {
+            // read per tick rather than when the interval was created, so
+            // colony and invasion fall silent if the system is reduced to a
+            // single planet
+            if (planetCount > 1) {
               colony.check(aiAllyArmyIndex, ally, i);
-            }, generateInterval());
-            setInterval(function () {
               invasion.check(aiAllyArmyIndex, ally, i);
-            }, generateInterval());
-          }
+              commander.check(aiAllyArmyIndex, ally, i);
+            }
 
-          alliedT2CheckInterval[i] = setInterval(function () {
-            tech.alliedT2Check(aiAllyArmyIndex, ally, i, alliedT2CheckInterval);
+            tech.check(aiAllyArmyIndex, ally, i);
           }, generateInterval());
-          alliedOrbitalCheckInterval[i] = setInterval(function () {
-            tech.alliedOrbitalCheck(
-              aiAllyArmyIndex,
-              ally,
-              i,
-              alliedOrbitalCheckInterval
-            );
-          }, generateInterval());
-          alliedCatalystCheckInterval[i] = setInterval(function () {
-            tech.alliedCatalystCheck(
-              aiAllyArmyIndex,
-              ally,
-              i,
-              alliedCatalystCheckInterval
-            );
-          }, generateInterval());
+
+          allyCheckIntervals.push({
+            name: ally.name,
+            handles: [handle],
+            stopped: false,
+          });
         });
       });
     };
@@ -169,6 +204,7 @@ function aiCommunications() {
 
       detectNewGame(player);
       identifyFriendAndFoe(ais, players);
+      stopDefeatedAllyChecks(players);
       initialiseChecks(aiAllies);
 
       if (!playerSelectingSpawn && !processedLanding()) {
@@ -184,7 +220,12 @@ function aiCommunications() {
         require([
           "coui://ui/mods/com.pa.quitch.ai-chat/live_game/landing.js",
         ], function (landing) {
-          _.delay(landing.location, 10000, aiAllyArmyIndex, aiAllies); // delay to allow AI to spawn
+          api
+            .getWorldView()
+            .whenPlanetsReady()
+            .then(function () {
+              landing.location(aiAllyArmyIndex, aiAllies);
+            });
           communicatedLanding(true);
         });
       }
@@ -220,7 +261,7 @@ function aiCommunications() {
     };
   } catch (e) {
     console.error(e);
-    console.error(JSON.stringify(e));
+    console.error("AI Chat: " + (e.stack || e.message || e));
   }
 }
 aiCommunications();

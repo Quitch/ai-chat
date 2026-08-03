@@ -1,102 +1,90 @@
 define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
-], function (chat, units) {
+  "coui://ui/mods/com.pa.quitch.ai-chat/live_game/superweapons.js",
+], function (chat, units, superweapons) {
   var observableArray = function (string) {
     return ko.observableArray().extend({ session: string });
   };
+  var milestones = [
+    {
+      desiredUnits: [
+        "_adv",
+        "advanced", // Bugs
+      ],
+      // Legion's basic heavy turret is named as though it were advanced
+      ignoredUnits: ["t1_turret_adv"],
+      reported: observableArray("aic_ally_t2_check"),
+      message: "allyAdvTech",
+    },
+    {
+      desiredUnits: ["orbital_"],
+      reported: observableArray("aic_ally_orbital_check"),
+      message: "allyOrbitalTech",
+    },
+    {
+      desiredUnits: superweapons.catalyst,
+      reported: observableArray("aic_ally_catalyst_check"),
+      message: "allyCatalystTech",
+    },
+    {
+      desiredUnits: superweapons.nuke,
+      reported: observableArray("aic_ally_nuke_check"),
+      message: "allyNuke",
+    },
+    {
+      desiredUnits: superweapons.titan,
+      reported: observableArray("aic_ally_titan_check"),
+      message: "allyTitan",
+    },
+    {
+      desiredUnits: superweapons.unitCannon,
+      reported: observableArray("aic_ally_unit_cannon_check"),
+      message: "allyUnitCannon",
+    },
+  ];
 
-  var alliedT2TechReported = observableArray("aic_ally_t2_check");
-  var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
-  var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
+  var outstandingMilestones = function (allyIndex) {
+    return _.filter(milestones, function (milestone) {
+      return milestone.reported()[allyIndex] !== true;
+    });
+  };
 
-  var reportTechStatus = function (
-    ally,
-    allyIndex,
-    interval,
-    planetsWithUnit,
-    reported,
-    message
-  ) {
-    var matchedPlanets = planetsWithUnit[0];
-
-    if (_.isEmpty(matchedPlanets)) {
-      return;
-    }
-
-    clearInterval(interval[allyIndex]);
-
-    if (reported()[allyIndex] === true) {
-      return;
-    }
-
-    chat.send("team", ally.name, message);
-    reported()[allyIndex] = true;
-    reported.valueHasMutated();
+  var reportMilestone = function (ally, allyIndex, milestone) {
+    chat.send("team", ally.name, milestone.message);
+    milestone.reported()[allyIndex] = true;
+    milestone.reported.valueHasMutated();
   };
 
   return {
-    alliedT2Check: function (aiAllyArmyIndex, ally, allyIndex, interval) {
-      var desiredUnits = [
-        "_adv",
-        "advanced", // Bugs
-      ];
+    check: function (aiAllyArmyIndex, ally, allyIndex) {
+      var outstanding = outstandingMilestones(allyIndex);
+
+      if (_.isEmpty(outstanding)) {
+        return;
+      }
+
       var desiredUnitCount = 1;
+      var sets = outstanding.map(function (milestone) {
+        return {
+          desiredUnits: milestone.desiredUnits,
+          desiredUnitCount: desiredUnitCount,
+          ignoredUnits: milestone.ignoredUnits,
+        };
+      });
+
       units
-        .checkForDesired(
-          aiAllyArmyIndex[allyIndex],
-          desiredUnits,
-          desiredUnitCount
-        )
+        .checkForDesiredSets(aiAllyArmyIndex[allyIndex], sets)
         .then(function (planetsWithUnit) {
-          reportTechStatus(
-            ally,
-            allyIndex,
-            interval,
-            planetsWithUnit,
-            alliedT2TechReported,
-            "allyAdvTech"
-          );
-        });
-    },
-    alliedOrbitalCheck: function (aiAllyArmyIndex, ally, allyIndex, interval) {
-      var desiredUnits = ["orbital_"];
-      var desiredUnitCount = 1;
-      units
-        .checkForDesired(
-          aiAllyArmyIndex[allyIndex],
-          desiredUnits,
-          desiredUnitCount
-        )
-        .then(function (planetsWithUnit) {
-          reportTechStatus(
-            ally,
-            allyIndex,
-            interval,
-            planetsWithUnit,
-            alliedOrbitalReported,
-            "allyOrbitalTech"
-          );
-        });
-    },
-    alliedCatalystCheck: function (aiAllyArmyIndex, ally, allyIndex, interval) {
-      var desiredUnits = ["control_module"];
-      var desiredUnitCount = 1;
-      units
-        .checkForDesired(
-          aiAllyArmyIndex[allyIndex],
-          desiredUnits,
-          desiredUnitCount
-        )
-        .then(function (planetsWithUnit) {
-          reportTechStatus(
-            ally,
-            allyIndex,
-            interval,
-            planetsWithUnit,
-            alliedCatalystReported,
-            "allyCatalystTech"
-          );
+          outstanding.forEach(function (milestone, i) {
+            var matchedPlanets = planetsWithUnit[i][0];
+
+            if (_.isEmpty(matchedPlanets)) {
+              return;
+            }
+
+            reportMilestone(ally, allyIndex, milestone);
+          });
         });
     },
   };

@@ -42,7 +42,6 @@ define([
     matchedPlanets,
     excludedPlanets
   ) {
-    // remove planets which are no longer reported as colonised - this allows for future messages
     colonisedPlanets()[allyIndex] = _.intersection(
       colonisedPlanets()[allyIndex],
       matchedPlanets
@@ -71,7 +70,6 @@ define([
         "bug_jig",
         "fabricator",
         "_fab",
-        "bug_gas_hive", // their mining platform
       ];
       var desiredUnitCount = 2; // we only need a fabber and something else
       var excludedUnits = [
@@ -79,16 +77,27 @@ define([
         // Bugs - naming every factory a hive, but not every hive is one
         "advanced_hive",
         "basic_hive",
-        "swarm_hive",
+        "bug_swarm_hive", // anchored so it cannot match Legion's l_swarm_hive turret
         "air_hive",
         "naval_hive",
+        "bug_gas_hive", // their orbital factory, despite the name
+        // Exiles - only their Fabber Foundry is named a factory, and each of
+        // these also covers the _adv form
+        "t_air_fac",
+        "t_bot_fac",
+        "t_naval_fac",
+        "t_tank_fac",
       ];
+      // Exiles' Puma is a factory built bot that lives in the commanders
+      // directory, so it must not stand in for a commander
+      var ignoredUnits = ["ft_commander"];
       units
         .checkForDesired(
           aiAllyArmyIndex[allyIndex],
           desiredUnits,
           desiredUnitCount,
-          excludedUnits
+          excludedUnits,
+          ignoredUnits
         )
         .then(function (planetsWithUnit) {
           var matchedPlanets = planetsWithUnit[0];

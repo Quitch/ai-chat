@@ -16,15 +16,11 @@ define([
     var alliedUnitsPerPlanet = [];
     var enemyUnitsPerPlanet = [];
 
-    // units.countAll() was given the team first, then the enemies, and
-    // returns its counts in that same order
     planetUnitCounts.forEach(function (planetUnitCount) {
-      var unitsPerAlly = planetUnitCount.splice(0, teamArmyIndex.length);
-      var unitsPerEnemy = planetUnitCount;
-      var alliedUnits = sumOfArray(unitsPerAlly);
-      var enemyUnits = sumOfArray(unitsPerEnemy);
-      alliedUnitsPerPlanet.push(alliedUnits);
-      enemyUnitsPerPlanet.push(enemyUnits);
+      var unitsPerAlly = _.take(planetUnitCount, teamArmyIndex.length);
+      var unitsPerEnemy = _.drop(planetUnitCount, teamArmyIndex.length);
+      alliedUnitsPerPlanet.push(sumOfArray(unitsPerAlly));
+      enemyUnitsPerPlanet.push(sumOfArray(unitsPerEnemy));
     });
 
     return {
@@ -58,14 +54,17 @@ define([
 
   var getSituationReports = function (planetUnitCounts, teamArmyIndex) {
     var friendAndFoe = separateFriendFromFoe(planetUnitCounts, teamArmyIndex);
-    var alliedUnitsPerPlanet = friendAndFoe.allies;
-    var enemyUnitsPerPlanet = friendAndFoe.enemies;
-    var situationReports = compareArmySizes(
-      alliedUnitsPerPlanet,
-      enemyUnitsPerPlanet
-    );
-    return situationReports;
+    return {
+      reports: compareArmySizes(friendAndFoe.allies, friendAndFoe.enemies),
+      allies: friendAndFoe.allies,
+      enemies: friendAndFoe.enemies,
+    };
   };
+
+  // the statuses that mean we still hold the planet. threats.js asks before
+  // warning about an enemy fleet - a warning about somewhere we are already
+  // losing tells the player nothing they do not know
+  var secureStatus = ["alone", "winning", "ok"];
 
   var observableArray = function (string) {
     return ko.observableArray().extend({ session: string });
@@ -75,6 +74,26 @@ define([
   var previousImportantPlanetStatus = observableArray(
     "aic_important_planet_statuses"
   );
+  var enemyContact = observableArray("aic_enemy_contact");
+
+  var checkForFirstContact = function (planetIndex, alliedUnits, enemyUnits) {
+    var contested = alliedUnits > 0 && enemyUnits > 0;
+
+    if (contested === (enemyContact()[planetIndex] === true)) {
+      return false;
+    }
+
+    enemyContact()[planetIndex] = contested;
+    enemyContact.valueHasMutated();
+    return contested;
+  };
+
+  var livingArmies = function (armyIndex) {
+    var players = model.players();
+    return _.filter(armyIndex, function (index) {
+      return players[index] && !players[index].defeated;
+    });
+  };
 
   var checkIfWorthReporting = function (planetIndex, report) {
     var importantStatus = new Set();
@@ -107,14 +126,25 @@ define([
         return;
       }
 
-      var allArmyIndex = teamArmyIndex.concat(enemyArmyIndex);
+      var liveTeamArmyIndex = livingArmies(teamArmyIndex);
+      var allArmyIndex = liveTeamArmyIndex.concat(livingArmies(enemyArmyIndex));
       units.countAll(allArmyIndex).then(function (planetUnitCounts) {
-        var situationReports = getSituationReports(
+        var situation = getSituationReports(
           planetUnitCounts,
-          teamArmyIndex
+          liveTeamArmyIndex
         );
         var ally = _.shuffle(liveAllies)[0];
-        situationReports.forEach(function (report, planetIndex) {
+        situation.reports.forEach(function (report, planetIndex) {
+          var firstContact = checkForFirstContact(
+            planetIndex,
+            situation.allies[planetIndex],
+            situation.enemies[planetIndex]
+          );
+
+          if (firstContact) {
+            chat.send("team", ally.name, "enemyContact", planetIndex);
+          }
+
           if (report === "absent") {
             previousPlanetStatus()[planetIndex] = report;
             previousPlanetStatus.valueHasMutated();
@@ -131,6 +161,9 @@ define([
           previousPlanetStatus.valueHasMutated();
         });
       });
+    },
+    secure: function (planetIndex) {
+      return _.includes(secureStatus, previousPlanetStatus()[planetIndex]);
     },
   };
 });

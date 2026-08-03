@@ -27,7 +27,7 @@ function aiKills() {
     });
   } catch (e) {
     console.error(e);
-    console.error(JSON.stringify(e));
+    console.error("AI Chat: " + (e.stack || e.message || e));
   }
 }
 aiKills();

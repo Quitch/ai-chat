@@ -1,4 +1,38 @@
 define(function () {
+  var lookupLifetime = 5000;
+  var lookups = {};
+
+  var dropExpiredLookups = function (now) {
+    for (var key in lookups) {
+      if (now - lookups[key].fetched >= lookupLifetime) {
+        delete lookups[key];
+      }
+    }
+  };
+
+  var getArmyUnits = function (armyIndex, planetIndex) {
+    var key = armyIndex + ":" + planetIndex;
+    var now = Date.now();
+    var lookup = lookups[key];
+
+    if (lookup && now - lookup.fetched < lookupLifetime) {
+      return lookup.units;
+    }
+
+    dropExpiredLookups(now);
+    lookups[key] = {
+      fetched: now,
+      units: api.getWorldView().getArmyUnits(armyIndex, planetIndex),
+    };
+    return lookups[key].units;
+  };
+
+  var planetCount = function () {
+    // the last entry in the planet list is not a planet, and planets can be
+    // destroyed mid-game, so this is read per call rather than cached
+    return model.planetListState().planets.length - 1;
+  };
+
   var countAllUnits = function (unitsOnPlanet) {
     var unitCount = 0;
     for (var unit in unitsOnPlanet) {
@@ -34,151 +68,204 @@ define(function () {
       for (var desiredUnit of desiredUnits) {
         if (_.includes(unit, desiredUnit)) {
           desiredUnitsCount += unitsOnPlanet[unit].length;
-          break; // a unit path can contain more than one desired unit
+          break;
         }
       }
     }
     return desiredUnitsCount;
   };
 
-  var checkForExcludedUnits = function (unitsOnPlanet, excludedUnits) {
-    for (var unit in unitsOnPlanet) {
-      if (isExcludedUnit(unit, excludedUnits)) {
+  var matchesAnyUnit = function (unit, desiredUnits) {
+    for (var i = 0; i < desiredUnits.length; i++) {
+      if (_.includes(unit, desiredUnits[i])) {
         return true;
       }
     }
     return false;
   };
 
-  var checkForDesiredUnits = function (unitsOnPlanet, desiredUnits) {
-    if (!_.isArray(desiredUnits)) {
-      desiredUnits = [desiredUnits];
-    }
-
-    // a unit path can contain more than one desired unit, so match on the
-    // unit rather than the desired unit to stop one unit counting twice
-    var matchedDesiredUnits = [];
-    for (var unit in unitsOnPlanet) {
-      for (var i = 0; i < desiredUnits.length; i++) {
-        if (_.includes(unit, desiredUnits[i])) {
-          if (!_.includes(matchedDesiredUnits, i)) {
-            matchedDesiredUnits.push(i);
-          }
-          break;
+  var isNewDesiredUnit = function (unit, desiredUnits, seenDesiredUnit) {
+    for (var i = 0; i < desiredUnits.length; i++) {
+      if (_.includes(unit, desiredUnits[i])) {
+        if (seenDesiredUnit[i]) {
+          return false;
         }
+        seenDesiredUnit[i] = true;
+        return true;
       }
     }
-    return matchedDesiredUnits.length;
+    return false;
+  };
+
+  // an excluded unit rejects the whole planet, an ignored unit only fails to
+  // count towards a match - what a unit that merely shares a name fragment with
+  // the desired units needs
+  var matchPlanet = function (
+    unitsOnPlanet,
+    desiredUnits,
+    desiredUnitCount,
+    excludedUnits,
+    ignoredUnits
+  ) {
+    var seenDesiredUnit = [];
+    var matches = 0;
+
+    for (var unit in unitsOnPlanet) {
+      if (isExcludedUnit(unit, excludedUnits)) {
+        return { excluded: true, matches: 0 };
+      }
+
+      if (isExcludedUnit(unit, ignoredUnits)) {
+        continue;
+      }
+
+      if (matches >= desiredUnitCount) {
+        if (excludedUnits) {
+          continue;
+        }
+        break;
+      }
+
+      if (isNewDesiredUnit(unit, desiredUnits, seenDesiredUnit)) {
+        matches++;
+      }
+    }
+
+    return { excluded: false, matches: matches };
+  };
+
+  var checkForDesiredSets = function (aiIndex, sets) {
+    var pendingLookups = [];
+    var results = sets.map(function (set) {
+      return {
+        desiredUnits: _.isArray(set.desiredUnits)
+          ? set.desiredUnits
+          : [set.desiredUnits],
+        desiredUnitCount: set.desiredUnitCount,
+        excludedUnits: set.excludedUnits,
+        ignoredUnits: set.ignoredUnits,
+        matches: [],
+        rejections: [],
+      };
+    });
+
+    _.times(planetCount(), function (planetIndex) {
+      pendingLookups.push(
+        getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
+          results.forEach(function (result) {
+            var planet = matchPlanet(
+              unitsOnPlanet,
+              result.desiredUnits,
+              result.desiredUnitCount,
+              result.excludedUnits,
+              result.ignoredUnits
+            );
+
+            if (planet.excluded) {
+              result.rejections.push(planetIndex);
+            } else if (planet.matches >= result.desiredUnitCount) {
+              result.matches.push(planetIndex);
+            }
+          });
+        })
+      );
+    });
+
+    return Promise.all(pendingLookups).then(function () {
+      return results.map(function (result) {
+        return [result.matches, result.rejections];
+      });
+    });
   };
 
   return {
     countAll: function (aisIndex) {
-      var deferred = $.Deferred();
-      var deferredQueue = [];
+      var pendingLookups = [];
       var unitCount = [];
-      var planets = model.planetListState().planets;
-      var planetCount = planets.length - 1; // last planet is not a planet
 
-      _.times(planetCount, function (planetIndex) {
+      _.times(planetCount(), function (planetIndex) {
         aisIndex.forEach(function (aiIndex, armyPosition) {
-          deferredQueue.push(
-            api
-              .getWorldView()
-              .getArmyUnits(aiIndex, planetIndex)
-              .then(function (unitsOnPlanet) {
-                var unitCountOnPlanet = countAllUnits(unitsOnPlanet);
-                if (_.isUndefined(unitCount[planetIndex])) {
-                  unitCount[planetIndex] = [];
-                }
-                // assign rather than push - these resolve out of order
-                unitCount[planetIndex][armyPosition] = unitCountOnPlanet;
-              })
+          pendingLookups.push(
+            getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
+              var unitCountOnPlanet = countAllUnits(unitsOnPlanet);
+              if (_.isUndefined(unitCount[planetIndex])) {
+                unitCount[planetIndex] = [];
+              }
+              // assign rather than push - these resolve out of order
+              unitCount[planetIndex][armyPosition] = unitCountOnPlanet;
+            })
           );
         });
       });
 
-      Promise.all(deferredQueue).then(function () {
-        deferred.resolve(unitCount);
+      return Promise.all(pendingLookups).then(function () {
+        return unitCount;
       });
-
-      return deferred.promise();
     },
     countDesired: function (aiIndex, desiredUnits, excludedUnits) {
-      var deferred = $.Deferred();
-      var deferredQueue = [];
+      var pendingLookups = [];
       var desiredUnitCount = [];
-      var planets = model.planetListState().planets;
-      var planetCount = planets.length - 1; // last planet is not a planet
 
-      _.times(planetCount, function (planetIndex) {
-        deferredQueue.push(
-          api
-            .getWorldView()
-            .getArmyUnits(aiIndex, planetIndex)
-            .then(function (unitsOnPlanet) {
-              var desiredUnitsOnPlanet = countDesiredUnits(
-                unitsOnPlanet,
-                desiredUnits,
-                excludedUnits
-              );
-              // assign rather than push - these resolve out of order
-              desiredUnitCount[planetIndex] = desiredUnitsOnPlanet;
-            })
+      _.times(planetCount(), function (planetIndex) {
+        pendingLookups.push(
+          getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
+            var desiredUnitsOnPlanet = countDesiredUnits(
+              unitsOnPlanet,
+              desiredUnits,
+              excludedUnits
+            );
+            // assign rather than push - these resolve out of order
+            desiredUnitCount[planetIndex] = desiredUnitsOnPlanet;
+          })
         );
       });
 
-      Promise.all(deferredQueue).then(function () {
-        deferred.resolve(desiredUnitCount);
+      return Promise.all(pendingLookups).then(function () {
+        return desiredUnitCount;
+      });
+    },
+    findUnits: function (aiIndex, desiredUnits) {
+      var pendingLookups = [];
+      var found = [];
+
+      if (!_.isArray(desiredUnits)) {
+        desiredUnits = [desiredUnits];
+      }
+
+      _.times(planetCount(), function (planetIndex) {
+        pendingLookups.push(
+          getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
+            for (var unit in unitsOnPlanet) {
+              if (matchesAnyUnit(unit, desiredUnits)) {
+                found = found.concat(unitsOnPlanet[unit]);
+              }
+            }
+          })
+        );
       });
 
-      return deferred.promise();
+      return Promise.all(pendingLookups).then(function () {
+        return found;
+      });
     },
+    checkForDesiredSets: checkForDesiredSets,
     checkForDesired: function (
       aiIndex,
       desiredUnits,
       desiredUnitCount,
-      excludedUnits
+      excludedUnits,
+      ignoredUnits
     ) {
-      var deferred = $.Deferred();
-      var deferredQueue = [];
-      var matches = [];
-      var rejections = [];
-      var planets = model.planetListState().planets;
-      var planetCount = planets.length - 1; // last planet is not a planet
-
-      _.times(planetCount, function (planetIndex) {
-        deferredQueue.push(
-          api
-            .getWorldView()
-            .getArmyUnits(aiIndex, planetIndex)
-            .then(function (unitsOnPlanet) {
-              var excludedUnitsOnPlanet = checkForExcludedUnits(
-                unitsOnPlanet,
-                excludedUnits
-              );
-
-              if (excludedUnitsOnPlanet) {
-                rejections.push(planetIndex);
-                return;
-              }
-
-              var desiredUnitsOnPlanet = checkForDesiredUnits(
-                unitsOnPlanet,
-                desiredUnits
-              );
-
-              if (desiredUnitsOnPlanet >= desiredUnitCount) {
-                matches.push(planetIndex);
-              }
-            })
-        );
+      return checkForDesiredSets(aiIndex, [
+        {
+          desiredUnits: desiredUnits,
+          desiredUnitCount: desiredUnitCount,
+          excludedUnits: excludedUnits,
+          ignoredUnits: ignoredUnits,
+        },
+      ]).then(function (results) {
+        return results[0];
       });
-
-      Promise.all(deferredQueue).then(function () {
-        deferred.resolve([matches, rejections]);
-      });
-
-      return deferred.promise();
     },
   };
 });
