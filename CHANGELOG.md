@@ -6,7 +6,7 @@
 - Allies tell you when they move their commander to another planet
 - Allies tell you when they complete a nuclear launcher, Titan or unit cannon
 - Allies warn you when a planet starts moving under its own engines
-- Allies warn you when an enemy fleet masses in orbit above one of your planets
+- Allies warn you when an enemy fleet threatens a planet your team still holds
 - Allies warn you when the enemy reaches a planet your team holds
 - Allies call for help when their army on a planet is being destroyed
 - Support the Exiles faction
@@ -14,6 +14,7 @@
 - Fix vehicles (not tanks) and scouts not counting towards an ally's army size
 - Fix factories counting towards an ally's army size
 - Fix Bugs allies never reporting Catalyst construction
+- Fix a Bugs orbital factory counting as a colony
 - Fix allies staying silent about their landing location on slow-loading systems
 
 ## v1.2.2 - 2026-07-31

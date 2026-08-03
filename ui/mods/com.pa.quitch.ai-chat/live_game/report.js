@@ -61,6 +61,11 @@ define([
     };
   };
 
+  // the statuses that mean we still hold the planet. threats.js asks before
+  // warning about an enemy fleet - a warning about somewhere we are already
+  // losing tells the player nothing they do not know
+  var secureStatus = ["alone", "winning", "ok"];
+
   var observableArray = function (string) {
     return ko.observableArray().extend({ session: string });
   };
@@ -156,6 +161,9 @@ define([
           previousPlanetStatus.valueHasMutated();
         });
       });
+    },
+    secure: function (planetIndex) {
+      return _.includes(secureStatus, previousPlanetStatus()[planetIndex]);
     },
   };
 });

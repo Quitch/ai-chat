@@ -2,7 +2,8 @@ define([
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
   "coui://ui/mods/com.pa.quitch.ai-chat/live_game/superweapons.js",
-], function (chat, units, superweapons) {
+  "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
+], function (chat, units, superweapons, report) {
   var reportedThreats = ko
     .observableArray()
     .extend({ session: "aic_enemy_threats" });
@@ -15,7 +16,19 @@ define([
     { desiredUnits: superweapons.titan, message: "enemyTitan" },
   ];
 
-  var orbitalForce = 8;
+  var orbitalForce = 8; // a gas giant has no ground, so any fleet counts
+  // "orbital_" misses the Helios, the only titan named the other way around
+  var allOrbital = ["orbital_", "titan_orbital"];
+  // orbital units that can shoot at the surface - the SXX, Omega and Helios.
+  // Legion's l_ and the Bugs' bug_ ports of the same units are caught by these
+  // fragments, and Exiles ships no orbital units of its own, so no parallel
+  // faction entries are needed. The Bugs' Chomper and orbital mine target
+  // WL_Orbital only, so they are deliberately absent
+  var antiGroundOrbital = [
+    "orbital_laser",
+    "orbital_battleship", // also the land drone the Bugs' one carries
+    "titan_orbital",
+  ];
   var orbitalMassing = ko
     .observableArray()
     .extend({ session: "aic_enemy_orbital" });
@@ -48,13 +61,27 @@ define([
     ally,
     armyIndex,
     orbitalCounts,
+    antiGroundCounts,
     teamUnits
   ) {
+    var planets = model.planetListState().planets;
+
     orbitalCounts.forEach(function (orbitalCount, planetIndex) {
+      var planet = planets[planetIndex];
+      // a gas giant has no surface, so any fleet over one is the invasion. On
+      // a planet with ground to hold, only a platform that can shoot down at
+      // that ground is worth interrupting the player for
+      var threatening =
+        planet && planet.has_terrain === false
+          ? orbitalCount >= orbitalForce
+          : antiGroundCounts[planetIndex] > 0;
+
       reportEdge(
         orbitalMassing,
         armyIndex + ":" + planetIndex,
-        orbitalCount >= orbitalForce && teamUnits[planetIndex] > 0,
+        // teamUnits is this tick's, report.secure() is the last tick's, so the
+        // first still catches a planet lost since the last situation report
+        threatening && teamUnits[planetIndex] > 0 && report.secure(planetIndex),
         ally,
         "enemyOrbital",
         planetIndex
@@ -140,15 +167,19 @@ define([
             });
           });
 
+        // the second sweep is cache-served - units.js memoises each army's
+        // units per planet, and this walks the same army on the same tick
         Promise.all([
-          units.countDesired(armyIndex, ["orbital_"]),
+          units.countDesired(armyIndex, allOrbital),
+          units.countDesired(armyIndex, antiGroundOrbital),
           teamPresence,
         ]).then(function (counts) {
           checkOrbitalMassing(
             _.shuffle(liveAllies)[0],
             armyIndex,
             counts[0],
-            counts[1]
+            counts[1],
+            counts[2]
           );
         });
       });

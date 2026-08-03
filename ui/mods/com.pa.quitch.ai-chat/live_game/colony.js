@@ -70,7 +70,6 @@ define([
         "bug_jig",
         "fabricator",
         "_fab",
-        "bug_gas_hive", // their mining platform
       ];
       var desiredUnitCount = 2; // we only need a fabber and something else
       var excludedUnits = [
@@ -81,6 +80,7 @@ define([
         "bug_swarm_hive", // anchored so it cannot match Legion's l_swarm_hive turret
         "air_hive",
         "naval_hive",
+        "bug_gas_hive", // their orbital factory, despite the name
         // Exiles - only their Fabber Foundry is named a factory, and each of
         // these also covers the _adv form
         "t_air_fac",
