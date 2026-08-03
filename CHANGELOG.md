@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v1.3.0 - 2026-08-03
 
 - Allies warn you about enemy nukes, unit cannons, Halleys, Catalysts and Titans they have scouted
 - Allies tell you when they move their commander to another planet
