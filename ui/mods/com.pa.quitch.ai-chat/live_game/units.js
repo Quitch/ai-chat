@@ -2,6 +2,7 @@ define(function () {
   var lookupLifetime = 5000;
   var lookups = {};
   var lastPlanetCount;
+  var lastFailureLogged = 0;
 
   var dropExpiredLookups = function (now) {
     for (var key in lookups) {
@@ -9,6 +10,23 @@ define(function () {
         delete lookups[key];
       }
     }
+  };
+
+  // a failed lookup is held like any other, so it would be served for the rest
+  // of its lifetime and every check depending on it would stop without a word.
+  // Drop it so the next check retries, and say so - but once, not once per
+  // army per planet
+  var reportLookupFailure = function (key, error) {
+    delete lookups[key];
+
+    var now = Date.now();
+    if (now - lastFailureLogged < lookupLifetime) {
+      return;
+    }
+
+    lastFailureLogged = now;
+    console.error(error);
+    console.error("AI Chat: unit lookup failed for " + key);
   };
 
   var getArmyUnits = function (armyIndex, planetIndex) {
@@ -20,12 +38,20 @@ define(function () {
       return lookup.units;
     }
 
+    // otherwise(), not catch() - the engine hands back a Coherent promise,
+    // which has then/success/always/otherwise and no catch. It registers a
+    // handler and returns the same promise, so callers are unaffected
+    var units = api.getWorldView().getArmyUnits(armyIndex, planetIndex);
+    units.otherwise(function (error) {
+      reportLookupFailure(key, error);
+    });
+
     dropExpiredLookups(now);
     lookups[key] = {
       fetched: now,
-      units: api.getWorldView().getArmyUnits(armyIndex, planetIndex),
+      units: units,
     };
-    return lookups[key].units;
+    return units;
   };
 
   var planetCount = function () {

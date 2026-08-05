@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Improve performance by reducing how often the game is asked for unit information
+- Fix allies falling silent for a time when the game fails to answer a unit lookup
 
 ## v1.3.0 - 2026-08-03
 
