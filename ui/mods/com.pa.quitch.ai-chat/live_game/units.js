@@ -1,6 +1,7 @@
 define(function () {
   var lookupLifetime = 5000;
   var lookups = {};
+  var lastPlanetCount;
 
   var dropExpiredLookups = function (now) {
     for (var key in lookups) {
@@ -30,7 +31,16 @@ define(function () {
   var planetCount = function () {
     // the last entry in the planet list is not a planet, and planets can be
     // destroyed mid-game, so this is read per call rather than cached
-    return model.planetListState().planets.length - 1;
+    var count = model.planetListState().planets.length - 1;
+
+    // a destroyed planet shifts every higher index down, so lookups keyed by
+    // the old indices no longer mean what they did
+    if (count !== lastPlanetCount) {
+      lookups = {};
+      lastPlanetCount = count;
+    }
+
+    return count;
   };
 
   var countAllUnits = function (unitsOnPlanet) {

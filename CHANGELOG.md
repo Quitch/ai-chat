@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Improve performance by reducing how often the game is asked for unit information
+
 ## v1.3.0 - 2026-08-03
 
 - Allies warn you about enemy nukes, unit cannons, Halleys, Catalysts and Titans they have scouted

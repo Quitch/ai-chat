@@ -49,9 +49,14 @@ Adding a new trigger that lives in another scene means: a new scene entry in `mo
 
 ### Polling and one-shot checks
 
-There is no event for "the AI built a thing", so `initialiseChecks` in `communication.js` fans out `setInterval` timers per ally, one per feature module. Intervals come from `generateInterval()` — 10s jittered ±20% — specifically so several allies do not all speak on the same tick. Colony and invasion checks only run when there is more than one planet.
+There is no event for "the AI built a thing", so `initialiseChecks` in `communication.js` runs everything off a **single** `setInterval`, whose period comes from `generateInterval()` — 10s jittered ±20%. Each tick calls `report.status` and `threats.check` directly, then `_.delay`s each ally's own checks (colony, invasion, commander, tech) by `allyIndex * (allyCheckSpread / allyCount)`. That spread does two jobs: it staggers the allies so they do not all speak at once, and it keeps every ally check inside the lifetime of the unit lookups `report.status` just performed, so an ally's checks cost no further engine calls. `allyCheckSpread` must therefore stay below `lookupLifetime` in [live_game/units.js](ui/mods/com.pa.quitch.ai-chat/live_game/units.js). Colony, invasion and commander checks only run when there is more than one planet.
 
-Checks that should fire **once** (tech milestones) are passed the array holding their own interval handle and call `clearInterval(interval[allyIndex])` themselves once the condition is met; see `reportTechStatus` in [live_game/tech.js](ui/mods/com.pa.quitch.ai-chat/live_game/tech.js). Recurring checks (colony, invasion, report) never clear.
+Two consequences of scheduling with `_.delay`, since a pending one cannot be cancelled:
+
+- Allies are scheduled **by name** and their position re-resolved when the checks fire (`_.findIndex(aiAllies, {name: allyName})`), because `model.players` can rebuild and reorder the ally list in the gap. The same lookup is how a newly defeated ally is dropped — the captured `ally` object is a stale snapshot and never sees its own defeat.
+- A `gameEpoch` counter, bumped by `detectNewGame`, is captured at schedule time and compared at fire time. Without it a callback left over from the previous game writes into the session observables that `detectNewGame` just cleared — worst case marking a tech milestone reported so it is never announced in the new game.
+
+Checks that should fire **once** (tech milestones) are not cancelled; they self-suppress. `outstandingMilestones` in [live_game/tech.js](ui/mods/com.pa.quitch.ai-chat/live_game/tech.js) filters on `milestone.reported()[allyIndex]` and `check` returns early once nothing is outstanding.
 
 ### Persistent state across UI reloads
 
