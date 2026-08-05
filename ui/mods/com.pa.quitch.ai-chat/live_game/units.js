@@ -76,8 +76,8 @@ define(function () {
   };
 
   var matchesAnyUnit = function (unit, desiredUnits) {
-    for (var i = 0; i < desiredUnits.length; i++) {
-      if (_.includes(unit, desiredUnits[i])) {
+    for (var element of desiredUnits) {
+      if (_.includes(unit, element)) {
         return true;
       }
     }
