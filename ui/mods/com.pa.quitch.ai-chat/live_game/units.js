@@ -234,7 +234,10 @@ define(function () {
         return desiredUnitCount;
       });
     },
-    findUnits: function (aiIndex, desiredUnits) {
+    // the planets a unit was found on, which the lookups already know - the
+    // alternative is asking the game for each unit's state to read its planet
+    // back off it
+    findUnitPlanets: function (aiIndex, desiredUnits) {
       var pendingLookups = [];
       var found = [];
 
@@ -247,7 +250,9 @@ define(function () {
           getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
             for (var unit in unitsOnPlanet) {
               if (matchesAnyUnit(unit, desiredUnits)) {
-                found = found.concat(unitsOnPlanet[unit]);
+                // assign rather than push - these resolve out of order
+                found[planetIndex] = true;
+                return;
               }
             }
           })
@@ -255,7 +260,12 @@ define(function () {
       });
 
       return Promise.all(pendingLookups).then(function () {
-        return found;
+        var planets = [];
+        // forEach skips the gaps, leaving the matched planets in order
+        found.forEach(function (present, planetIndex) {
+          planets.push(planetIndex);
+        });
+        return planets;
       });
     },
     checkForDesiredSets: checkForDesiredSets,

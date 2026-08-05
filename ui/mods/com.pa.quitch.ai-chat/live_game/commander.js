@@ -6,18 +6,6 @@ define([
     .observableArray()
     .extend({ session: "aic_commander_planet" });
 
-  var planetsOccupied = function (states) {
-    var planets = [];
-
-    states.forEach(function (state) {
-      if (state && !_.includes(planets, state.planet)) {
-        planets.push(state.planet);
-      }
-    });
-
-    return planets;
-  };
-
   var reportArrivals = function (ally, allyIndex, currentPlanets) {
     var previousPlanets = commanderPlanets()[allyIndex];
 
@@ -35,20 +23,15 @@ define([
 
   return {
     check: function (aiAllyArmyIndex, ally, allyIndex) {
+      // shared army commander tracking
       units
-        .findUnits(aiAllyArmyIndex[allyIndex], ally.commanders)
-        .then(function (commanderIds) {
-          if (_.isEmpty(commanderIds)) {
+        .findUnitPlanets(aiAllyArmyIndex[allyIndex], ally.commanders)
+        .then(function (currentPlanets) {
+          if (_.isEmpty(currentPlanets)) {
             return;
           }
 
-          // shared army commander tracking
-          api
-            .getWorldView()
-            .getUnitState(commanderIds)
-            .then(function (states) {
-              reportArrivals(ally, allyIndex, planetsOccupied(states));
-            });
+          reportArrivals(ally, allyIndex, currentPlanets);
         });
     },
   };
