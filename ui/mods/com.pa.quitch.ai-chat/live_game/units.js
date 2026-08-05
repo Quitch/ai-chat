@@ -85,16 +85,16 @@ define(function () {
   };
 
   var isNewDesiredUnit = function (unit, desiredUnits, seenDesiredUnit) {
-    for (var i = 0; i < desiredUnits.length; i++) {
-      if (_.includes(unit, desiredUnits[i])) {
-        if (seenDesiredUnit[i]) {
-          return false;
-        }
-        seenDesiredUnit[i] = true;
-        return true;
-      }
+    var index = _.findIndex(desiredUnits, function (desiredUnit) {
+      return _.includes(unit, desiredUnit);
+    });
+
+    if (index === -1 || seenDesiredUnit[index]) {
+      return false;
     }
-    return false;
+
+    seenDesiredUnit[index] = true;
+    return true;
   };
 
   // an excluded unit rejects the whole planet, an ignored unit only fails to
