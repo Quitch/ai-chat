@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v1.4.0 - 2026-08-06
 
 - Improve performance by reducing how often the game is asked for unit information
 - Fix allies falling silent for a time when the game fails to answer a unit lookup
