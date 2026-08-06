@@ -21,28 +21,11 @@ function aiCommunications() {
     var enemyArmyIndex = [];
     var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
-    // held by name because the ally list is rebuilt and reordered whenever a player leaves
-    var allyCheckIntervals = [];
-
-    var stopChecks = function (ally) {
-      ally.handles.forEach(function (handle) {
-        clearInterval(handle);
-      });
-      ally.stopped = true;
-    };
-
-    var stopDefeatedAllyChecks = function (allPlayers) {
-      allyCheckIntervals.forEach(function (ally) {
-        if (ally.stopped) {
-          return;
-        }
-
-        var currentAlly = _.find(allPlayers, { name: ally.name });
-        if (currentAlly && currentAlly.defeated) {
-          stopChecks(ally);
-        }
-      });
-    };
+    var checkInterval;
+    // a pending _.delay cannot be cancelled, so scheduled checks carry the
+    // game they were scheduled for and drop themselves if it has moved on
+    var gameEpoch = 0;
+    var allyCheckSpread = 4000; // must stay under units.js's lookup lifetime
     var allyState = "allied_eco";
     var enemyState = "hostile";
     // model variables may not be populated yet
@@ -118,8 +101,8 @@ function aiCommunications() {
         alliedNukeReported([]);
         alliedTitanReported([]);
         alliedUnitCannonReported([]);
-        allyCheckIntervals.forEach(stopChecks);
-        allyCheckIntervals = [];
+        gameEpoch++;
+        clearInterval(checkInterval);
         checksInitialised = false;
       }
     };
@@ -143,6 +126,8 @@ function aiCommunications() {
 
       checksInitialised = true;
 
+      var epoch = gameEpoch;
+
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/colony.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/invasion.js",
@@ -151,39 +136,55 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/threats.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/commander.js",
       ], function (colony, invasion, tech, report, threats, commander) {
-        // the army indices and ally list are rebuilt whenever the player
-        // list changes, so each check reads them when it fires rather than
-        // taking a copy now
+        // a new game started while this require was outstanding already
+        // cleared the interval we had not yet created
+        if (epoch !== gameEpoch) {
+          return;
+        }
 
-        setInterval(function () {
+        // the army indices and ally list are rebuilt whenever the player
+        // list changes, so an ally is scheduled by name and its position
+        // resolved when its checks fire, never when they were scheduled
+        var runAllyChecks = function (allyName, scheduledEpoch) {
+          if (scheduledEpoch !== gameEpoch) {
+            return;
+          }
+
+          var allyIndex = _.findIndex(aiAllies, { name: allyName });
+          if (allyIndex === -1 || aiAllies[allyIndex].defeated) {
+            return;
+          }
+
+          var ally = aiAllies[allyIndex];
+
+          // read per tick rather than when the check was scheduled, so
+          // colony and invasion fall silent if the system is reduced to a
+          // single planet
+          if (planetCount > 1) {
+            colony.check(aiAllyArmyIndex, ally, allyIndex);
+            invasion.check(aiAllyArmyIndex, ally, allyIndex);
+            commander.check(aiAllyArmyIndex, ally, allyIndex);
+          }
+
+          tech.check(aiAllyArmyIndex, ally, allyIndex);
+        };
+
+        checkInterval = setInterval(function () {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
           threats.check(enemyArmyIndex, aiAllies, teamArmyIndex);
-        }, generateInterval());
 
-        // one interval per ally rather than one per check, so an ally's
-        // checks land on the same tick and share their unit lookups. The
-        // jitter stays between allies, which is what stops every ally
-        // speaking at once
-        allies.forEach(function (ally, i) {
-          var handle = setInterval(function () {
-            // read per tick rather than when the interval was created, so
-            // colony and invasion fall silent if the system is reduced to a
-            // single planet
-            if (planetCount > 1) {
-              colony.check(aiAllyArmyIndex, ally, i);
-              invasion.check(aiAllyArmyIndex, ally, i);
-              commander.check(aiAllyArmyIndex, ally, i);
-            }
-
-            tech.check(aiAllyArmyIndex, ally, i);
-          }, generateInterval());
-
-          allyCheckIntervals.push({
-            name: ally.name,
-            handles: [handle],
-            stopped: false,
+          // report.status looks up every living army before it returns, so
+          // an ally checked within the unit lookup lifetime costs nothing
+          // further. Spreading the allies evenly across that window is what
+          // stops them all speaking at once, and spreading them by a fixed
+          // amount rather than a random one keeps each ally's gap between
+          // checks equal to the interval. The widest offset stays under the
+          // shortest interval, so an ally's checks cannot overlap
+          aiAllies.forEach(function (ally, allyIndex) {
+            var offset = allyIndex * (allyCheckSpread / aiAllies.length);
+            _.delay(runAllyChecks, offset, ally.name, gameEpoch);
           });
-        });
+        }, generateInterval());
       });
     };
     initialiseChecks(aiAllies);
@@ -204,7 +205,6 @@ function aiCommunications() {
 
       detectNewGame(player);
       identifyFriendAndFoe(ais, players);
-      stopDefeatedAllyChecks(players);
       initialiseChecks(aiAllies);
 
       if (!playerSelectingSpawn && !processedLanding()) {

@@ -1,6 +1,8 @@
 define(function () {
   var lookupLifetime = 5000;
   var lookups = {};
+  var lastPlanetCount;
+  var lastFailureLogged = 0;
 
   var dropExpiredLookups = function (now) {
     for (var key in lookups) {
@@ -8,6 +10,23 @@ define(function () {
         delete lookups[key];
       }
     }
+  };
+
+  // a failed lookup is held like any other, so it would be served for the rest
+  // of its lifetime and every check depending on it would stop without a word.
+  // Drop it so the next check retries, and say so - but once, not once per
+  // army per planet
+  var reportLookupFailure = function (key, error) {
+    delete lookups[key];
+
+    var now = Date.now();
+    if (now - lastFailureLogged < lookupLifetime) {
+      return;
+    }
+
+    lastFailureLogged = now;
+    console.error(error);
+    console.error("AI Chat: unit lookup failed for " + key);
   };
 
   var getArmyUnits = function (armyIndex, planetIndex) {
@@ -19,18 +38,35 @@ define(function () {
       return lookup.units;
     }
 
+    // otherwise(), not catch() - the engine hands back a Coherent promise,
+    // which has then/success/always/otherwise and no catch. It registers a
+    // handler and returns the same promise, so callers are unaffected
+    var units = api.getWorldView().getArmyUnits(armyIndex, planetIndex);
+    units.otherwise(function (error) {
+      reportLookupFailure(key, error);
+    });
+
     dropExpiredLookups(now);
     lookups[key] = {
       fetched: now,
-      units: api.getWorldView().getArmyUnits(armyIndex, planetIndex),
+      units: units,
     };
-    return lookups[key].units;
+    return units;
   };
 
   var planetCount = function () {
     // the last entry in the planet list is not a planet, and planets can be
     // destroyed mid-game, so this is read per call rather than cached
-    return model.planetListState().planets.length - 1;
+    var count = model.planetListState().planets.length - 1;
+
+    // a destroyed planet shifts every higher index down, so lookups keyed by
+    // the old indices no longer mean what they did
+    if (count !== lastPlanetCount) {
+      lookups = {};
+      lastPlanetCount = count;
+    }
+
+    return count;
   };
 
   var countAllUnits = function (unitsOnPlanet) {
@@ -76,8 +112,8 @@ define(function () {
   };
 
   var matchesAnyUnit = function (unit, desiredUnits) {
-    for (var i = 0; i < desiredUnits.length; i++) {
-      if (_.includes(unit, desiredUnits[i])) {
+    for (var element of desiredUnits) {
+      if (_.includes(unit, element)) {
         return true;
       }
     }
@@ -85,16 +121,16 @@ define(function () {
   };
 
   var isNewDesiredUnit = function (unit, desiredUnits, seenDesiredUnit) {
-    for (var i = 0; i < desiredUnits.length; i++) {
-      if (_.includes(unit, desiredUnits[i])) {
-        if (seenDesiredUnit[i]) {
-          return false;
-        }
-        seenDesiredUnit[i] = true;
-        return true;
-      }
+    var index = _.findIndex(desiredUnits, function (desiredUnit) {
+      return _.includes(unit, desiredUnit);
+    });
+
+    if (index === -1 || seenDesiredUnit[index]) {
+      return false;
     }
-    return false;
+
+    seenDesiredUnit[index] = true;
+    return true;
   };
 
   // an excluded unit rejects the whole planet, an ignored unit only fails to
@@ -224,7 +260,10 @@ define(function () {
         return desiredUnitCount;
       });
     },
-    findUnits: function (aiIndex, desiredUnits) {
+    // the planets a unit was found on, which the lookups already know - the
+    // alternative is asking the game for each unit's state to read its planet
+    // back off it
+    findUnitPlanets: function (aiIndex, desiredUnits) {
       var pendingLookups = [];
       var found = [];
 
@@ -237,7 +276,9 @@ define(function () {
           getArmyUnits(aiIndex, planetIndex).then(function (unitsOnPlanet) {
             for (var unit in unitsOnPlanet) {
               if (matchesAnyUnit(unit, desiredUnits)) {
-                found = found.concat(unitsOnPlanet[unit]);
+                // assign rather than push - these resolve out of order
+                found[planetIndex] = true;
+                return;
               }
             }
           })
@@ -245,7 +286,12 @@ define(function () {
       });
 
       return Promise.all(pendingLookups).then(function () {
-        return found;
+        var planets = [];
+        // forEach skips the gaps, leaving the matched planets in order
+        found.forEach(function (present, planetIndex) {
+          planets.push(planetIndex);
+        });
+        return planets;
       });
     },
     checkForDesiredSets: checkForDesiredSets,
