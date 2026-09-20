@@ -32,6 +32,8 @@ The game's Coherent UI runs Chromium 40. `var` only — **no `const`/`let`**, no
 
 [eslint.config.mjs](eslint.config.mjs) is the authoritative answer to "may I use X?" and each rule carries the Chrome version and the reasoning behind it. `es-x/restrict-to-es5` bans everything post-ES5; the whitelist block re-enables only what Chrome 40 shipped. If a feature is not in that whitelist, it is not available. Read the comments there before adding an exception.
 
+The `eslint-plugin-lodash` `v3` rules apply to shipped code only, because `_` is a PA runtime global the Node tooling does not have. Every non-`prefer-*` rule is on. Of the `prefer-*` rules only `prefer-get`, `prefer-includes`, and `prefer-startswith` are kept, since there the lodash method stands in for a post-ES5 feature Chrome 40 lacks; the other fourteen are off as style preferences over ES5 equivalents. ESLint is held at **9.x**: `eslint-plugin-lodash` calls `context.getSourceCode`, which ESLint 10 removed. `eslint-plugin-es-x` is held at 9.x for the same reason (its 10.x needs ESLint >= 10.6).
+
 ## Architecture
 
 ### Entry points and module loading
