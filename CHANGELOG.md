@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix an ally invasion message that read badly with the planet name after it
+- Fix one lost-planet message appearing twice as often as the others
+
 ## v1.4.0 - 2026-08-06
 
 - Improve performance by reducing how often the game is asked for unit information
