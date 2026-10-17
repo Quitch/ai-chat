@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Fix an ally invasion message that read badly with the planet name after it, and one lost-planet message appearing twice as often as the others
+- Fix an ally invasion message that read badly with the planet name after it
+- Fix one lost-planet message appearing twice as often as the others
 
 ## v1.4.0 - 2026-08-06
 
