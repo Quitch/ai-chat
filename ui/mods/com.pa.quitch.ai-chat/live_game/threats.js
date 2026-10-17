@@ -173,15 +173,20 @@ define([
           units.countDesired(armyIndex, allOrbital),
           units.countDesired(armyIndex, antiGroundOrbital),
           teamPresence,
-        ]).then(function (counts) {
-          checkOrbitalMassing(
-            _.shuffle(liveAllies)[0],
-            armyIndex,
-            counts[0],
-            counts[1],
-            counts[2]
-          );
-        });
+        ])
+          .then(function (counts) {
+            checkOrbitalMassing(
+              _.shuffle(liveAllies)[0],
+              armyIndex,
+              counts[0],
+              counts[1],
+              counts[2]
+            );
+          })
+          .catch(function (e) {
+            console.error(e);
+            console.error("AI Chat: " + ((e && (e.stack || e.message)) || e));
+          });
       });
     },
   };
