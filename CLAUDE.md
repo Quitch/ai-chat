@@ -21,10 +21,7 @@ npx prettier --write .            # format
 npx markdownlint "**/*.md" --ignore node_modules   # docs; markdownlint is not a local dep
 ```
 
-eslint is clean as of `82a37f1`, so any error you see is yours. Two caveats on the other two:
-
-- Prettier still reports pre-existing drift in 7 files under `ui/`, so a clean format check is not the bar — compare against the baseline before and after your change.
-- Prettier's default `endOfLine: "lf"` fights `.gitattributes` (`* text=auto`, so the working tree is CRLF on Windows) and flags every file. Pass `--end-of-line crlf` to see only the real drift.
+eslint and Prettier are both clean as of `31d6660`, so any error you see is yours. [.prettierrc](.prettierrc) sets `endOfLine: "auto"`, so the CRLF working tree that `.gitattributes` (`* text=auto`) produces on Windows is not reported as drift.
 
 ## The Chrome 40 constraint
 
@@ -32,18 +29,20 @@ The game's Coherent UI runs Chromium 40. `var` only — **no `const`/`let`**, no
 
 [eslint.config.mjs](eslint.config.mjs) is the authoritative answer to "may I use X?" and each rule carries the Chrome version and the reasoning behind it. `es-x/restrict-to-es5` bans everything post-ES5; the whitelist block re-enables only what Chrome 40 shipped. If a feature is not in that whitelist, it is not available. Read the comments there before adding an exception.
 
+The `eslint-plugin-lodash` `v3` rules apply to shipped code only, because `_` is a PA runtime global the Node tooling does not have. Every non-`prefer-*` rule is on. Of the `prefer-*` rules only `prefer-get`, `prefer-includes`, and `prefer-startswith` are kept, since there the lodash method stands in for a post-ES5 feature Chrome 40 lacks; the other fourteen are off as style preferences over ES5 equivalents. ESLint is held at **9.x**: `eslint-plugin-lodash` calls `context.getSourceCode`, which ESLint 10 removed. `eslint-plugin-es-x` is held at 9.x for the same reason (its 10.x needs ESLint >= 10.6).
+
 ## Architecture
 
 ### Entry points and module loading
 
-`modinfo.json` `scenes` registers one script per game scene. Those three files ([live_game/communication.js](ui/mods/com.pa.quitch.ai-chat/live_game/communication.js), [live_game_chat/report.js](ui/mods/com.pa.quitch.ai-chat/live_game_chat/report.js), [live_game_unit_alert/kills.js](ui/mods/com.pa.quitch.ai-chat/live_game_unit_alert/kills.js)) are **plain scripts, not AMD modules**, and each follows the same shape: a `var <name>Loaded` global guard, a function wrapping everything in `try…catch` that logs both `e` and `JSON.stringify(e)`. The guard matters because a scene can re-run its scripts on UI reload — without it, intervals and subscriptions would stack up. Every other file is an AMD `define()` module pulled in by absolute `coui://ui/mods/com.pa.quitch.ai-chat/…` path. Scene scripts share one JS namespace with stock UI code, so top-level names must stay distinctive.
+`modinfo.json` `scenes` registers one script per game scene. Those three files ([live_game/communication.js](ui/mods/com.pa.quitch.ai-chat/live_game/communication.js), [live_game_chat/report.js](ui/mods/com.pa.quitch.ai-chat/live_game_chat/report.js), [live_game_unit_alert/kills.js](ui/mods/com.pa.quitch.ai-chat/live_game_unit_alert/kills.js)) are **plain scripts, not AMD modules**, and each follows the same shape: a `var <name>Loaded` global guard, a function wrapping everything in `try…catch` that logs both `e` and `"AI Chat: " + (e.stack || e.message || e)`. The guard matters because a scene can re-run its scripts on UI reload — without it, intervals and subscriptions would stack up. Every other file is an AMD `define()` module pulled in by absolute `coui://ui/mods/com.pa.quitch.ai-chat/…` path. Scene scripts share one JS namespace with stock UI code, so top-level names must stay distinctive.
 
 ### Cross-panel messaging
 
 Scenes are separate panels and cannot see each other's state directly. Both directions go through `api.Panel.message`:
 
 - **Child → parent**: `live_game_chat` and `live_game_unit_alert` each subscribe to a knockout model they can see (`model.chatLog`, `model.defeatedArmyAlerts`), decide almost nothing, and forward to `api.Panel.message(api.Panel.parentId, "<name>", payload)`. `live_game/communication.js` receives them as `handlers.<name>` (`handlers.reportIn`, `handlers.kills`) and owns all the logic.
-- **Parent → chat panel**: [live_game/chat.js](ui/mods/com.pa.quitch.ai-chat/live_game/chat.js) is the only thing that speaks. It resolves the chat panel's id once via `_.find(api.panelsById, {src: ".../live_game_chat.html"})` inside a `_.defer` (the panel is not registered yet at script-eval time), then posts `chat_message` with `type` of `"team"` or `"global"` and the AI's name as `player_name`.
+- **Parent → chat panel**: [live_game/chat.js](ui/mods/com.pa.quitch.ai-chat/live_game/chat.js) is the only thing that speaks. It resolves the chat panel's id via `_.find(api.panelsById, {src: ".../live_game_chat.html"})`, starting in a `_.defer` and retrying every 100 ms until the panel is registered (it is not at script-eval time), then posts `chat_message` with `type` of `"team"` or `"global"` and the AI's name as `player_name`.
 
 Adding a new trigger that lives in another scene means: a new scene entry in `modinfo.json`, a new guarded script that forwards, and a matching `handlers.<name>` in `communication.js`.
 
@@ -53,7 +52,7 @@ There is no event for "the AI built a thing", so `initialiseChecks` in `communic
 
 Two consequences of scheduling with `_.delay`, since a pending one cannot be cancelled:
 
-- Allies are scheduled **by name** and their position re-resolved when the checks fire (`_.findIndex(aiAllies, {name: allyName})`), because `model.players` can rebuild and reorder the ally list in the gap. The same lookup is how a newly defeated ally is dropped — the captured `ally` object is a stale snapshot and never sees its own defeat.
+- Allies are scheduled **by name** and re-resolved when the checks fire (`_.findIndex(aiAllies, {name: allyName})`), because `aiAllies` is rebuilt from `model.players` in the gap. That lookup is how a newly defeated ally is dropped — the captured `ally` object is a stale snapshot and never sees its own defeat.
 - A `gameEpoch` counter, bumped by `detectNewGame`, is captured at schedule time and compared at fire time. Without it a callback left over from the previous game writes into the session observables that `detectNewGame` just cleared — worst case marking a tech milestone reported so it is never announced in the new game.
 
 Checks that should fire **once** (tech milestones) are not cancelled; they self-suppress. `outstandingMilestones` in [live_game/tech.js](ui/mods/com.pa.quitch.ai-chat/live_game/tech.js) filters on `milestone.reported()[allyIndex]` and `check` returns early once nothing is outstanding.
@@ -73,14 +72,14 @@ The session key **is** the identity — modules re-declare the same observable w
 
 ### Unit detection
 
-[live_game/units.js](ui/mods/com.pa.quitch.ai-chat/live_game/units.js) is the sole wrapper over `api.getWorldView().getArmyUnits(armyIndex, planetIndex)` and exposes three shapes: `countAll` (per planet, per army), `countDesired` (count of matching units per planet), `checkForDesired` (returns `[matchedPlanets, rejectedPlanets]` given desired units, a minimum distinct-match count, and optional excluded units). Everything is **substring matching against unit spec paths** via `_.includes` — `"_adv"`, `"orbital_"`, `"control_module"`. Feature modules pass literal fragments; there is no unit registry.
+[live_game/units.js](ui/mods/com.pa.quitch.ai-chat/live_game/units.js) is the sole wrapper over `api.getWorldView().getArmyUnits(armyIndex, planetIndex)` and caches each army-and-planet lookup for `lookupLifetime` (5 s). It exposes `countAll` (per planet, per army), `countDesired` (count of matching units per planet), `findUnitPlanets` (the planets a matching unit is on), `checkForDesired` (returns `[matchedPlanets, rejectedPlanets]` given desired units, a minimum distinct-match count, and optional excluded and ignored units), and `checkForDesiredSets` (several `checkForDesired` sets over one walk of the lookups). Everything is **substring matching against unit spec paths** via `_.includes` — `"_adv"`, `"orbital_"`, `"control_module"`. Feature modules pass literal fragments; there is no unit registry.
 
 Two recurring gotchas:
 
 - `model.planetListState().planets` has a trailing entry that is not a planet, so planet counts are always `planets.length - 1`. Every loop over planets repeats this.
 - Faction mods name things differently, so most desired-unit lists carry parallel entries marked with a `// Bugs`, `// Legion` or `// Exiles` comment. Bugs and Legion prefix their spec paths (`bug_`, `l_`), so one fragment usually covers a whole category (`"land/bug_"`, `"_fab"`, `"_hive"`). Exiles has no prefix and reuses generic directory names (`land/can`, `land/tin`, `land/tripod`), so each unit needs its own fragment anchored to its directory (`"land/can/"`) — an unanchored word would collide with the other factions. New unit checks need the equivalent for all three.
 
-Army indices are not player indices: `identifyFriendAndFoe` builds `aiAllyArmyIndex` / `enemyArmyIndex` by `_.findIndex(model.players(), …)` and those arrays are threaded through every check. `communication.js` rebuilds them on each `model.players` change, since a player leaving reorders the list.
+Army indices are not player indices: `identifyFriendAndFoe` builds `aiAllyArmyIndex` / `enemyArmyIndex` by `_.findIndex(model.players(), …)` and those arrays are threaded through every check. `communication.js` rebuilds them on each `model.players` change, because diplomatic state and defeat change there. The order itself is stable: a player who leaves stays at their index, marked `defeated` and `disconnected` (verified in a four-army local game, 2026-10-17). Each stock `army_state` notifies `model.players` subscribers twice, first with every `stateToPlayer` blank and then filled in, so a subscriber must tolerate one pass with no allies or enemies.
 
 ### Situation reports
 
@@ -88,7 +87,7 @@ Army indices are not player indices: `identifyFriendAndFoe` builds `aiAllyArmyIn
 
 ### Messages
 
-[live_game/messages.js](ui/mods/com.pa.quitch.ai-chat/live_game/messages.js) is a flat map of type key → array of strings; `chat.send(audience, aiName, type, planetIndex)` picks one with `_.sample`, runs it through `loc()`, and **appends the planet name**. So every entry in a planet-scoped category must be phrased to read correctly with a planet name tacked on the end ("Settling the planet of", "Purging"). Categories without a planet (`kill`, `defeat`, `allyAdvTech`, `allyOrbitalTech`, `allyCatalystTech`) are complete sentences. Strings are prefixed `!LOC:` for the localisation system; emoticons are not.
+[live_game/messages.js](ui/mods/com.pa.quitch.ai-chat/live_game/messages.js) is a flat map of type key → array of strings; `chat.send(audience, aiName, type, planetIndex)` picks one with `_.sample`, runs it through `loc()`, and **appends the planet name**. So every entry in a planet-scoped category must be phrased to read correctly with a planet name tacked on the end ("Settling the planet of", "Purging"). Categories without a planet (`kill`, `defeat`, `allyAdvTech`, `allyOrbitalTech`, `allyCatalystTech`, `allyNuke`, `allyTitan`, `allyUnitCannon`) are complete sentences. Strings are prefixed `!LOC:` for the localisation system; emoticons are not.
 
 Adding a message type means an entry in `messages.js` plus a `chat.send(…, "<key>")` call — the key is the only link between them, and a typo fails silently as an empty message.
 
@@ -104,4 +103,4 @@ Adding a message type means an entry in `messages.js` plus a `chat.send(…, "<k
 
 ## Releasing
 
-The version appears in three places and they must agree: `version` in [modinfo.json](modinfo.json), `sonar.projectVersion` in [.sonarcloud.properties](.sonarcloud.properties), and the heading in [CHANGELOG.md](CHANGELOG.md). Also bump `date` (and `build`, the PA build the release was tested against) in `modinfo.json`. [.gitattributes](.gitattributes) `export-ignore` entries keep dev files out of the distributed archive — anything new that is tooling-only belongs on that list.
+The version appears in two places and they must agree: `version` in [modinfo.json](modinfo.json) and the heading in [CHANGELOG.md](CHANGELOG.md). Also bump `date` (and `build`, the PA build the release was tested against) in `modinfo.json`. [.gitattributes](.gitattributes) `export-ignore` entries keep dev files out of the distributed archive — anything new that is tooling-only belongs on that list.

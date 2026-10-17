@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.4.1 - 2026-10-17
+
+- Fix an ally invasion message that read badly with the planet name after it
+- Fix one lost-planet message appearing twice as often as the others
+- Fix kill and defeat messages naming an AI in a shared army "army N" instead of its name
+
 ## v1.4.0 - 2026-08-06
 
 - Improve performance by reducing how often the game is asked for unit information
