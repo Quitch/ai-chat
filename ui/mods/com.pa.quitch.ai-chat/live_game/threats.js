@@ -36,6 +36,21 @@ define([
     .observableArray()
     .extend({ session: "aic_moving_planets" });
 
+  var lastFailureLogged = 0;
+
+  // every enemy army's checks share the tick's lookups, so one failure rejects
+  // them all - log it at most once every 5 s, as units.js does
+  var reportCheckFailure = function (e) {
+    var now = Date.now();
+    if (now - lastFailureLogged < 5000) {
+      return;
+    }
+
+    lastFailureLogged = now;
+    console.error(e);
+    console.error("AI Chat: " + ((e && (e.stack || e.message)) || e));
+  };
+
   var livingArmies = function (armyIndex) {
     var players = model.players();
     return _.filter(armyIndex, function (index) {
@@ -165,7 +180,8 @@ define([
             threats.forEach(function (threat, i) {
               reportThreats(ally, armyIndex, threat, planetsWithThreat[i][0]);
             });
-          });
+          })
+          .catch(reportCheckFailure);
 
         // the second sweep is cache-served - units.js memoises each army's
         // units per planet, and this walks the same army on the same tick
@@ -173,15 +189,17 @@ define([
           units.countDesired(armyIndex, allOrbital),
           units.countDesired(armyIndex, antiGroundOrbital),
           teamPresence,
-        ]).then(function (counts) {
-          checkOrbitalMassing(
-            _.shuffle(liveAllies)[0],
-            armyIndex,
-            counts[0],
-            counts[1],
-            counts[2]
-          );
-        });
+        ])
+          .then(function (counts) {
+            checkOrbitalMassing(
+              _.shuffle(liveAllies)[0],
+              armyIndex,
+              counts[0],
+              counts[1],
+              counts[2]
+            );
+          })
+          .catch(reportCheckFailure);
       });
     },
   };
