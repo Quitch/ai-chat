@@ -243,11 +243,11 @@ function aiCommunications() {
           players[defeated.index].stateToPlayer === allyState;
 
         if (killerIsAI) {
-          chat.send("global", killer.name, "kill");
+          chat.send("global", players[killer.index].name, "kill");
         }
 
         if (defeatedIsAIAlly) {
-          chat.send("team", defeated.name, "defeat");
+          chat.send("team", players[defeated.index].name, "defeat");
         }
       });
     };
