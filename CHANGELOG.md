@@ -4,7 +4,7 @@
 
 - Fix an ally invasion message that read badly with the planet name after it
 - Fix one lost-planet message appearing twice as often as the others
-- Fix kill and defeat messages naming an AI in a shared army "Army N" instead of its name
+- Fix kill and defeat messages naming an AI in a shared army "army N" instead of its name
 
 ## v1.4.0 - 2026-08-06
 
