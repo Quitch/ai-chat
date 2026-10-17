@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## v1.4.1 - 2026-10-17
 
 - Fix an ally invasion message that read badly with the planet name after it
 - Fix one lost-planet message appearing twice as often as the others
