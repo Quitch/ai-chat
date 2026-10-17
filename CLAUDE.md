@@ -52,7 +52,7 @@ There is no event for "the AI built a thing", so `initialiseChecks` in `communic
 
 Two consequences of scheduling with `_.delay`, since a pending one cannot be cancelled:
 
-- Allies are scheduled **by name** and their position re-resolved when the checks fire (`_.findIndex(aiAllies, {name: allyName})`), because `model.players` can rebuild and reorder the ally list in the gap. The same lookup is how a newly defeated ally is dropped — the captured `ally` object is a stale snapshot and never sees its own defeat.
+- Allies are scheduled **by name** and re-resolved when the checks fire (`_.findIndex(aiAllies, {name: allyName})`), because `aiAllies` is rebuilt from `model.players` in the gap. That lookup is how a newly defeated ally is dropped — the captured `ally` object is a stale snapshot and never sees its own defeat.
 - A `gameEpoch` counter, bumped by `detectNewGame`, is captured at schedule time and compared at fire time. Without it a callback left over from the previous game writes into the session observables that `detectNewGame` just cleared — worst case marking a tech milestone reported so it is never announced in the new game.
 
 Checks that should fire **once** (tech milestones) are not cancelled; they self-suppress. `outstandingMilestones` in [live_game/tech.js](ui/mods/com.pa.quitch.ai-chat/live_game/tech.js) filters on `milestone.reported()[allyIndex]` and `check` returns early once nothing is outstanding.
@@ -79,7 +79,7 @@ Two recurring gotchas:
 - `model.planetListState().planets` has a trailing entry that is not a planet, so planet counts are always `planets.length - 1`. Every loop over planets repeats this.
 - Faction mods name things differently, so most desired-unit lists carry parallel entries marked with a `// Bugs`, `// Legion` or `// Exiles` comment. Bugs and Legion prefix their spec paths (`bug_`, `l_`), so one fragment usually covers a whole category (`"land/bug_"`, `"_fab"`, `"_hive"`). Exiles has no prefix and reuses generic directory names (`land/can`, `land/tin`, `land/tripod`), so each unit needs its own fragment anchored to its directory (`"land/can/"`) — an unanchored word would collide with the other factions. New unit checks need the equivalent for all three.
 
-Army indices are not player indices: `identifyFriendAndFoe` builds `aiAllyArmyIndex` / `enemyArmyIndex` by `_.findIndex(model.players(), …)` and those arrays are threaded through every check. `communication.js` rebuilds them on each `model.players` change, since a player leaving reorders the list.
+Army indices are not player indices: `identifyFriendAndFoe` builds `aiAllyArmyIndex` / `enemyArmyIndex` by `_.findIndex(model.players(), …)` and those arrays are threaded through every check. `communication.js` rebuilds them on each `model.players` change, because diplomatic state and defeat change there. The order itself is stable: a player who leaves stays at their index, marked `defeated` and `disconnected` (verified in a four-army local game, 2026-10-17). Each stock `army_state` notifies `model.players` subscribers twice, first with every `stateToPlayer` blank and then filled in, so a subscriber must tolerate one pass with no allies or enemies.
 
 ### Situation reports
 
