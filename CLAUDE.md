@@ -106,4 +106,4 @@ Adding a message type means an entry in `messages.js` plus a `chat.send(…, "<k
 
 ## Releasing
 
-The version appears in three places and they must agree: `version` in [modinfo.json](modinfo.json), `sonar.projectVersion` in [.sonarcloud.properties](.sonarcloud.properties), and the heading in [CHANGELOG.md](CHANGELOG.md). Also bump `date` (and `build`, the PA build the release was tested against) in `modinfo.json`. [.gitattributes](.gitattributes) `export-ignore` entries keep dev files out of the distributed archive — anything new that is tooling-only belongs on that list.
+The version appears in three places and they must agree: `version` in [modinfo.json](modinfo.json) and the heading in [CHANGELOG.md](CHANGELOG.md). Also bump `date` (and `build`, the PA build the release was tested against) in `modinfo.json`. [.gitattributes](.gitattributes) `export-ignore` entries keep dev files out of the distributed archive — anything new that is tooling-only belongs on that list.
