@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Allies react when you are defeated or a teammate destroys an enemy, and an enemy AI reacts when its ally falls
+
 ## v1.4.1 - 2026-10-17
 
 - Fix an ally invasion message that read badly with the planet name after it
