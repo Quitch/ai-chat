@@ -76,6 +76,9 @@ function aiCommunications() {
         var orbitalMassing = observableArray("aic_enemy_orbital");
         var movingPlanets = observableArray("aic_moving_planets");
         var commanderPlanets = observableArray("aic_commander_planet");
+        var enemyCommanderPlanets = observableArray(
+          "aic_enemy_commander_planets"
+        );
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
@@ -94,6 +97,7 @@ function aiCommunications() {
         orbitalMassing([]);
         movingPlanets([]);
         commanderPlanets([]);
+        enemyCommanderPlanets([]);
         previousUnitCount([]);
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);
@@ -135,7 +139,16 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/threats.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/commander.js",
-      ], function (colony, invasion, tech, report, threats, commander) {
+        "coui://ui/mods/com.pa.quitch.ai-chat/live_game/enemy_commanders.js",
+      ], function (
+        colony,
+        invasion,
+        tech,
+        report,
+        threats,
+        commander,
+        enemyCommanders
+      ) {
         // a new game started while this require was outstanding already
         // cleared the interval we had not yet created
         if (epoch !== gameEpoch) {
@@ -172,6 +185,10 @@ function aiCommunications() {
         checkInterval = setInterval(function () {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
           threats.check(enemyArmyIndex, aiAllies, teamArmyIndex);
+
+          if (planetCount > 1) {
+            enemyCommanders.check(enemyArmyIndex, aiAllies);
+          }
 
           // report.status looks up every living army before it returns, so
           // an ally checked within the unit lookup lifetime costs nothing
