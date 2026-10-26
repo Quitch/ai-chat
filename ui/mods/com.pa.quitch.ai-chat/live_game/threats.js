@@ -35,6 +35,9 @@ define([
   var movingPlanets = ko
     .observableArray()
     .extend({ session: "aic_moving_planets" });
+  var planetTargets = ko
+    .observableArray()
+    .extend({ session: "aic_planet_targets" });
 
   var lastFailureLogged = 0;
 
@@ -104,6 +107,38 @@ define([
     });
   };
 
+  // a smashed planet keeps its thrust and target, so a dead planet at either
+  // end means the collision is over
+  var checkForPlanetTarget = function (
+    ally,
+    planets,
+    planetIndex,
+    planetCount
+  ) {
+    var planet = planets[planetIndex];
+    var targetIndex = planet && planet.target_index;
+    var target = _.isNumber(targetIndex) && planets[targetIndex];
+    var onCourse =
+      planet &&
+      planet.thrust_active &&
+      !planet.dead &&
+      targetIndex >= 0 &&
+      targetIndex < planetCount &&
+      target &&
+      !target.dead;
+    var prefix = planetIndex + ":";
+    var course = onCourse ? prefix + targetIndex : null;
+
+    planetTargets.remove(function (seen) {
+      return _.startsWith(seen, prefix) && seen !== course;
+    });
+
+    if (course && !_.includes(planetTargets(), course)) {
+      planetTargets.push(course);
+      chat.send("team", ally.name, "planetTargeted", targetIndex);
+    }
+  };
+
   var checkForPlanetMovement = function (ally) {
     var planets = model.planetListState().planets;
     var planetCount = planets.length - 1; // last planet is not a planet
@@ -118,6 +153,7 @@ define([
         "planetMoving",
         planetIndex
       );
+      checkForPlanetTarget(ally, planets, planetIndex, planetCount);
     }
   };
 

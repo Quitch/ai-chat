@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Allies warn you which planet a moving planet is heading for
+
 ## v1.4.1 - 2026-10-17
 
 - Fix an ally invasion message that read badly with the planet name after it
