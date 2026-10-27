@@ -232,18 +232,24 @@ function aiCommunications() {
     });
 
     // a defeated player is a spectator, and stock blanks every army's
-    // stateToPlayer for a spectator, so alliances are read from
+    // stateToPlayer for a spectator, so relations are read from
     // diplomaticState instead
-    var survivingAIAllyOf = function (army, alliedStates) {
+    var relationTo = function (army, armyId) {
+      var relation = army.diplomaticState && army.diplomaticState[armyId];
+      return relation && relation.state;
+    };
+
+    var isAlliedTo = function (army, armyId) {
+      return _.includes(["allied", allyState], relationTo(army, armyId));
+    };
+
+    var survivingAIAllyOf = function (armyId) {
       return _.sample(
         _.filter(players, function (survivor) {
-          var relation =
-            survivor.diplomaticState && survivor.diplomaticState[army.id];
           return (
             survivor.ai === 1 &&
             !survivor.defeated &&
-            relation &&
-            _.includes(alliedStates, relation.state)
+            isAlliedTo(survivor, armyId)
           );
         })
       );
@@ -255,16 +261,15 @@ function aiCommunications() {
       ], function (chat) {
         var defeated = players[payload[0].index];
         var killer = payload[1] && players[payload[1].index];
+        var playerId = model.armyId();
         var killerIsAI = killer && killer.ai === 1;
         var killerIsTeamHuman =
           killer &&
           killer.ai !== 1 &&
-          (killer.stateToPlayer === "self" ||
-            killer.stateToPlayer === allyState);
+          (killer.id === playerId || isAlliedTo(killer, playerId));
         var defeatedIsAIAlly =
           defeated.ai === 1 && defeated.stateToPlayer === allyState;
-        var defeatedIsEnemy = defeated.stateToPlayer === enemyState;
-        var liveAlly = _.sample(_.filter(aiAllies, { defeated: false }));
+        var defeatedIsEnemy = relationTo(defeated, playerId) === enemyState;
 
         if (killerIsAI) {
           chat.send("global", killer.name, "kill");
@@ -274,20 +279,24 @@ function aiCommunications() {
           chat.send("team", defeated.name, "defeat");
         }
 
-        if (defeated.id === model.armyId()) {
-          var avenger = survivingAIAllyOf(defeated, [allyState]);
+        if (defeated.id === playerId) {
+          var avenger = survivingAIAllyOf(playerId);
 
           if (avenger) {
             chat.send("team", avenger.name, "playerDefeated");
           }
         }
 
-        if (liveAlly && killerIsTeamHuman && defeatedIsEnemy) {
-          chat.send("team", liveAlly.name, "teamKill");
+        if (killerIsTeamHuman && defeatedIsEnemy) {
+          var admirer = survivingAIAllyOf(playerId);
+
+          if (admirer) {
+            chat.send("team", admirer.name, "teamKill");
+          }
         }
 
         if (defeated.ai === 1 && defeatedIsEnemy) {
-          var partner = survivingAIAllyOf(defeated, ["allied", allyState]);
+          var partner = survivingAIAllyOf(defeated.id);
 
           if (partner) {
             chat.send("global", partner.name, "enemyAllyLost");

@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Allies react when you are defeated or a teammate destroys an enemy, and an enemy AI reacts when its ally falls
+- Allies react when you are defeated or when a human on your team destroys an enemy, and an enemy AI reacts when an AI it is allied with is defeated
 
 ## v1.4.1 - 2026-10-17
 
