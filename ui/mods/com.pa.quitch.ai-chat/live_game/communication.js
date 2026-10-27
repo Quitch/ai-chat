@@ -139,16 +139,7 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/threats.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/commander.js",
-        "coui://ui/mods/com.pa.quitch.ai-chat/live_game/enemy_commanders.js",
-      ], function (
-        colony,
-        invasion,
-        tech,
-        report,
-        threats,
-        commander,
-        enemyCommanders
-      ) {
+      ], function (colony, invasion, tech, report, threats, commander) {
         // a new game started while this require was outstanding already
         // cleared the interval we had not yet created
         if (epoch !== gameEpoch) {
@@ -185,10 +176,6 @@ function aiCommunications() {
         checkInterval = setInterval(function () {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
           threats.check(enemyArmyIndex, aiAllies, teamArmyIndex);
-
-          if (planetCount > 1) {
-            enemyCommanders.check(enemyArmyIndex, aiAllies);
-          }
 
           // report.status looks up every living army before it returns, so
           // an ally checked within the unit lookup lifetime costs nothing
