@@ -255,6 +255,12 @@ function aiCommunications() {
       );
     };
 
+    var speak = function (chat, audience, speaker, type) {
+      if (speaker) {
+        chat.send(audience, speaker.name, type);
+      }
+    };
+
     handlers.kills = function (payload) {
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
@@ -280,27 +286,20 @@ function aiCommunications() {
         }
 
         if (defeated.id === playerId) {
-          var avenger = survivingAIAllyOf(playerId);
-
-          if (avenger) {
-            chat.send("team", avenger.name, "playerDefeated");
-          }
+          speak(chat, "team", survivingAIAllyOf(playerId), "playerDefeated");
         }
 
         if (killerIsTeamHuman && defeatedIsEnemy) {
-          var admirer = survivingAIAllyOf(playerId);
-
-          if (admirer) {
-            chat.send("team", admirer.name, "teamKill");
-          }
+          speak(chat, "team", survivingAIAllyOf(playerId), "teamKill");
         }
 
         if (defeated.ai === 1 && defeatedIsEnemy) {
-          var partner = survivingAIAllyOf(defeated.id);
-
-          if (partner) {
-            chat.send("global", partner.name, "enemyAllyLost");
-          }
+          speak(
+            chat,
+            "global",
+            survivingAIAllyOf(defeated.id),
+            "enemyAllyLost"
+          );
         }
       });
     };
