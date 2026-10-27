@@ -75,6 +75,7 @@ function aiCommunications() {
         var reportedThreats = observableArray("aic_enemy_threats");
         var orbitalMassing = observableArray("aic_enemy_orbital");
         var movingPlanets = observableArray("aic_moving_planets");
+        var planetTargets = observableArray("aic_planet_targets");
         var commanderPlanets = observableArray("aic_commander_planet");
         var enemyCommanderPlanets = observableArray(
           "aic_enemy_commander_planets"
@@ -96,6 +97,7 @@ function aiCommunications() {
         reportedThreats([]);
         orbitalMassing([]);
         movingPlanets([]);
+        planetTargets([]);
         commanderPlanets([]);
         enemyCommanderPlanets([]);
         previousUnitCount([]);

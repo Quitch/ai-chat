@@ -38,6 +38,9 @@ define([
   var enemyCommanderPlanets = ko
     .observableArray()
     .extend({ session: "aic_enemy_commander_planets" });
+  var planetTargets = ko
+    .observableArray()
+    .extend({ session: "aic_planet_targets" });
 
   var lastFailureLogged = 0;
 
@@ -105,6 +108,49 @@ define([
         planetIndex
       );
     });
+  };
+
+  // a smashed planet keeps its thrust and target, so a dead planet at either
+  // end means the collision is over
+  var incomingTargets = function (planets, planetCount) {
+    var incoming = [];
+
+    for (var planetIndex = 0; planetIndex < planetCount; planetIndex++) {
+      var planet = planets[planetIndex];
+      var targetIndex = planet && planet.target_index;
+
+      if (
+        planet &&
+        planet.thrust_active &&
+        !planet.dead &&
+        _.isNumber(targetIndex) &&
+        targetIndex >= 0 &&
+        targetIndex < planetCount &&
+        !planets[targetIndex].dead
+      ) {
+        incoming[targetIndex] = true;
+      }
+    }
+
+    return incoming;
+  };
+
+  // only a target the team has units on is worth a warning, whoever steers
+  var checkForPlanetTargets = function (ally, teamUnits) {
+    var planets = model.planetListState().planets;
+    var planetCount = planets.length - 1; // last planet is not a planet
+    var incoming = incomingTargets(planets, planetCount);
+
+    for (var planetIndex = 0; planetIndex < planetCount; planetIndex++) {
+      reportEdge(
+        planetTargets,
+        planetIndex,
+        Boolean(incoming[planetIndex]) && teamUnits[planetIndex] > 0,
+        ally,
+        "planetTargeted",
+        planetIndex
+      );
+    }
   };
 
   var checkForPlanetMovement = function (ally) {
@@ -189,18 +235,6 @@ define([
 
       checkForPlanetMovement(_.shuffle(liveAllies)[0]);
 
-      if (_.isEmpty(liveEnemies)) {
-        return;
-      }
-
-      var desiredUnitCount = 1;
-      var sets = threats.map(function (threat) {
-        return {
-          desiredUnits: threat.desiredUnits,
-          desiredUnitCount: desiredUnitCount,
-        };
-      });
-
       var teamPresence = units
         .countAll(livingArmies(teamArmyIndex))
         .then(function (planetUnitCounts) {
@@ -214,6 +248,24 @@ define([
             );
           });
         });
+
+      teamPresence
+        .then(function (teamUnits) {
+          checkForPlanetTargets(_.sample(liveAllies), teamUnits);
+        })
+        .catch(reportCheckFailure);
+
+      if (_.isEmpty(liveEnemies)) {
+        return;
+      }
+
+      var desiredUnitCount = 1;
+      var sets = threats.map(function (threat) {
+        return {
+          desiredUnits: threat.desiredUnits,
+          desiredUnitCount: desiredUnitCount,
+        };
+      });
 
       liveEnemies.forEach(function (armyIndex) {
         units

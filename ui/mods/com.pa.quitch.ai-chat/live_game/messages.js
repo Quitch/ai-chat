@@ -132,6 +132,14 @@ define({
     "!LOC:That is no longer where it was -",
     "!LOC:A planet is under way -",
   ],
+  planetTargeted: [
+    "!LOC:Incoming! A planet is on course for",
+    "!LOC:Brace for impact on",
+    "!LOC:A planet is about to slam into",
+    "!LOC:Somebody is aiming a planet at",
+    "!LOC:Get everything you can off",
+    "!LOC:Collision course detected. The target is",
+  ],
   enemyTitan: [
     "!LOC:Enemy Titan sighted on",
     "!LOC:They have a Titan on",
