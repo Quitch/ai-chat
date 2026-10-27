@@ -35,6 +35,9 @@ define([
   var movingPlanets = ko
     .observableArray()
     .extend({ session: "aic_moving_planets" });
+  var enemyCommanderPlanets = ko
+    .observableArray()
+    .extend({ session: "aic_enemy_commander_planets" });
 
   var lastFailureLogged = 0;
 
@@ -121,6 +124,46 @@ define([
     }
   };
 
+  var reportEnemyCommanders = function (ally, armyIndex, currentPlanets) {
+    var army = model.players()[armyIndex];
+    // a reload restores the array's holes as null
+    var previousPlanets = enemyCommanderPlanets()[armyIndex] || [];
+    // a shared army has a commander per slot, and the lookup lists only those
+    // the team can see, so a planet missing from it may still hold one
+    var sharedArmy = army.commanders.length > 1;
+    var message =
+      _.isEmpty(previousPlanets) || sharedArmy
+        ? "enemyCommanderSighted"
+        : "enemyCommanderMoved";
+    // i18next hands the value to String.replace, which expands $ patterns
+    var enemy = { enemy: army.name.replace(/\$/g, "$$$$") };
+
+    currentPlanets.forEach(function (planetIndex) {
+      if (!_.includes(previousPlanets, planetIndex)) {
+        chat.send("team", ally.name, message, planetIndex, enemy);
+      }
+    });
+
+    enemyCommanderPlanets()[armyIndex] = sharedArmy
+      ? _.union(previousPlanets, currentPlanets)
+      : currentPlanets;
+    enemyCommanderPlanets.valueHasMutated();
+  };
+
+  var checkEnemyCommanders = function (liveAllies, armyIndex) {
+    units
+      .findUnitPlanets(armyIndex, model.players()[armyIndex].commanders)
+      .then(function (currentPlanets) {
+        // the lookup only lists units the team can see
+        if (_.isEmpty(currentPlanets)) {
+          return;
+        }
+
+        reportEnemyCommanders(_.sample(liveAllies), armyIndex, currentPlanets);
+      })
+      .catch(reportCheckFailure);
+  };
+
   var reportThreats = function (ally, armyIndex, threat, planets) {
     planets.forEach(function (planetIndex) {
       var seen = armyIndex + ":" + threat.message + ":" + planetIndex;
@@ -138,6 +181,7 @@ define([
     check: function (enemyArmyIndex, aiAllies, teamArmyIndex) {
       var liveAllies = _.filter(aiAllies, { defeated: false });
       var liveEnemies = livingArmies(enemyArmyIndex);
+      var planetCount = model.planetListState().planets.length - 1; // last planet is not a planet
 
       if (_.isEmpty(liveAllies)) {
         return;
@@ -200,6 +244,11 @@ define([
             );
           })
           .catch(reportCheckFailure);
+
+        // on one planet the location adds nothing
+        if (planetCount > 1) {
+          checkEnemyCommanders(liveAllies, armyIndex);
+        }
       });
     },
   };

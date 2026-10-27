@@ -110,6 +110,20 @@ define({
     "!LOC:Committing myself to",
     "!LOC:I'll run things from",
   ],
+  enemyCommanderSighted: [
+    "!LOC:__enemy__'s commander spotted on",
+    "!LOC:Found __enemy__'s commander on",
+    "!LOC:Eyes on __enemy__'s commander. It's on",
+    "!LOC:__enemy__'s commander is hiding on",
+    "!LOC:Located __enemy__'s commander on",
+  ],
+  enemyCommanderMoved: [
+    "!LOC:__enemy__'s commander has moved to",
+    "!LOC:__enemy__'s commander relocated to",
+    "!LOC:__enemy__'s commander has turned up on",
+    "!LOC:__enemy__ has moved their commander to",
+    "!LOC:Heads up - __enemy__'s commander is now on",
+  ],
   planetMoving: [
     "!LOC:Planetary thrust detected on",
     "!LOC:Engines are burning on",
