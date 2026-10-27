@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Allies tell you which planet an enemy commander is on when they first spot it, and again if it moves
+
 ## v1.4.1 - 2026-10-17
 
 - Fix an ally invasion message that read badly with the planet name after it
