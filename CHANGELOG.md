@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Allies warn you which planet a moving planet is heading for
+- Allies warn you when a moving planet is heading for a planet where your team has units
 
 ## v1.4.1 - 2026-10-17
 
