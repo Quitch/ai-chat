@@ -77,6 +77,9 @@ function aiCommunications() {
         var movingPlanets = observableArray("aic_moving_planets");
         var planetTargets = observableArray("aic_planet_targets");
         var commanderPlanets = observableArray("aic_commander_planet");
+        var enemyCommanderPlanets = observableArray(
+          "aic_enemy_commander_planets"
+        );
         var alliedAdvancedReported = observableArray("aic_ally_t2_check");
         var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
         var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
@@ -96,6 +99,7 @@ function aiCommunications() {
         movingPlanets([]);
         planetTargets([]);
         commanderPlanets([]);
+        enemyCommanderPlanets([]);
         previousUnitCount([]);
         alliedAdvancedReported([]);
         alliedOrbitalReported([]);
@@ -233,23 +237,75 @@ function aiCommunications() {
       }
     });
 
+    // a defeated player is a spectator, and stock blanks every army's
+    // stateToPlayer for a spectator, so relations are read from
+    // diplomaticState instead
+    var relationTo = function (army, armyId) {
+      var relation = army.diplomaticState && army.diplomaticState[armyId];
+      return relation && relation.state;
+    };
+
+    var isAlliedTo = function (army, armyId) {
+      return _.includes(["allied", allyState], relationTo(army, armyId));
+    };
+
+    var survivingAIAllyOf = function (armyId) {
+      return _.sample(
+        _.filter(players, function (survivor) {
+          return (
+            survivor.ai === 1 &&
+            !survivor.defeated &&
+            isAlliedTo(survivor, armyId)
+          );
+        })
+      );
+    };
+
+    var speak = function (chat, audience, speaker, type) {
+      if (speaker) {
+        chat.send(audience, speaker.name, type);
+      }
+    };
+
     handlers.kills = function (payload) {
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
       ], function (chat) {
-        var defeated = payload[0];
-        var killer = payload[1];
-        var killerIsAI = killer && players[killer.index].ai === 1;
+        var defeated = players[payload[0].index];
+        var killer = payload[1] && players[payload[1].index];
+        var playerId = model.armyId();
+        var killerIsAI = killer && killer.ai === 1;
+        var killerIsTeamHuman =
+          killer &&
+          killer.ai !== 1 &&
+          (killer.id === playerId || isAlliedTo(killer, playerId));
         var defeatedIsAIAlly =
-          players[defeated.index].ai === 1 &&
-          players[defeated.index].stateToPlayer === allyState;
+          defeated.ai === 1 && defeated.stateToPlayer === allyState;
+        var defeatedIsEnemy = relationTo(defeated, playerId) === enemyState;
 
         if (killerIsAI) {
-          chat.send("global", players[killer.index].name, "kill");
+          chat.send("global", killer.name, "kill");
         }
 
         if (defeatedIsAIAlly) {
-          chat.send("team", players[defeated.index].name, "defeat");
+          chat.send("team", defeated.name, "defeat");
+        }
+
+        if (defeated.id === playerId) {
+          speak(chat, "team", survivingAIAllyOf(playerId), "playerDefeated");
+        }
+
+        if (killerIsTeamHuman && defeatedIsEnemy) {
+          speak(chat, "team", survivingAIAllyOf(playerId), "teamKill");
+        }
+
+        if (defeated.ai === 1 && defeatedIsEnemy) {
+          speak(
+            chat,
+            "global",
+            survivingAIAllyOf(defeated.id),
+            "enemyAllyLost"
+          );
         }
       });
     };
