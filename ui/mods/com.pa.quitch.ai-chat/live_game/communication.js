@@ -273,6 +273,11 @@ function aiCommunications() {
       ], function (chat) {
         var defeated = players[payload[0].index];
         var killer = payload[1] && players[payload[1].index];
+        // the alert for a surrender can name an army that was already
+        // defeated, which killed nothing
+        if (killer && killer.defeated) {
+          killer = undefined;
+        }
         var playerId = model.armyId();
         var killerIsAI = killer && killer.ai === 1;
         var killerIsTeamHuman =
