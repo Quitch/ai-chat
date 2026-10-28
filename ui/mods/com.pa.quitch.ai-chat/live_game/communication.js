@@ -17,7 +17,7 @@ function aiCommunications() {
     };
 
     var aiAllyArmyIndex = [];
-    var teamArmyIndex = []; // the player and their AI allies
+    var teamArmyIndex = []; // the player and their allies, human or AI
     var enemyArmyIndex = [];
     var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
@@ -87,6 +87,12 @@ function aiCommunications() {
           var allyIndex = _.findIndex(allPlayers, ai);
           aiAllyArmyIndex.push(allyIndex);
           teamArmyIndex.push(allyIndex);
+        });
+
+        allPlayers.forEach(function (army, armyIndex) {
+          if (army.ai !== 1 && isAlliedTo(army, model.armyId())) {
+            teamArmyIndex.push(armyIndex);
+          }
         });
 
         enemies.forEach(function (enemy) {
