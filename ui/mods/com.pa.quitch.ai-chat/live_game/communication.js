@@ -90,7 +90,7 @@ function aiCommunications() {
         });
 
         allPlayers.forEach(function (army, armyIndex) {
-          if (army.ai !== 1 && isAlliedTo(army, playerArmyId)) {
+          if (army.ai !== 1 && isAlliedTo(army, model.armyId())) {
             teamArmyIndex.push(armyIndex);
           }
         });
