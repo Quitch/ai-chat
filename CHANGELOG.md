@@ -6,6 +6,7 @@
 - Allies react when you are defeated or when a human on your team destroys an enemy, and an enemy AI reacts when an AI it is allied with is defeated
 - Allies warn you when a moving planet is heading for a planet where your team has units
 - Fix AI allies falling silent once you are defeated
+- Fix situation reports and planet warnings ignoring the units of human allies
 
 ## v1.4.1 - 2026-10-17
 
