@@ -257,6 +257,9 @@ function aiCommunications() {
         startingPlanetsCount > 1 &&
         playerHasAllies
       ) {
+        // each army_state notifies twice, and both now list the allies, so
+        // mark the landing told before the require callback runs
+        communicatedLanding(true);
         require([
           "coui://ui/mods/com.pa.quitch.ai-chat/live_game/landing.js",
         ], function (landing) {
@@ -266,7 +269,6 @@ function aiCommunications() {
             .then(function () {
               landing.location(aiAllyArmyIndex, aiAllies);
             });
-          communicatedLanding(true);
         });
       }
     });
