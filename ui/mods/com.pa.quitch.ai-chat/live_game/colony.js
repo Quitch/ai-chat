@@ -103,7 +103,7 @@ define([
           var matchedPlanets = planetsWithUnit[0];
           var excludedPlanets = planetsWithUnit[1];
 
-          if (_.isEmpty(matchedPlanets)) {
+          if (_.isEmpty(matchedPlanets) && _.isEmpty(excludedPlanets)) {
             return;
           }
 
