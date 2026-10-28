@@ -10,33 +10,43 @@ define([
   var reportLanding = function (aiAllyArmyIndex, ally, allyIndex, attempt) {
     var desiredUnitCount = 1; // a shared army's commanders can land apart
 
+    var retry = function () {
+      if (attempt < attemptLimit) {
+        _.delay(
+          reportLanding,
+          retryDelay,
+          aiAllyArmyIndex,
+          ally,
+          allyIndex,
+          attempt + 1
+        );
+      }
+    };
+
     units
       .checkForDesired(
         aiAllyArmyIndex[allyIndex],
         ally.commanders,
         desiredUnitCount
       )
-      .then(function (planetsWithUnit) {
-        var matchedPlanets = planetsWithUnit[0];
+      .then(
+        function (planetsWithUnit) {
+          var matchedPlanets = planetsWithUnit[0];
 
-        if (_.isEmpty(matchedPlanets)) {
-          if (attempt < attemptLimit) {
-            _.delay(
-              reportLanding,
-              retryDelay,
-              aiAllyArmyIndex,
-              ally,
-              allyIndex,
-              attempt + 1
-            );
+          if (_.isEmpty(matchedPlanets)) {
+            retry();
+            return;
           }
-          return;
-        }
 
-        matchedPlanets.forEach(function (planetIndex) {
-          chat.send("team", ally.name, "landing", planetIndex);
-        });
-      });
+          matchedPlanets.forEach(function (planetIndex) {
+            chat.send("team", ally.name, "landing", planetIndex);
+          });
+        },
+        function (e) {
+          units.reportCheckFailure(e);
+          retry();
+        }
+      );
   };
 
   return {
