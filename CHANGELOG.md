@@ -8,6 +8,7 @@
 - Fix an ally never announcing where it landed when the game fails to answer a unit lookup
 - Fix allies warning that a planet is moving after it has been destroyed
 - Fix a defeated AI taunting you when you surrender
+- Fix allies not reporting a lost planet once every planet they hold has a factory
 
 ## v1.4.1 - 2026-10-17
 
