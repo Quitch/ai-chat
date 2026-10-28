@@ -350,9 +350,11 @@ function aiCommunications() {
 
     var reportAttemptLimit = 3;
     var reportRetryDelay = 6000;
+    // a newer request answers for an older one still waiting to retry
+    var latestReportRequest = 0;
 
-    var requestReport = function (attempt, scheduledEpoch) {
-      if (scheduledEpoch !== gameEpoch) {
+    var requestReport = function (attempt, request, scheduledEpoch) {
+      if (request !== latestReportRequest || scheduledEpoch !== gameEpoch) {
         return;
       }
 
@@ -370,6 +372,7 @@ function aiCommunications() {
                 requestReport,
                 reportRetryDelay,
                 attempt + 1,
+                request,
                 scheduledEpoch
               );
             }
@@ -379,7 +382,8 @@ function aiCommunications() {
     };
 
     handlers.reportIn = function () {
-      requestReport(1, gameEpoch);
+      latestReportRequest++;
+      requestReport(1, latestReportRequest, gameEpoch);
     };
   } catch (e) {
     console.error(e);

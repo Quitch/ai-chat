@@ -12,7 +12,7 @@
 - Fix AI allies falling silent once you are defeated
 - Fix allies staying silent about things they had already reported in a loaded game, when you start or load another game after it
 - Fix situation reports and planet warnings ignoring the units of human allies
-- Fix allies not answering a request for a situation report when the game fails to answer a unit lookup
+- Fix allies not answering a request for a situation report when the game briefly fails to answer a unit lookup
 
 ## v1.4.1 - 2026-10-17
 
