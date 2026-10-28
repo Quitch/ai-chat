@@ -115,7 +115,8 @@ define([
           }
 
           communicate(ally, changes.invaded, "invasion");
-        });
+        })
+        .catch(units.reportCheckFailure);
     },
   };
 });

@@ -123,7 +123,8 @@ define([
             matchedPlanets,
             excludedPlanets
           );
-        });
+        })
+        .catch(units.reportCheckFailure);
     },
   };
 });

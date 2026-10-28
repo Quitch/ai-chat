@@ -128,39 +128,42 @@ define([
 
       var liveTeamArmyIndex = livingArmies(teamArmyIndex);
       var allArmyIndex = liveTeamArmyIndex.concat(livingArmies(enemyArmyIndex));
-      units.countAll(allArmyIndex).then(function (planetUnitCounts) {
-        var situation = getSituationReports(
-          planetUnitCounts,
-          liveTeamArmyIndex
-        );
-        var ally = _.shuffle(liveAllies)[0];
-        situation.reports.forEach(function (report, planetIndex) {
-          var firstContact = checkForFirstContact(
-            planetIndex,
-            situation.allies[planetIndex],
-            situation.enemies[planetIndex]
+      units
+        .countAll(allArmyIndex)
+        .then(function (planetUnitCounts) {
+          var situation = getSituationReports(
+            planetUnitCounts,
+            liveTeamArmyIndex
           );
+          var ally = _.shuffle(liveAllies)[0];
+          situation.reports.forEach(function (report, planetIndex) {
+            var firstContact = checkForFirstContact(
+              planetIndex,
+              situation.allies[planetIndex],
+              situation.enemies[planetIndex]
+            );
 
-          if (firstContact) {
-            chat.send("team", ally.name, "enemyContact", planetIndex);
-          }
+            if (firstContact) {
+              chat.send("team", ally.name, "enemyContact", planetIndex);
+            }
 
-          if (report === "absent") {
+            if (report === "absent") {
+              previousPlanetStatus()[planetIndex] = report;
+              previousPlanetStatus.valueHasMutated();
+              return;
+            }
+
+            var worthReporting = checkIfWorthReporting(planetIndex, report);
+
+            if (playerRequested === true || worthReporting === true) {
+              chat.send("team", ally.name, report, planetIndex);
+            }
+
             previousPlanetStatus()[planetIndex] = report;
             previousPlanetStatus.valueHasMutated();
-            return;
-          }
-
-          var worthReporting = checkIfWorthReporting(planetIndex, report);
-
-          if (playerRequested === true || worthReporting === true) {
-            chat.send("team", ally.name, report, planetIndex);
-          }
-
-          previousPlanetStatus()[planetIndex] = report;
-          previousPlanetStatus.valueHasMutated();
-        });
-      });
+          });
+        })
+        .catch(units.reportCheckFailure);
     },
     secure: function (planetIndex) {
       return _.includes(secureStatus, previousPlanetStatus()[planetIndex]);
