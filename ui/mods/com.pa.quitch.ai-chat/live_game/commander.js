@@ -32,7 +32,8 @@ define([
           }
 
           reportArrivals(ally, allyIndex, currentPlanets);
-        });
+        })
+        .catch(units.reportCheckFailure);
     },
   };
 });
