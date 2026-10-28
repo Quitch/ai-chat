@@ -42,7 +42,8 @@ function aiCommunications() {
     };
 
     // stock clears armyId when the game ends, before the kill alert for the
-    // army whose defeat ended it arrives
+    // army whose defeat ended it arrives, so the kill reactions keep the last
+    // id. The checks read armyId itself and stop with the game
     var playerArmyId = model.armyId();
     model.armyId.subscribe(function (armyId) {
       if (armyId !== undefined) {
@@ -52,13 +53,13 @@ function aiCommunications() {
 
     var findAiAllies = function (allPlayers) {
       return _.filter(allPlayers, function (army) {
-        return army.ai === 1 && relationTo(army, playerArmyId) === allyState;
+        return army.ai === 1 && relationTo(army, model.armyId()) === allyState;
       });
     };
 
     var findEnemies = function (allPlayers) {
       return _.filter(allPlayers, function (army) {
-        return relationTo(army, playerArmyId) === enemyState;
+        return relationTo(army, model.armyId()) === enemyState;
       });
     };
 
@@ -77,7 +78,7 @@ function aiCommunications() {
       teamArmyIndex = [];
       enemyArmyIndex = [];
       if (!_.isEmpty(allAis)) {
-        var playerIndex = _.findIndex(allPlayers, { id: playerArmyId });
+        var playerIndex = _.findIndex(allPlayers, { id: model.armyId() });
         if (playerIndex !== -1) {
           teamArmyIndex.push(playerIndex);
         }
