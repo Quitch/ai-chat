@@ -5,6 +5,7 @@
 - Allies tell you which planet an enemy commander is on when they first spot it, and again if it moves. For an enemy army with more than one commander, allies report each planet the first time they spot one of its commanders there
 - Allies react when you are defeated or when a human on your team destroys an enemy, and an enemy AI reacts when an AI it is allied with is defeated
 - Allies warn you when a moving planet is heading for a planet where your team has units
+- Fix allies staying silent about things they had already reported in a loaded game, when you start or load another game after it
 
 ## v1.4.1 - 2026-10-17
 

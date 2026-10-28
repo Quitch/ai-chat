@@ -62,51 +62,67 @@ function aiCommunications() {
     };
     identifyFriendAndFoe(ais, players);
 
+    var clearSessionState = function () {
+      var colonisedPlanets = observableArray("aic_colonised_planets");
+      var previousUnitCount = observableArray("aic_previous_units");
+      var previousPlanetStatus = observableArray("aic_planet_statuses");
+      var previousImportantPlanetStatus = observableArray(
+        "aic_important_planet_statuses"
+      );
+      var enemyContact = observableArray("aic_enemy_contact");
+      var reportedThreats = observableArray("aic_enemy_threats");
+      var orbitalMassing = observableArray("aic_enemy_orbital");
+      var movingPlanets = observableArray("aic_moving_planets");
+      var planetTargets = observableArray("aic_planet_targets");
+      var commanderPlanets = observableArray("aic_commander_planet");
+      var enemyCommanderPlanets = observableArray(
+        "aic_enemy_commander_planets"
+      );
+      var alliedAdvancedReported = observableArray("aic_ally_t2_check");
+      var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
+      var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
+      var alliedNukeReported = observableArray("aic_ally_nuke_check");
+      var alliedTitanReported = observableArray("aic_ally_titan_check");
+      var alliedUnitCannonReported = observableArray(
+        "aic_ally_unit_cannon_check"
+      );
+      processedLanding(false);
+      communicatedLanding(false);
+      colonisedPlanets([]);
+      previousPlanetStatus([]);
+      previousImportantPlanetStatus([]);
+      enemyContact([]);
+      reportedThreats([]);
+      orbitalMassing([]);
+      movingPlanets([]);
+      planetTargets([]);
+      commanderPlanets([]);
+      enemyCommanderPlanets([]);
+      previousUnitCount([]);
+      alliedAdvancedReported([]);
+      alliedOrbitalReported([]);
+      alliedCatalystReported([]);
+      alliedNukeReported([]);
+      alliedTitanReported([]);
+      alliedUnitCannonReported([]);
+    };
+
+    // stock keeps the player's army landing for the whole of a loaded save,
+    // so processedLanding never turns true there and detectNewGame misses the
+    // next game. Each game this client starts or joins gets a new
+    // invite_uuid. This must run before the check modules create their
+    // session observables
+    var gameId = ko.observable().extend({ session: "invite_uuid" })();
+    var sessionGameId = observable("aic_game_id");
+    if (sessionGameId() !== gameId) {
+      clearSessionState();
+      sessionGameId(gameId);
+    }
+
     var detectNewGame = function (playerInfo) {
       var playerSelectingSpawn = playerInfo.landing;
       if (processedLanding() === true && playerSelectingSpawn === true) {
-        var colonisedPlanets = observableArray("aic_colonised_planets");
-        var previousUnitCount = observableArray("aic_previous_units");
-        var previousPlanetStatus = observableArray("aic_planet_statuses");
-        var previousImportantPlanetStatus = observableArray(
-          "aic_important_planet_statuses"
-        );
-        var enemyContact = observableArray("aic_enemy_contact");
-        var reportedThreats = observableArray("aic_enemy_threats");
-        var orbitalMassing = observableArray("aic_enemy_orbital");
-        var movingPlanets = observableArray("aic_moving_planets");
-        var planetTargets = observableArray("aic_planet_targets");
-        var commanderPlanets = observableArray("aic_commander_planet");
-        var enemyCommanderPlanets = observableArray(
-          "aic_enemy_commander_planets"
-        );
-        var alliedAdvancedReported = observableArray("aic_ally_t2_check");
-        var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
-        var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
-        var alliedNukeReported = observableArray("aic_ally_nuke_check");
-        var alliedTitanReported = observableArray("aic_ally_titan_check");
-        var alliedUnitCannonReported = observableArray(
-          "aic_ally_unit_cannon_check"
-        );
-        processedLanding(false);
-        communicatedLanding(false);
-        colonisedPlanets([]);
-        previousPlanetStatus([]);
-        previousImportantPlanetStatus([]);
-        enemyContact([]);
-        reportedThreats([]);
-        orbitalMassing([]);
-        movingPlanets([]);
-        planetTargets([]);
-        commanderPlanets([]);
-        enemyCommanderPlanets([]);
-        previousUnitCount([]);
-        alliedAdvancedReported([]);
-        alliedOrbitalReported([]);
-        alliedCatalystReported([]);
-        alliedNukeReported([]);
-        alliedTitanReported([]);
-        alliedUnitCannonReported([]);
+        clearSessionState();
         gameEpoch++;
         clearInterval(checkInterval);
         checksInitialised = false;
