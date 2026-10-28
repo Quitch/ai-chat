@@ -85,7 +85,8 @@ define([
 
             reportMilestone(ally, allyIndex, milestone);
           });
-        });
+        })
+        .catch(units.reportCheckFailure);
     },
   };
 });
