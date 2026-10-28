@@ -147,7 +147,7 @@ define([
       reportEdge(
         movingPlanets,
         planetIndex,
-        Boolean(planet && planet.thrust_active),
+        Boolean(planet && planet.thrust_active && !planet.dead),
         ally,
         "planetMoving",
         planetIndex
