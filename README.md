@@ -29,7 +29,3 @@ You should download and install this mod via the Planetary Annihilation: TITANS 
 - AIs taunt on victory
 - An enemy AI reacts when an AI it is allied with is defeated
 - Supports the Legion Expansion, Bugs, and Exiles factions
-
-## Planned Features
-
-- Allies warn you about strategic risks such as single faction ownership of the gas giant
