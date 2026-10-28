@@ -65,10 +65,10 @@ Anything that must survive a UI refresh mid-game is a knockout observable extend
 ko.observableArray().extend({ session: "aic_colonised_planets" });
 ```
 
-The session key **is** the identity — modules re-declare the same observable with the same key rather than passing state around, so `aic_ally_t2_check` in `tech.js` and in `communication.js` are the same store. All keys use the `aic_` prefix. Two consequences:
+The session key **is** the identity — modules re-declare the same observable with the same key rather than passing state around, so `aic_ally_t2_check` in `tech.js` and in `communication.js` share one stored value. Each observable reads storage only when it is created and writes it on every change, so two of them do not share the value held in memory. All keys use the `aic_` prefix. Two consequences:
 
 - Mutating an element in place (`arr()[i] = x`) does not notify; every such write is followed by `arr.valueHasMutated()`.
-- Session state outlives the game, so `detectNewGame()` in `communication.js` explicitly resets every key when it sees the player return to landing state. **A new session key must be added to that reset list**, or stale state leaks into the next match.
+- Session state outlives the game, so `clearSessionState()` in `communication.js` resets every key. It runs when the scene loads for a game whose `invite_uuid` (the id stock gives each game this client starts, copied from the host on a join) differs from `aic_game_id`, or on any scene load other than a reload when that id is empty (a direct connect), and from `detectNewGame()` when the player returns to landing state. Stock keeps the player's army in landing state for the whole of a loaded save, so after one the landing check never fires again; the game id is what resets the next game. The scene-load reset runs before the check modules create their observables; a reset after that would clear storage, and the modules would write their old values back. **A new session key must be added to `sessionArrayKeys` or `clearSessionState`**, or stale state leaks into the next match.
 
 ### Unit detection
 
