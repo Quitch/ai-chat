@@ -17,7 +17,7 @@ function aiCommunications() {
     };
 
     var aiAllyArmyIndex = [];
-    var teamArmyIndex = []; // the player and their AI allies
+    var teamArmyIndex = []; // the player and their allies, human or AI
     var enemyArmyIndex = [];
     var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
@@ -28,14 +28,49 @@ function aiCommunications() {
     var allyCheckSpread = 4000; // must stay under units.js's lookup lifetime
     var allyState = "allied_eco";
     var enemyState = "hostile";
+
+    // a defeated player is a spectator, and stock blanks every army's
+    // stateToPlayer for a spectator, so relations are read from
+    // diplomaticState instead
+    var relationTo = function (army, armyId) {
+      var relation = army.diplomaticState && army.diplomaticState[armyId];
+      return relation && relation.state;
+    };
+
+    var isAlliedTo = function (army, armyId) {
+      return _.includes(["allied", allyState], relationTo(army, armyId));
+    };
+
+    // stock clears armyId when the game ends, before the kill alert for the
+    // army whose defeat ended it arrives, so the kill reactions keep the last
+    // id. The checks read armyId itself and stop with the game
+    var playerArmyId = model.armyId();
+    model.armyId.subscribe(function (armyId) {
+      if (armyId !== undefined) {
+        playerArmyId = armyId;
+      }
+    });
+
+    var findAiAllies = function (allPlayers) {
+      return _.filter(allPlayers, function (army) {
+        return army.ai === 1 && relationTo(army, model.armyId()) === allyState;
+      });
+    };
+
+    var findEnemies = function (allPlayers) {
+      return _.filter(allPlayers, function (army) {
+        return relationTo(army, model.armyId()) === enemyState;
+      });
+    };
+
     // model variables may not be populated yet
     var planets = model.planetListState().planets;
     var planetCount = planets.length - 1; // last planet is not a planet
     var players = model.players();
     var player = model.player();
     var ais = _.filter(players, { ai: 1 });
-    var aiAllies = _.filter(ais, { stateToPlayer: allyState });
-    var enemies = _.filter(players, { stateToPlayer: enemyState });
+    var aiAllies = findAiAllies(players);
+    var enemies = findEnemies(players);
 
     var identifyFriendAndFoe = function (allAis, allPlayers) {
       // avoid duplicates if this is called more than once
@@ -43,7 +78,7 @@ function aiCommunications() {
       teamArmyIndex = [];
       enemyArmyIndex = [];
       if (!_.isEmpty(allAis)) {
-        var playerIndex = _.findIndex(allPlayers, { stateToPlayer: "self" });
+        var playerIndex = _.findIndex(allPlayers, { id: model.armyId() });
         if (playerIndex !== -1) {
           teamArmyIndex.push(playerIndex);
         }
@@ -54,6 +89,12 @@ function aiCommunications() {
           teamArmyIndex.push(allyIndex);
         });
 
+        allPlayers.forEach(function (army, armyIndex) {
+          if (army.ai !== 1 && isAlliedTo(army, model.armyId())) {
+            teamArmyIndex.push(armyIndex);
+          }
+        });
+
         enemies.forEach(function (enemy) {
           var enemyIndex = _.findIndex(allPlayers, enemy);
           enemyArmyIndex.push(enemyIndex);
@@ -62,45 +103,53 @@ function aiCommunications() {
     };
     identifyFriendAndFoe(ais, players);
 
+    var sessionArrayKeys = [
+      "aic_colonised_planets",
+      "aic_previous_units",
+      "aic_planet_statuses",
+      "aic_important_planet_statuses",
+      "aic_enemy_contact",
+      "aic_enemy_threats",
+      "aic_enemy_orbital",
+      "aic_moving_planets",
+      "aic_planet_targets",
+      "aic_commander_planet",
+      "aic_enemy_commander_planets",
+      "aic_ally_t2_check",
+      "aic_ally_orbital_check",
+      "aic_ally_catalyst_check",
+      "aic_ally_nuke_check",
+      "aic_ally_titan_check",
+      "aic_ally_unit_cannon_check",
+    ];
+
+    var clearSessionState = function () {
+      processedLanding(false);
+      communicatedLanding(false);
+      sessionArrayKeys.forEach(function (key) {
+        observableArray(key)([]);
+      });
+    };
+
+    // stock keeps the player's army landing for the whole of a loaded save,
+    // so processedLanding never turns true there and detectNewGame misses the
+    // next game. Each game this client starts gets a new invite_uuid and a
+    // join copies the host's, but a direct connect leaves it empty; then any
+    // scene load but a reload counts as a new game. This must run before the
+    // check modules create their session observables
+    var gameId = observable("invite_uuid")();
+    var sceneReloaded =
+      performance.navigation.type === performance.navigation.TYPE_RELOAD;
+    var sessionGameId = observable("aic_game_id");
+    if (gameId ? sessionGameId() !== gameId : !sceneReloaded) {
+      clearSessionState();
+      sessionGameId(gameId);
+    }
+
     var detectNewGame = function (playerInfo) {
       var playerSelectingSpawn = playerInfo.landing;
       if (processedLanding() === true && playerSelectingSpawn === true) {
-        var colonisedPlanets = observableArray("aic_colonised_planets");
-        var previousUnitCount = observableArray("aic_previous_units");
-        var previousPlanetStatus = observableArray("aic_planet_statuses");
-        var previousImportantPlanetStatus = observableArray(
-          "aic_important_planet_statuses"
-        );
-        var enemyContact = observableArray("aic_enemy_contact");
-        var reportedThreats = observableArray("aic_enemy_threats");
-        var orbitalMassing = observableArray("aic_enemy_orbital");
-        var movingPlanets = observableArray("aic_moving_planets");
-        var commanderPlanets = observableArray("aic_commander_planet");
-        var alliedAdvancedReported = observableArray("aic_ally_t2_check");
-        var alliedOrbitalReported = observableArray("aic_ally_orbital_check");
-        var alliedCatalystReported = observableArray("aic_ally_catalyst_check");
-        var alliedNukeReported = observableArray("aic_ally_nuke_check");
-        var alliedTitanReported = observableArray("aic_ally_titan_check");
-        var alliedUnitCannonReported = observableArray(
-          "aic_ally_unit_cannon_check"
-        );
-        processedLanding(false);
-        communicatedLanding(false);
-        colonisedPlanets([]);
-        previousPlanetStatus([]);
-        previousImportantPlanetStatus([]);
-        enemyContact([]);
-        reportedThreats([]);
-        orbitalMassing([]);
-        movingPlanets([]);
-        commanderPlanets([]);
-        previousUnitCount([]);
-        alliedAdvancedReported([]);
-        alliedOrbitalReported([]);
-        alliedCatalystReported([]);
-        alliedNukeReported([]);
-        alliedTitanReported([]);
-        alliedUnitCannonReported([]);
+        clearSessionState();
         gameEpoch++;
         clearInterval(checkInterval);
         checksInitialised = false;
@@ -193,8 +242,8 @@ function aiCommunications() {
       players = model.players();
       player = model.player();
       ais = _.filter(players, { ai: 1 });
-      aiAllies = _.filter(ais, { stateToPlayer: allyState });
-      enemies = _.filter(players, { stateToPlayer: enemyState });
+      aiAllies = findAiAllies(players);
+      enemies = findEnemies(players);
       planets = model.planetListState().planets;
       planetCount = planets.length - 1; // last entry in array isn't a planet
       var startingPlanetsCount = _.filter(planets, {
@@ -217,6 +266,9 @@ function aiCommunications() {
         startingPlanetsCount > 1 &&
         playerHasAllies
       ) {
+        // each army_state notifies twice, and both now list the allies, so
+        // mark the landing told before the require callback runs
+        communicatedLanding(true);
         require([
           "coui://ui/mods/com.pa.quitch.ai-chat/live_game/landing.js",
         ], function (landing) {
@@ -226,28 +278,72 @@ function aiCommunications() {
             .then(function () {
               landing.location(aiAllyArmyIndex, aiAllies);
             });
-          communicatedLanding(true);
         });
       }
     });
+
+    var survivingAIAllyOf = function (armyId) {
+      return _.sample(
+        _.filter(players, function (survivor) {
+          return (
+            survivor.ai === 1 &&
+            !survivor.defeated &&
+            isAlliedTo(survivor, armyId)
+          );
+        })
+      );
+    };
+
+    var speak = function (chat, audience, speaker, type) {
+      if (speaker) {
+        chat.send(audience, speaker.name, type);
+      }
+    };
 
     handlers.kills = function (payload) {
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/chat.js",
       ], function (chat) {
-        var defeated = payload[0];
-        var killer = payload[1];
-        var killerIsAI = killer && players[killer.index].ai === 1;
+        var defeated = players[payload[0].index];
+        var killer = payload[1] && players[payload[1].index];
+        // the alert for a surrender can name an army that was already
+        // defeated, which killed nothing
+        if (killer && killer.defeated) {
+          killer = undefined;
+        }
+        var playerId = playerArmyId;
+        var killerIsAI = killer && killer.ai === 1;
+        var killerIsTeamHuman =
+          killer &&
+          killer.ai !== 1 &&
+          (killer.id === playerId || isAlliedTo(killer, playerId));
         var defeatedIsAIAlly =
-          players[defeated.index].ai === 1 &&
-          players[defeated.index].stateToPlayer === allyState;
+          defeated.ai === 1 && relationTo(defeated, playerId) === allyState;
+        var defeatedIsEnemy = relationTo(defeated, playerId) === enemyState;
 
         if (killerIsAI) {
-          chat.send("global", players[killer.index].name, "kill");
+          chat.send("global", killer.name, "kill");
         }
 
         if (defeatedIsAIAlly) {
-          chat.send("team", players[defeated.index].name, "defeat");
+          chat.send("team", defeated.name, "defeat");
+        }
+
+        if (defeated.id === playerId) {
+          speak(chat, "team", survivingAIAllyOf(playerId), "playerDefeated");
+        }
+
+        if (killerIsTeamHuman && defeatedIsEnemy) {
+          speak(chat, "team", survivingAIAllyOf(playerId), "teamKill");
+        }
+
+        if (defeated.ai === 1 && defeatedIsEnemy) {
+          speak(
+            chat,
+            "global",
+            survivingAIAllyOf(defeated.id),
+            "enemyAllyLost"
+          );
         }
       });
     };

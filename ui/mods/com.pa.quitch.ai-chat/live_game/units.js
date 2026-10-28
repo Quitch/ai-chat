@@ -29,6 +29,20 @@ define(function () {
     console.error("AI Chat: unit lookup failed for " + key);
   };
 
+  var lastCheckFailureLogged = 0;
+
+  // every check on a tick shares its lookups, so one failure rejects them all
+  var reportCheckFailure = function (e) {
+    var now = Date.now();
+    if (now - lastCheckFailureLogged < lookupLifetime) {
+      return;
+    }
+
+    lastCheckFailureLogged = now;
+    console.error(e);
+    console.error("AI Chat: " + ((e && (e.stack || e.message)) || e));
+  };
+
   var getArmyUnits = function (armyIndex, planetIndex) {
     var key = armyIndex + ":" + planetIndex;
     var now = Date.now();
@@ -295,6 +309,7 @@ define(function () {
       });
     },
     checkForDesiredSets: checkForDesiredSets,
+    reportCheckFailure: reportCheckFailure,
     checkForDesired: function (
       aiIndex,
       desiredUnits,

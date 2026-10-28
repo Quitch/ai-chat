@@ -4,9 +4,9 @@
   "display_name": "AI Chat",
   "description": "AI will communicate with you via the chat system. Type 'report' in team chat to get a status report.",
   "author": "Quitch",
-  "version": "1.4.1",
-  "build": "124683",
-  "date": "2026-10-17",
+  "version": "1.5.0",
+  "build": "124685",
+  "date": "2026-10-28",
   "signature": " ",
   "forum": "https://steamcommunity.com/app/386070/discussions/0/6363065234130451031/",
   "category": [

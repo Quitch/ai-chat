@@ -35,21 +35,12 @@ define([
   var movingPlanets = ko
     .observableArray()
     .extend({ session: "aic_moving_planets" });
-
-  var lastFailureLogged = 0;
-
-  // every enemy army's checks share the tick's lookups, so one failure rejects
-  // them all - log it at most once every 5 s, as units.js does
-  var reportCheckFailure = function (e) {
-    var now = Date.now();
-    if (now - lastFailureLogged < 5000) {
-      return;
-    }
-
-    lastFailureLogged = now;
-    console.error(e);
-    console.error("AI Chat: " + ((e && (e.stack || e.message)) || e));
-  };
+  var enemyCommanderPlanets = ko
+    .observableArray()
+    .extend({ session: "aic_enemy_commander_planets" });
+  var planetTargets = ko
+    .observableArray()
+    .extend({ session: "aic_planet_targets" });
 
   var livingArmies = function (armyIndex) {
     var players = model.players();
@@ -104,6 +95,49 @@ define([
     });
   };
 
+  // a smashed planet keeps its thrust and target, so a dead planet at either
+  // end means the collision is over
+  var incomingTargets = function (planets, planetCount) {
+    var incoming = [];
+
+    for (var planetIndex = 0; planetIndex < planetCount; planetIndex++) {
+      var planet = planets[planetIndex];
+      var targetIndex = planet && planet.target_index;
+
+      if (
+        planet &&
+        planet.thrust_active &&
+        !planet.dead &&
+        _.isNumber(targetIndex) &&
+        targetIndex >= 0 &&
+        targetIndex < planetCount &&
+        !planets[targetIndex].dead
+      ) {
+        incoming[targetIndex] = true;
+      }
+    }
+
+    return incoming;
+  };
+
+  // only a target the team has units on is worth a warning, whoever steers
+  var checkForPlanetTargets = function (ally, teamUnits) {
+    var planets = model.planetListState().planets;
+    var planetCount = planets.length - 1; // last planet is not a planet
+    var incoming = incomingTargets(planets, planetCount);
+
+    for (var planetIndex = 0; planetIndex < planetCount; planetIndex++) {
+      reportEdge(
+        planetTargets,
+        planetIndex,
+        Boolean(incoming[planetIndex]) && teamUnits[planetIndex] > 0,
+        ally,
+        "planetTargeted",
+        planetIndex
+      );
+    }
+  };
+
   var checkForPlanetMovement = function (ally) {
     var planets = model.planetListState().planets;
     var planetCount = planets.length - 1; // last planet is not a planet
@@ -113,12 +147,52 @@ define([
       reportEdge(
         movingPlanets,
         planetIndex,
-        Boolean(planet && planet.thrust_active),
+        Boolean(planet && planet.thrust_active && !planet.dead),
         ally,
         "planetMoving",
         planetIndex
       );
     }
+  };
+
+  var reportEnemyCommanders = function (ally, armyIndex, currentPlanets) {
+    var army = model.players()[armyIndex];
+    // a reload restores the array's holes as null
+    var previousPlanets = enemyCommanderPlanets()[armyIndex] || [];
+    // a shared army has a commander per slot, and the lookup lists only those
+    // the team can see, so a planet missing from it may still hold one
+    var sharedArmy = army.commanders.length > 1;
+    var message =
+      _.isEmpty(previousPlanets) || sharedArmy
+        ? "enemyCommanderSighted"
+        : "enemyCommanderMoved";
+    // i18next hands the value to String.replace, which expands $ patterns
+    var enemy = { enemy: army.name.replace(/\$/g, "$$$$") };
+
+    currentPlanets.forEach(function (planetIndex) {
+      if (!_.includes(previousPlanets, planetIndex)) {
+        chat.send("team", ally.name, message, planetIndex, enemy);
+      }
+    });
+
+    enemyCommanderPlanets()[armyIndex] = sharedArmy
+      ? _.union(previousPlanets, currentPlanets)
+      : currentPlanets;
+    enemyCommanderPlanets.valueHasMutated();
+  };
+
+  var checkEnemyCommanders = function (liveAllies, armyIndex) {
+    units
+      .findUnitPlanets(armyIndex, model.players()[armyIndex].commanders)
+      .then(function (currentPlanets) {
+        // the lookup only lists units the team can see
+        if (_.isEmpty(currentPlanets)) {
+          return;
+        }
+
+        reportEnemyCommanders(_.sample(liveAllies), armyIndex, currentPlanets);
+      })
+      .catch(units.reportCheckFailure);
   };
 
   var reportThreats = function (ally, armyIndex, threat, planets) {
@@ -138,24 +212,13 @@ define([
     check: function (enemyArmyIndex, aiAllies, teamArmyIndex) {
       var liveAllies = _.filter(aiAllies, { defeated: false });
       var liveEnemies = livingArmies(enemyArmyIndex);
+      var planetCount = model.planetListState().planets.length - 1; // last planet is not a planet
 
       if (_.isEmpty(liveAllies)) {
         return;
       }
 
       checkForPlanetMovement(_.shuffle(liveAllies)[0]);
-
-      if (_.isEmpty(liveEnemies)) {
-        return;
-      }
-
-      var desiredUnitCount = 1;
-      var sets = threats.map(function (threat) {
-        return {
-          desiredUnits: threat.desiredUnits,
-          desiredUnitCount: desiredUnitCount,
-        };
-      });
 
       var teamPresence = units
         .countAll(livingArmies(teamArmyIndex))
@@ -171,6 +234,24 @@ define([
           });
         });
 
+      teamPresence
+        .then(function (teamUnits) {
+          checkForPlanetTargets(_.sample(liveAllies), teamUnits);
+        })
+        .catch(units.reportCheckFailure);
+
+      if (_.isEmpty(liveEnemies)) {
+        return;
+      }
+
+      var desiredUnitCount = 1;
+      var sets = threats.map(function (threat) {
+        return {
+          desiredUnits: threat.desiredUnits,
+          desiredUnitCount: desiredUnitCount,
+        };
+      });
+
       liveEnemies.forEach(function (armyIndex) {
         units
           .checkForDesiredSets(armyIndex, sets)
@@ -181,7 +262,7 @@ define([
               reportThreats(ally, armyIndex, threat, planetsWithThreat[i][0]);
             });
           })
-          .catch(reportCheckFailure);
+          .catch(units.reportCheckFailure);
 
         // the second sweep is cache-served - units.js memoises each army's
         // units per planet, and this walks the same army on the same tick
@@ -199,7 +280,12 @@ define([
               counts[2]
             );
           })
-          .catch(reportCheckFailure);
+          .catch(units.reportCheckFailure);
+
+        // on one planet the location adds nothing
+        if (planetCount > 1) {
+          checkEnemyCommanders(liveAllies, armyIndex);
+        }
       });
     },
   };
