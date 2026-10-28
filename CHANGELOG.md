@@ -9,6 +9,7 @@
 - Fix allies warning that a planet is moving after it has been destroyed
 - Fix a defeated AI taunting you when you surrender
 - Fix allies not reporting a lost planet once every planet they hold has a factory
+- Fix AI allies falling silent once you are defeated
 
 ## v1.4.1 - 2026-10-17
 
