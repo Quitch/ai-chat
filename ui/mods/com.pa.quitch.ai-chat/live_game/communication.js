@@ -348,12 +348,42 @@ function aiCommunications() {
       });
     };
 
-    handlers.reportIn = function () {
+    var reportAttemptLimit = 3;
+    var reportRetryDelay = 6000;
+    // a newer request answers for an older one still waiting to retry
+    var latestReportRequest = 0;
+
+    var requestReport = function (attempt, request, scheduledEpoch) {
+      if (request !== latestReportRequest || scheduledEpoch !== gameEpoch) {
+        return;
+      }
+
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
       ], function (report) {
-        report.status(true, teamArmyIndex, enemyArmyIndex, aiAllies);
+        report.status(
+          true,
+          teamArmyIndex,
+          enemyArmyIndex,
+          aiAllies,
+          function () {
+            if (attempt < reportAttemptLimit) {
+              _.delay(
+                requestReport,
+                reportRetryDelay,
+                attempt + 1,
+                request,
+                scheduledEpoch
+              );
+            }
+          }
+        );
       });
+    };
+
+    handlers.reportIn = function () {
+      latestReportRequest++;
+      requestReport(1, latestReportRequest, gameEpoch);
     };
   } catch (e) {
     console.error(e);
