@@ -274,7 +274,7 @@ function aiCommunications() {
         var defeated = players[payload[0].index];
         var killer = payload[1] && players[payload[1].index];
         var playerId = model.armyId();
-        var killerIsAI = killer && killer.ai === 1;
+        var killerIsAI = killer && killer.ai === 1 && !killer.defeated;
         var killerIsTeamHuman =
           killer &&
           killer.ai !== 1 &&
