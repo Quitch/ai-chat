@@ -28,14 +28,48 @@ function aiCommunications() {
     var allyCheckSpread = 4000; // must stay under units.js's lookup lifetime
     var allyState = "allied_eco";
     var enemyState = "hostile";
+
+    // a defeated player is a spectator, and stock blanks every army's
+    // stateToPlayer for a spectator, so relations are read from
+    // diplomaticState instead
+    var relationTo = function (army, armyId) {
+      var relation = army.diplomaticState && army.diplomaticState[armyId];
+      return relation && relation.state;
+    };
+
+    var isAlliedTo = function (army, armyId) {
+      return _.includes(["allied", allyState], relationTo(army, armyId));
+    };
+
+    // stock clears armyId when the game ends, before the kill alert for the
+    // army whose defeat ended it arrives
+    var playerArmyId = model.armyId();
+    model.armyId.subscribe(function (armyId) {
+      if (armyId !== undefined) {
+        playerArmyId = armyId;
+      }
+    });
+
+    var findAiAllies = function (allPlayers) {
+      return _.filter(allPlayers, function (army) {
+        return army.ai === 1 && relationTo(army, playerArmyId) === allyState;
+      });
+    };
+
+    var findEnemies = function (allPlayers) {
+      return _.filter(allPlayers, function (army) {
+        return relationTo(army, playerArmyId) === enemyState;
+      });
+    };
+
     // model variables may not be populated yet
     var planets = model.planetListState().planets;
     var planetCount = planets.length - 1; // last planet is not a planet
     var players = model.players();
     var player = model.player();
     var ais = _.filter(players, { ai: 1 });
-    var aiAllies = _.filter(ais, { stateToPlayer: allyState });
-    var enemies = _.filter(players, { stateToPlayer: enemyState });
+    var aiAllies = findAiAllies(players);
+    var enemies = findEnemies(players);
 
     var identifyFriendAndFoe = function (allAis, allPlayers) {
       // avoid duplicates if this is called more than once
@@ -43,7 +77,7 @@ function aiCommunications() {
       teamArmyIndex = [];
       enemyArmyIndex = [];
       if (!_.isEmpty(allAis)) {
-        var playerIndex = _.findIndex(allPlayers, { stateToPlayer: "self" });
+        var playerIndex = _.findIndex(allPlayers, { id: playerArmyId });
         if (playerIndex !== -1) {
           teamArmyIndex.push(playerIndex);
         }
@@ -199,8 +233,8 @@ function aiCommunications() {
       players = model.players();
       player = model.player();
       ais = _.filter(players, { ai: 1 });
-      aiAllies = _.filter(ais, { stateToPlayer: allyState });
-      enemies = _.filter(players, { stateToPlayer: enemyState });
+      aiAllies = findAiAllies(players);
+      enemies = findEnemies(players);
       planets = model.planetListState().planets;
       planetCount = planets.length - 1; // last entry in array isn't a planet
       var startingPlanetsCount = _.filter(planets, {
@@ -237,18 +271,6 @@ function aiCommunications() {
       }
     });
 
-    // a defeated player is a spectator, and stock blanks every army's
-    // stateToPlayer for a spectator, so relations are read from
-    // diplomaticState instead
-    var relationTo = function (army, armyId) {
-      var relation = army.diplomaticState && army.diplomaticState[armyId];
-      return relation && relation.state;
-    };
-
-    var isAlliedTo = function (army, armyId) {
-      return _.includes(["allied", allyState], relationTo(army, armyId));
-    };
-
     var survivingAIAllyOf = function (armyId) {
       return _.sample(
         _.filter(players, function (survivor) {
@@ -273,14 +295,14 @@ function aiCommunications() {
       ], function (chat) {
         var defeated = players[payload[0].index];
         var killer = payload[1] && players[payload[1].index];
-        var playerId = model.armyId();
+        var playerId = playerArmyId;
         var killerIsAI = killer && killer.ai === 1;
         var killerIsTeamHuman =
           killer &&
           killer.ai !== 1 &&
           (killer.id === playerId || isAlliedTo(killer, playerId));
         var defeatedIsAIAlly =
-          defeated.ai === 1 && defeated.stateToPlayer === allyState;
+          defeated.ai === 1 && relationTo(defeated, playerId) === allyState;
         var defeatedIsEnemy = relationTo(defeated, playerId) === enemyState;
 
         if (killerIsAI) {
