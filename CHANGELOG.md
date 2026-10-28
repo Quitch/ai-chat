@@ -10,6 +10,7 @@
 - Fix a defeated AI taunting you when you surrender
 - Fix allies not reporting a lost planet once every planet they hold has a factory
 - Fix AI allies falling silent once you are defeated
+- Fix allies staying silent about things they had already reported in a loaded game, when you start or load another game after it
 
 ## v1.4.1 - 2026-10-17
 
