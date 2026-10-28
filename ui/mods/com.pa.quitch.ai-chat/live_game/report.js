@@ -118,7 +118,8 @@ define([
       playerRequested,
       teamArmyIndex,
       enemyArmyIndex,
-      aiAllies
+      aiAllies,
+      onLookupFailure
     ) {
       var liveAllies = _.filter(aiAllies, { defeated: false });
 
@@ -128,8 +129,12 @@ define([
 
       var liveTeamArmyIndex = livingArmies(teamArmyIndex);
       var allArmyIndex = liveTeamArmyIndex.concat(livingArmies(enemyArmyIndex));
-      units
-        .countAll(allArmyIndex)
+      var lookups = units.countAll(allArmyIndex);
+      if (onLookupFailure) {
+        lookups.catch(onLookupFailure);
+      }
+
+      lookups
         .then(function (planetUnitCounts) {
           var situation = getSituationReports(
             planetUnitCounts,
