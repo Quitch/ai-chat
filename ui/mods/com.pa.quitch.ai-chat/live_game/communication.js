@@ -60,7 +60,6 @@ function aiCommunications() {
 
     // model variables may not be populated yet
     var planets = model.planetListState().planets;
-    var planetCount = planets.length - 1; // last planet is not a planet
     var players = model.players();
     var ais = _.filter(players, { ai: 1 });
     var aiAllies = findAiAllies(players);
@@ -162,7 +161,8 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/report.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/threats.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/commander.js",
-      ], function (colony, invasion, tech, report, threats, commander) {
+        "coui://ui/mods/com.pa.quitch.ai-chat/live_game/units.js",
+      ], function (colony, invasion, tech, report, threats, commander, units) {
         // the army indices and ally list are rebuilt whenever the player
         // list changes, so an ally is scheduled by name and its position
         // resolved when its checks fire, never when they were scheduled
@@ -177,7 +177,7 @@ function aiCommunications() {
           // read per tick rather than when the check was scheduled, so
           // colony and invasion fall silent if the system is reduced to a
           // single planet
-          if (planetCount > 1) {
+          if (units.livingPlanetCount() > 1) {
             colony.check(aiAllyArmyIndex, ally, allyIndex);
             invasion.check(aiAllyArmyIndex, ally, allyIndex);
             commander.check(aiAllyArmyIndex, ally, allyIndex);
@@ -212,7 +212,6 @@ function aiCommunications() {
       aiAllies = findAiAllies(players);
       enemies = findEnemies(players);
       planets = model.planetListState().planets;
-      planetCount = planets.length - 1; // last entry in array isn't a planet
       var startingPlanetsCount = _.filter(planets, {
         starting_planet: true,
       }).length;

@@ -212,7 +212,6 @@ define([
     check: function (enemyArmyIndex, aiAllies, teamArmyIndex) {
       var liveAllies = _.filter(aiAllies, { defeated: false });
       var liveEnemies = livingArmies(enemyArmyIndex);
-      var planetCount = model.planetListState().planets.length - 1; // last planet is not a planet
 
       if (_.isEmpty(liveAllies)) {
         return;
@@ -283,7 +282,7 @@ define([
           .catch(units.reportCheckFailure);
 
         // on one planet the location adds nothing
-        if (planetCount > 1) {
+        if (units.livingPlanetCount() > 1) {
           checkEnemyCommanders(liveAllies, armyIndex);
         }
       });

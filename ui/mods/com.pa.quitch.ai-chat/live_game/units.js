@@ -1,7 +1,6 @@
 define(function () {
   var lookupLifetime = 5000;
   var lookups = {};
-  var lastPlanetCount;
   var lastFailureLogged = 0;
 
   var dropExpiredLookups = function (now) {
@@ -43,7 +42,18 @@ define(function () {
     console.error("AI Chat: " + ((e && (e.stack || e.message)) || e));
   };
 
+  // stock keeps a destroyed planet in the list, marked dead, so every index
+  // keeps its meaning
+  var isDeadPlanet = function (planetIndex) {
+    var planet = model.planetListState().planets[planetIndex];
+    return Boolean(planet && planet.dead);
+  };
+
   var getArmyUnits = function (armyIndex, planetIndex) {
+    if (isDeadPlanet(planetIndex)) {
+      return Promise.resolve({});
+    }
+
     var key = armyIndex + ":" + planetIndex;
     var now = Date.now();
     var lookup = lookups[key];
@@ -68,19 +78,10 @@ define(function () {
     return units;
   };
 
+  // the planet list arrives after this module loads, and its last entry is
+  // not a planet
   var planetCount = function () {
-    // the last entry in the planet list is not a planet, and planets can be
-    // destroyed mid-game, so this is read per call rather than cached
-    var count = model.planetListState().planets.length - 1;
-
-    // a destroyed planet shifts every higher index down, so lookups keyed by
-    // the old indices no longer mean what they did
-    if (count !== lastPlanetCount) {
-      lookups = {};
-      lastPlanetCount = count;
-    }
-
-    return count;
+    return model.planetListState().planets.length - 1;
   };
 
   var countAllUnits = function (unitsOnPlanet) {
@@ -310,6 +311,10 @@ define(function () {
     },
     checkForDesiredSets: checkForDesiredSets,
     reportCheckFailure: reportCheckFailure,
+    livingPlanetCount: function () {
+      return _.reject(_.dropRight(model.planetListState().planets), "dead")
+        .length;
+    },
     checkForDesired: function (
       aiIndex,
       desiredUnits,

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix allies never reporting colonies, invasions or their commander's moves in a loaded game
+- Fix allies still reporting colonies, invasions and commander locations once every other planet has been destroyed
+
 ## v1.5.0 - 2026-10-28
 
 - Allies tell you which planet an enemy commander is on when they first spot it, and again if it moves. For an enemy army with more than one commander, allies report each planet the first time they spot one of its commanders there
