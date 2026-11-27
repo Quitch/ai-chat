@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fix an ally not reporting its lost planets once it has no colony or factory left
+- Fix an ally reporting a planet lost while it still holds it, such as a gas giant left with only its Jigs, and later announcing it colonised again
 
 ## v1.5.0 - 2026-10-28
 
