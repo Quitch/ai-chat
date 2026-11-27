@@ -9,7 +9,8 @@ define([
   var reportArrivals = function (ally, allyIndex, currentPlanets) {
     var previousPlanets = commanderPlanets()[allyIndex];
 
-    if (!_.isUndefined(previousPlanets)) {
+    // a reload restores the array's holes as null
+    if (_.isArray(previousPlanets)) {
       currentPlanets.forEach(function (planetIndex) {
         if (!_.includes(previousPlanets, planetIndex)) {
           chat.send("team", ally.name, "commanderMoved", planetIndex);
