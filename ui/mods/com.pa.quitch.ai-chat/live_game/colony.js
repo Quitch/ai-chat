@@ -12,15 +12,9 @@ define([
     });
   };
 
-  var checkForPlanetsWeLost = function (
-    ally,
-    ourPastPlanets,
-    matchedPlanets,
-    excludedPlanets
-  ) {
-    var ourCurrentPlanets = matchedPlanets.concat(excludedPlanets);
+  var checkForPlanetsWeLost = function (ally, ourPastPlanets, heldPlanets) {
     var lostPlanets = _.filter(ourPastPlanets, function (planet) {
-      return !_.includes(ourCurrentPlanets, planet);
+      return !_.includes(heldPlanets, planet);
     });
 
     if (_.isEmpty(lostPlanets)) {
@@ -40,12 +34,13 @@ define([
     ally,
     allyIndex,
     matchedPlanets,
+    heldPlanets,
     excludedPlanets
   ) {
-    colonisedPlanets()[allyIndex] = _.intersection(
-      colonisedPlanets()[allyIndex],
-      matchedPlanets
-    ).concat(excludedPlanets);
+    colonisedPlanets()[allyIndex] = _.union(
+      _.intersection(colonisedPlanets()[allyIndex], heldPlanets),
+      excludedPlanets
+    );
 
     var newPlanets = _.filter(matchedPlanets, function (matchedPlanet) {
       return !_.includes(colonisedPlanets()[allyIndex], matchedPlanet);
@@ -72,6 +67,8 @@ define([
         "_fab",
       ];
       var desiredUnitCount = 2; // we only need a fabber and something else
+      // once colonised, any one of those units still holds the planet
+      var holdingUnitCount = 1;
       var excludedUnits = [
         "factory",
         // Bugs - naming every factory a hive, but not every hive is one
@@ -91,36 +88,63 @@ define([
       // Exiles' Puma is a factory built bot that lives in the commanders
       // directory, so it must not stand in for a commander
       var ignoredUnits = ["ft_commander"];
+      // these travel between planets, so one parked overhead does not hold a
+      // colony. Air and naval fabbers cannot leave their planet
+      var holdingIgnoredUnits = ignoredUnits.concat([
+        "orbital_fabrication", // and Legion's l_ form
+        "orbital_lander", // and Legion's l_ form
+        // Bugs
+        "bug_lander",
+        "bug_orbital_fabricator.json", // not the _landed form
+      ]);
       units
-        .checkForDesired(
-          aiAllyArmyIndex[allyIndex],
-          desiredUnits,
-          desiredUnitCount,
-          excludedUnits,
-          ignoredUnits
-        )
+        .checkForDesiredSets(aiAllyArmyIndex[allyIndex], [
+          {
+            desiredUnits: desiredUnits,
+            desiredUnitCount: desiredUnitCount,
+            excludedUnits: excludedUnits,
+            ignoredUnits: ignoredUnits,
+          },
+          {
+            desiredUnits: desiredUnits,
+            desiredUnitCount: holdingUnitCount,
+            excludedUnits: excludedUnits,
+            ignoredUnits: holdingIgnoredUnits,
+          },
+        ])
         .then(function (planetsWithUnit) {
-          var matchedPlanets = planetsWithUnit[0];
-          var excludedPlanets = planetsWithUnit[1];
+          var matchedPlanets = planetsWithUnit[0][0];
+          var excludedPlanets = planetsWithUnit[0][1];
+          var heldPlanets = _.union(
+            planetsWithUnit[1][0],
+            matchedPlanets,
+            excludedPlanets
+          );
 
-          if (_.isEmpty(matchedPlanets) && _.isEmpty(excludedPlanets)) {
+          if (
+            _.isEmpty(heldPlanets) &&
+            _.isEmpty(colonisedPlanets()[allyIndex])
+          ) {
             return;
           }
 
-          if (_.isUndefined(colonisedPlanets()[allyIndex])) {
-            colonisedPlanets()[allyIndex] = [];
+          // no record yet: a loaded save or a rejoin
+          if (!_.isArray(colonisedPlanets()[allyIndex])) {
+            colonisedPlanets()[allyIndex] = heldPlanets;
+            colonisedPlanets.valueHasMutated();
+            return;
           }
 
           checkForPlanetsWeLost(
             ally,
             colonisedPlanets()[allyIndex],
-            matchedPlanets,
-            excludedPlanets
+            heldPlanets
           );
           checkForPlanetsWeColonised(
             ally,
             allyIndex,
             matchedPlanets,
+            heldPlanets,
             excludedPlanets
           );
         })

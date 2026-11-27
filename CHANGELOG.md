@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## Unreleased
+
+- Fix an ally not reporting its lost planets once it has no colony or factory left
+- Fix an ally reporting a planet lost while it still holds it, such as a gas giant left with only its Jigs, and later announcing it colonised again
+- Fix allies announcing enemy contact on a planet again each time enemy units come and go, such as scouts flying over
+- Fix allies repeating old news when you load a saved game or rejoin one: invasions of planets they already held, colonies, enemy contact, and tech milestones
+
 ## v1.5.0 - 2026-10-28
 
 - Allies tell you which planet an enemy commander is on when they first spot it, and again if it moves. For an enemy army with more than one commander, allies report each planet the first time they spot one of its commanders there
