@@ -116,8 +116,12 @@ define([
             return;
           }
 
-          if (_.isUndefined(colonisedPlanets()[allyIndex])) {
-            colonisedPlanets()[allyIndex] = [];
+          // no record yet: a loaded save or a rejoin
+          if (!_.isArray(colonisedPlanets()[allyIndex])) {
+            colonisedPlanets()[allyIndex] =
+              matchedPlanets.concat(excludedPlanets);
+            colonisedPlanets.valueHasMutated();
+            return;
           }
 
           checkForPlanetsWeLost(

@@ -145,6 +145,8 @@ define([
             liveTeamArmyIndex
           );
           var ally = _.shuffle(liveAllies)[0];
+          // no status yet: a loaded save or a rejoin
+          var statusesRecorded = !_.isEmpty(previousPlanetStatus());
           situation.reports.forEach(function (report, planetIndex) {
             var firstContact = checkForFirstContact(
               planetIndex,
@@ -152,7 +154,7 @@ define([
               situation.enemies[planetIndex]
             );
 
-            if (firstContact) {
+            if (firstContact && statusesRecorded) {
               chat.send("team", ally.name, "enemyContact", planetIndex);
             }
 

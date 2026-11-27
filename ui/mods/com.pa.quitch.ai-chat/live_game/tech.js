@@ -44,6 +44,15 @@ define([
     },
   ];
 
+  var isRecorded = function (milestone, allyIndex) {
+    return _.isBoolean(milestone.reported()[allyIndex]);
+  };
+
+  var recordMilestone = function (allyIndex, milestone, reached) {
+    milestone.reported()[allyIndex] = reached;
+    milestone.reported.valueHasMutated();
+  };
+
   var outstandingMilestones = function (allyIndex) {
     return _.filter(milestones, function (milestone) {
       return milestone.reported()[allyIndex] !== true;
@@ -73,17 +82,32 @@ define([
         };
       });
 
-      units
-        .checkForDesiredSets(aiAllyArmyIndex[allyIndex], sets)
-        .then(function (planetsWithUnit) {
-          outstanding.forEach(function (milestone, i) {
-            var matchedPlanets = planetsWithUnit[i][0];
+      var armyIndex = aiAllyArmyIndex[allyIndex];
+      Promise.all([
+        units.checkForDesiredSets(armyIndex, sets),
+        units.countAll([armyIndex]),
+      ])
+        .then(function (results) {
+          var planetsWithUnit = results[0];
+          // the first lookups of a loaded save come back before the planets
+          // have loaded
+          var armyFound = _.some(results[1], function (planetCounts) {
+            return planetCounts[0] > 0;
+          });
 
-            if (_.isEmpty(matchedPlanets)) {
+          outstanding.forEach(function (milestone, i) {
+            var reached = !_.isEmpty(planetsWithUnit[i][0]);
+
+            if (!isRecorded(milestone, allyIndex)) {
+              if (armyFound) {
+                recordMilestone(allyIndex, milestone, reached);
+              }
               return;
             }
 
-            reportMilestone(ally, allyIndex, milestone);
+            if (reached) {
+              reportMilestone(ally, allyIndex, milestone);
+            }
           });
         })
         .catch(units.reportCheckFailure);

@@ -11,15 +11,18 @@ define([
   var significantForce = 20;
 
   var identifyArmyChanges = function (allyIndex, perPlanetUnitCounts) {
-    if (_.isUndefined(previousUnitCount()[allyIndex])) {
-      var planets = model.planetListState().planets;
-      var planetCount = planets.length - 1; // last planet is not a planet
-
-      previousUnitCount()[allyIndex] = _.range(0, planetCount, 0);
-    }
-
     var invaded = [];
     var collapsed = [];
+
+    // no record yet: a loaded save or a rejoin, whose first lookups can
+    // come back before the planets have loaded
+    if (!_.isArray(previousUnitCount()[allyIndex])) {
+      if (_.sum(perPlanetUnitCounts) > 0) {
+        previousUnitCount()[allyIndex] = perPlanetUnitCounts;
+        previousUnitCount.valueHasMutated();
+      }
+      return { invaded: invaded, collapsed: collapsed };
+    }
 
     perPlanetUnitCounts.forEach(function (planetUnitCount, planetIndex) {
       var previousUnits = previousUnitCount()[allyIndex][planetIndex];
