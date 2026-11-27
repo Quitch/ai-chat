@@ -21,10 +21,6 @@ function aiCommunications() {
     var enemyArmyIndex = [];
     var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
-    var checkInterval;
-    // a pending _.delay cannot be cancelled, so scheduled checks carry the
-    // game they were scheduled for and drop themselves if it has moved on
-    var gameEpoch = 0;
     var allyCheckSpread = 4000; // must stay under units.js's lookup lifetime
     var allyState = "allied_eco";
     var enemyState = "hostile";
@@ -146,13 +142,20 @@ function aiCommunications() {
       sessionGameId(gameId);
     }
 
+    var checksInitialised = false;
+
+    // co-op Galactic War joins each battle with the previous battle's
+    // invite_uuid, so a player landing again after a processed landing also
+    // marks a new game. The server never returns a page to landing, so this
+    // can only fire on a fresh page, before the checks have started
     var detectNewGame = function (playerInfo) {
       var playerSelectingSpawn = playerInfo.landing;
-      if (processedLanding() === true && playerSelectingSpawn === true) {
+      if (
+        !checksInitialised &&
+        processedLanding() === true &&
+        playerSelectingSpawn === true
+      ) {
         clearSessionState();
-        gameEpoch++;
-        clearInterval(checkInterval);
-        checksInitialised = false;
       }
     };
     detectNewGame(player);
@@ -166,16 +169,12 @@ function aiCommunications() {
       return baseInterval * randomPercentageAdjustment(0.8, 1.2);
     };
 
-    var checksInitialised = false;
-
     var initialiseChecks = function (allies) {
       if (checksInitialised || _.isEmpty(allies)) {
         return;
       }
 
       checksInitialised = true;
-
-      var epoch = gameEpoch;
 
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/colony.js",
@@ -185,20 +184,10 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/threats.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/commander.js",
       ], function (colony, invasion, tech, report, threats, commander) {
-        // a new game started while this require was outstanding already
-        // cleared the interval we had not yet created
-        if (epoch !== gameEpoch) {
-          return;
-        }
-
         // the army indices and ally list are rebuilt whenever the player
         // list changes, so an ally is scheduled by name and its position
         // resolved when its checks fire, never when they were scheduled
-        var runAllyChecks = function (allyName, scheduledEpoch) {
-          if (scheduledEpoch !== gameEpoch) {
-            return;
-          }
-
+        var runAllyChecks = function (allyName) {
           var allyIndex = _.findIndex(aiAllies, { name: allyName });
           if (allyIndex === -1 || aiAllies[allyIndex].defeated) {
             return;
@@ -218,7 +207,7 @@ function aiCommunications() {
           tech.check(aiAllyArmyIndex, ally, allyIndex);
         };
 
-        checkInterval = setInterval(function () {
+        setInterval(function () {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
           threats.check(enemyArmyIndex, aiAllies, teamArmyIndex);
 
@@ -231,7 +220,7 @@ function aiCommunications() {
           // shortest interval, so an ally's checks cannot overlap
           aiAllies.forEach(function (ally, allyIndex) {
             var offset = allyIndex * (allyCheckSpread / aiAllies.length);
-            _.delay(runAllyChecks, offset, ally.name, gameEpoch);
+            _.delay(runAllyChecks, offset, ally.name);
           });
         }, generateInterval());
       });
@@ -353,8 +342,8 @@ function aiCommunications() {
     // a newer request answers for an older one still waiting to retry
     var latestReportRequest = 0;
 
-    var requestReport = function (attempt, request, scheduledEpoch) {
-      if (request !== latestReportRequest || scheduledEpoch !== gameEpoch) {
+    var requestReport = function (attempt, request) {
+      if (request !== latestReportRequest) {
         return;
       }
 
@@ -368,13 +357,7 @@ function aiCommunications() {
           aiAllies,
           function () {
             if (attempt < reportAttemptLimit) {
-              _.delay(
-                requestReport,
-                reportRetryDelay,
-                attempt + 1,
-                request,
-                scheduledEpoch
-              );
+              _.delay(requestReport, reportRetryDelay, attempt + 1, request);
             }
           }
         );
@@ -383,7 +366,7 @@ function aiCommunications() {
 
     handlers.reportIn = function () {
       latestReportRequest++;
-      requestReport(1, latestReportRequest, gameEpoch);
+      requestReport(1, latestReportRequest);
     };
   } catch (e) {
     console.error(e);
