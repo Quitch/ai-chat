@@ -8,6 +8,7 @@
 - Fix allies repeating old news when you load a saved game or rejoin one: invasions of planets they already held, colonies, enemy contact, and tech milestones
 - Fix allies not reporting new colonies, invasions or their commander's moves in a loaded game
 - Fix allies still reporting colonies, invasions and commander locations once every other planet has been destroyed
+- Fix allies repeating the enemy fleet warning for the same fleet, and warning once per enemy army when several share a planet
 
 ## v1.5.0 - 2026-10-28
 

@@ -63,9 +63,20 @@ define([
     chat.send("team", ally.name, message, planetIndex);
   };
 
+  var totalPerPlanet = function (perArmyCounts) {
+    var totals = [];
+    perArmyCounts.forEach(function (planetCounts) {
+      planetCounts.forEach(function (count, planetIndex) {
+        totals[planetIndex] = (totals[planetIndex] || 0) + count;
+      });
+    });
+    return totals;
+  };
+
+  // the warning stands until the fleet has gone, so neither a planet whose
+  // status swings nor a fleet hovering at the threshold repeats it
   var checkOrbitalMassing = function (
     ally,
-    armyIndex,
     orbitalCounts,
     antiGroundCounts,
     teamUnits
@@ -74,24 +85,34 @@ define([
 
     orbitalCounts.forEach(function (orbitalCount, planetIndex) {
       var planet = planets[planetIndex];
+      var gasGiant = Boolean(planet && planet.has_terrain === false);
       // a gas giant has no surface, so any fleet over one is the invasion. On
       // a planet with ground to hold, only a platform that can shoot down at
       // that ground is worth interrupting the player for
-      var threatening =
-        planet && planet.has_terrain === false
-          ? orbitalCount >= orbitalForce
-          : antiGroundCounts[planetIndex] > 0;
+      var threatening = gasGiant
+        ? orbitalCount >= orbitalForce
+        : antiGroundCounts[planetIndex] > 0;
+      var present = gasGiant
+        ? orbitalCount > 0
+        : antiGroundCounts[planetIndex] > 0;
 
-      reportEdge(
-        orbitalMassing,
-        armyIndex + ":" + planetIndex,
-        // teamUnits is this tick's, report.secure() is the last tick's, so the
-        // first still catches a planet lost since the last situation report
-        threatening && teamUnits[planetIndex] > 0 && report.secure(planetIndex),
-        ally,
-        "enemyOrbital",
-        planetIndex
-      );
+      if (_.includes(orbitalMassing(), planetIndex)) {
+        if (!present) {
+          orbitalMassing.remove(planetIndex);
+        }
+        return;
+      }
+
+      // teamUnits is this tick's, report.secure() is the last tick's, so the
+      // first still catches a planet lost since the last situation report
+      if (
+        threatening &&
+        teamUnits[planetIndex] > 0 &&
+        report.secure(planetIndex)
+      ) {
+        orbitalMassing.push(planetIndex);
+        chat.send("team", ally.name, "enemyOrbital", planetIndex);
+      }
     });
   };
 
@@ -251,6 +272,9 @@ define([
         };
       });
 
+      var orbitalCounts = [];
+      var antiGroundCounts = [];
+
       liveEnemies.forEach(function (armyIndex) {
         units
           .checkForDesiredSets(armyIndex, sets)
@@ -265,27 +289,29 @@ define([
 
         // the second sweep is cache-served - units.js memoises each army's
         // units per planet, and this walks the same army on the same tick
-        Promise.all([
-          units.countDesired(armyIndex, allOrbital),
-          units.countDesired(armyIndex, antiGroundOrbital),
-          teamPresence,
-        ])
-          .then(function (counts) {
-            checkOrbitalMassing(
-              _.shuffle(liveAllies)[0],
-              armyIndex,
-              counts[0],
-              counts[1],
-              counts[2]
-            );
-          })
-          .catch(units.reportCheckFailure);
+        orbitalCounts.push(units.countDesired(armyIndex, allOrbital));
+        antiGroundCounts.push(units.countDesired(armyIndex, antiGroundOrbital));
 
         // on one planet the location adds nothing
         if (units.livingPlanetCount() > 1) {
           checkEnemyCommanders(liveAllies, armyIndex);
         }
       });
+
+      Promise.all([
+        Promise.all(orbitalCounts),
+        Promise.all(antiGroundCounts),
+        teamPresence,
+      ])
+        .then(function (counts) {
+          checkOrbitalMassing(
+            _.shuffle(liveAllies)[0],
+            totalPerPlanet(counts[0]),
+            totalPerPlanet(counts[1]),
+            counts[2]
+          );
+        })
+        .catch(units.reportCheckFailure);
     },
   };
 });
