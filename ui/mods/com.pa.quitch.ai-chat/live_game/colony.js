@@ -115,7 +115,11 @@ define([
         .then(function (planetsWithUnit) {
           var matchedPlanets = planetsWithUnit[0][0];
           var excludedPlanets = planetsWithUnit[0][1];
-          var heldPlanets = planetsWithUnit[1][0].concat(excludedPlanets);
+          var heldPlanets = _.union(
+            planetsWithUnit[1][0],
+            matchedPlanets,
+            excludedPlanets
+          );
 
           if (
             _.isEmpty(matchedPlanets) &&
