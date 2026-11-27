@@ -4,6 +4,7 @@
 
 - Fix an ally not reporting its lost planets once it has no colony or factory left
 - Fix an ally reporting a planet lost while it still holds it, such as a gas giant left with only its Jigs, and later announcing it colonised again
+- Fix allies announcing enemy contact on a planet again each time enemy units come and go, such as scouts flying over
 
 ## v1.5.0 - 2026-10-28
 
