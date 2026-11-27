@@ -19,12 +19,7 @@ function aiCommunications() {
     var aiAllyArmyIndex = [];
     var teamArmyIndex = []; // the player and their allies, human or AI
     var enemyArmyIndex = [];
-    var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
-    var checkInterval;
-    // a pending _.delay cannot be cancelled, so scheduled checks carry the
-    // game they were scheduled for and drop themselves if it has moved on
-    var gameEpoch = 0;
     var allyCheckSpread = 4000; // must stay under units.js's lookup lifetime
     var allyState = "allied_eco";
     var enemyState = "hostile";
@@ -67,7 +62,6 @@ function aiCommunications() {
     var planets = model.planetListState().planets;
     var planetCount = planets.length - 1; // last planet is not a planet
     var players = model.players();
-    var player = model.player();
     var ais = _.filter(players, { ai: 1 });
     var aiAllies = findAiAllies(players);
     var enemies = findEnemies(players);
@@ -124,19 +118,16 @@ function aiCommunications() {
     ];
 
     var clearSessionState = function () {
-      processedLanding(false);
       communicatedLanding(false);
       sessionArrayKeys.forEach(function (key) {
         observableArray(key)([]);
       });
     };
 
-    // stock keeps the player's army landing for the whole of a loaded save,
-    // so processedLanding never turns true there and detectNewGame misses the
-    // next game. Each game this client starts gets a new invite_uuid and a
-    // join copies the host's, but a direct connect leaves it empty; then any
-    // scene load but a reload counts as a new game. This must run before the
-    // check modules create their session observables
+    // each game this client starts gets a new invite_uuid and a join copies
+    // the host's, but a direct connect leaves it empty; then any scene load
+    // but a reload counts as a new game. This must run before the check
+    // modules create their session observables
     var gameId = observable("invite_uuid")();
     var sceneReloaded =
       performance.navigation.type === performance.navigation.TYPE_RELOAD;
@@ -145,17 +136,6 @@ function aiCommunications() {
       clearSessionState();
       sessionGameId(gameId);
     }
-
-    var detectNewGame = function (playerInfo) {
-      var playerSelectingSpawn = playerInfo.landing;
-      if (processedLanding() === true && playerSelectingSpawn === true) {
-        clearSessionState();
-        gameEpoch++;
-        clearInterval(checkInterval);
-        checksInitialised = false;
-      }
-    };
-    detectNewGame(player);
 
     var randomPercentageAdjustment = function (min, max) {
       return Math.random() * (max - min) + min;
@@ -175,8 +155,6 @@ function aiCommunications() {
 
       checksInitialised = true;
 
-      var epoch = gameEpoch;
-
       require([
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/colony.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/invasion.js",
@@ -185,20 +163,10 @@ function aiCommunications() {
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/threats.js",
         "coui://ui/mods/com.pa.quitch.ai-chat/live_game/commander.js",
       ], function (colony, invasion, tech, report, threats, commander) {
-        // a new game started while this require was outstanding already
-        // cleared the interval we had not yet created
-        if (epoch !== gameEpoch) {
-          return;
-        }
-
         // the army indices and ally list are rebuilt whenever the player
         // list changes, so an ally is scheduled by name and its position
         // resolved when its checks fire, never when they were scheduled
-        var runAllyChecks = function (allyName, scheduledEpoch) {
-          if (scheduledEpoch !== gameEpoch) {
-            return;
-          }
-
+        var runAllyChecks = function (allyName) {
           var allyIndex = _.findIndex(aiAllies, { name: allyName });
           if (allyIndex === -1 || aiAllies[allyIndex].defeated) {
             return;
@@ -218,7 +186,7 @@ function aiCommunications() {
           tech.check(aiAllyArmyIndex, ally, allyIndex);
         };
 
-        checkInterval = setInterval(function () {
+        setInterval(function () {
           report.status(false, teamArmyIndex, enemyArmyIndex, aiAllies);
           threats.check(enemyArmyIndex, aiAllies, teamArmyIndex);
 
@@ -231,7 +199,7 @@ function aiCommunications() {
           // shortest interval, so an ally's checks cannot overlap
           aiAllies.forEach(function (ally, allyIndex) {
             var offset = allyIndex * (allyCheckSpread / aiAllies.length);
-            _.delay(runAllyChecks, offset, ally.name, gameEpoch);
+            _.delay(runAllyChecks, offset, ally.name);
           });
         }, generateInterval());
       });
@@ -240,7 +208,6 @@ function aiCommunications() {
 
     model.players.subscribe(function () {
       players = model.players();
-      player = model.player();
       ais = _.filter(players, { ai: 1 });
       aiAllies = findAiAllies(players);
       enemies = findEnemies(players);
@@ -250,15 +217,10 @@ function aiCommunications() {
         starting_planet: true,
       }).length;
       var playerHasAllies = !_.isEmpty(aiAllies);
-      var playerSelectingSpawn = player.landing;
+      var playerSelectingSpawn = model.player().landing;
 
-      detectNewGame(player);
       identifyFriendAndFoe(ais, players);
       initialiseChecks(aiAllies);
-
-      if (!playerSelectingSpawn && !processedLanding()) {
-        processedLanding(true);
-      }
 
       if (
         !playerSelectingSpawn &&
@@ -353,8 +315,8 @@ function aiCommunications() {
     // a newer request answers for an older one still waiting to retry
     var latestReportRequest = 0;
 
-    var requestReport = function (attempt, request, scheduledEpoch) {
-      if (request !== latestReportRequest || scheduledEpoch !== gameEpoch) {
+    var requestReport = function (attempt, request) {
+      if (request !== latestReportRequest) {
         return;
       }
 
@@ -368,13 +330,7 @@ function aiCommunications() {
           aiAllies,
           function () {
             if (attempt < reportAttemptLimit) {
-              _.delay(
-                requestReport,
-                reportRetryDelay,
-                attempt + 1,
-                request,
-                scheduledEpoch
-              );
+              _.delay(requestReport, reportRetryDelay, attempt + 1, request);
             }
           }
         );
@@ -383,7 +339,7 @@ function aiCommunications() {
 
     handlers.reportIn = function () {
       latestReportRequest++;
-      requestReport(1, latestReportRequest, gameEpoch);
+      requestReport(1, latestReportRequest);
     };
   } catch (e) {
     console.error(e);
