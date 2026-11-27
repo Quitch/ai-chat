@@ -122,8 +122,7 @@ define([
           );
 
           if (
-            _.isEmpty(matchedPlanets) &&
-            _.isEmpty(excludedPlanets) &&
+            _.isEmpty(heldPlanets) &&
             _.isEmpty(colonisedPlanets()[allyIndex])
           ) {
             return;
@@ -131,8 +130,7 @@ define([
 
           // no record yet: a loaded save or a rejoin
           if (!_.isArray(colonisedPlanets()[allyIndex])) {
-            colonisedPlanets()[allyIndex] =
-              matchedPlanets.concat(excludedPlanets);
+            colonisedPlanets()[allyIndex] = heldPlanets;
             colonisedPlanets.valueHasMutated();
             return;
           }
