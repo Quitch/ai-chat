@@ -76,16 +76,20 @@ define([
   );
   var enemyContact = observableArray("aic_enemy_contact");
 
+  // once per planet: enemy units that come and go, such as scouts passing
+  // over, would otherwise announce contact again on every pass
   var checkForFirstContact = function (planetIndex, alliedUnits, enemyUnits) {
-    var contested = alliedUnits > 0 && enemyUnits > 0;
-
-    if (contested === (enemyContact()[planetIndex] === true)) {
+    if (enemyContact()[planetIndex] === true) {
       return false;
     }
 
-    enemyContact()[planetIndex] = contested;
+    if (alliedUnits === 0 || enemyUnits === 0) {
+      return false;
+    }
+
+    enemyContact()[planetIndex] = true;
     enemyContact.valueHasMutated();
-    return contested;
+    return true;
   };
 
   var livingArmies = function (armyIndex) {
