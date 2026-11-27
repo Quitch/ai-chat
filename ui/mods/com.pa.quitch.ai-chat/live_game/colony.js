@@ -88,6 +88,15 @@ define([
       // Exiles' Puma is a factory built bot that lives in the commanders
       // directory, so it must not stand in for a commander
       var ignoredUnits = ["ft_commander"];
+      // these travel between planets, so one parked overhead does not hold a
+      // colony. Air and naval fabbers cannot leave their planet
+      var holdingIgnoredUnits = ignoredUnits.concat([
+        "orbital_fabrication", // and Legion's l_ form
+        "orbital_lander", // and Legion's l_ form
+        // Bugs
+        "bug_lander",
+        "bug_orbital_fabricator.json", // not the _landed form
+      ]);
       units
         .checkForDesiredSets(aiAllyArmyIndex[allyIndex], [
           {
@@ -100,7 +109,7 @@ define([
             desiredUnits: desiredUnits,
             desiredUnitCount: holdingUnitCount,
             excludedUnits: excludedUnits,
-            ignoredUnits: ignoredUnits,
+            ignoredUnits: holdingIgnoredUnits,
           },
         ])
         .then(function (planetsWithUnit) {
