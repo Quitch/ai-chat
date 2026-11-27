@@ -19,6 +19,7 @@ function aiCommunications() {
     var aiAllyArmyIndex = [];
     var teamArmyIndex = []; // the player and their allies, human or AI
     var enemyArmyIndex = [];
+    var processedLanding = observable("aic_processed_landing");
     var communicatedLanding = observable("aic_communicated_landing");
     var allyCheckSpread = 4000; // must stay under units.js's lookup lifetime
     var allyState = "allied_eco";
@@ -61,6 +62,7 @@ function aiCommunications() {
     // model variables may not be populated yet
     var planets = model.planetListState().planets;
     var players = model.players();
+    var player = model.player();
     var ais = _.filter(players, { ai: 1 });
     var aiAllies = findAiAllies(players);
     var enemies = findEnemies(players);
@@ -117,16 +119,19 @@ function aiCommunications() {
     ];
 
     var clearSessionState = function () {
+      processedLanding(false);
       communicatedLanding(false);
       sessionArrayKeys.forEach(function (key) {
         observableArray(key)([]);
       });
     };
 
-    // each game this client starts gets a new invite_uuid and a join copies
-    // the host's, but a direct connect leaves it empty; then any scene load
-    // but a reload counts as a new game. This must run before the check
-    // modules create their session observables
+    // stock keeps the player's army landing for the whole of a loaded save,
+    // so processedLanding never turns true there and detectNewGame misses the
+    // next game. Each game this client starts gets a new invite_uuid and a
+    // join copies the host's, but a direct connect leaves it empty; then any
+    // scene load but a reload counts as a new game. This must run before the
+    // check modules create their session observables
     var gameId = observable("invite_uuid")();
     var sceneReloaded =
       performance.navigation.type === performance.navigation.TYPE_RELOAD;
@@ -136,6 +141,24 @@ function aiCommunications() {
       sessionGameId(gameId);
     }
 
+    var checksInitialised = false;
+
+    // co-op Galactic War joins each battle with the previous battle's
+    // invite_uuid, so a player landing again after a processed landing also
+    // marks a new game. The server never returns a page to landing, so this
+    // can only fire on a fresh page, before the checks have started
+    var detectNewGame = function (playerInfo) {
+      var playerSelectingSpawn = playerInfo.landing;
+      if (
+        !checksInitialised &&
+        processedLanding() === true &&
+        playerSelectingSpawn === true
+      ) {
+        clearSessionState();
+      }
+    };
+    detectNewGame(player);
+
     var randomPercentageAdjustment = function (min, max) {
       return Math.random() * (max - min) + min;
     };
@@ -144,8 +167,6 @@ function aiCommunications() {
       var baseInterval = 10000; // 10 seconds
       return baseInterval * randomPercentageAdjustment(0.8, 1.2);
     };
-
-    var checksInitialised = false;
 
     var initialiseChecks = function (allies) {
       if (checksInitialised || _.isEmpty(allies)) {
@@ -208,6 +229,7 @@ function aiCommunications() {
 
     model.players.subscribe(function () {
       players = model.players();
+      player = model.player();
       ais = _.filter(players, { ai: 1 });
       aiAllies = findAiAllies(players);
       enemies = findEnemies(players);
@@ -216,10 +238,15 @@ function aiCommunications() {
         starting_planet: true,
       }).length;
       var playerHasAllies = !_.isEmpty(aiAllies);
-      var playerSelectingSpawn = model.player().landing;
+      var playerSelectingSpawn = player.landing;
 
+      detectNewGame(player);
       identifyFriendAndFoe(ais, players);
       initialiseChecks(aiAllies);
+
+      if (!playerSelectingSpawn && !processedLanding()) {
+        processedLanding(true);
+      }
 
       if (
         !playerSelectingSpawn &&
