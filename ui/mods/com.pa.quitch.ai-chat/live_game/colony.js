@@ -103,7 +103,11 @@ define([
           var matchedPlanets = planetsWithUnit[0];
           var excludedPlanets = planetsWithUnit[1];
 
-          if (_.isEmpty(matchedPlanets) && _.isEmpty(excludedPlanets)) {
+          if (
+            _.isEmpty(matchedPlanets) &&
+            _.isEmpty(excludedPlanets) &&
+            _.isEmpty(colonisedPlanets()[allyIndex])
+          ) {
             return;
           }
 
