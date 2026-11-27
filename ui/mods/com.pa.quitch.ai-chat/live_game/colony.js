@@ -122,15 +122,17 @@ define([
           );
 
           if (
-            _.isEmpty(matchedPlanets) &&
-            _.isEmpty(excludedPlanets) &&
+            _.isEmpty(heldPlanets) &&
             _.isEmpty(colonisedPlanets()[allyIndex])
           ) {
             return;
           }
 
-          if (_.isUndefined(colonisedPlanets()[allyIndex])) {
-            colonisedPlanets()[allyIndex] = [];
+          // no record yet: a loaded save or a rejoin
+          if (!_.isArray(colonisedPlanets()[allyIndex])) {
+            colonisedPlanets()[allyIndex] = heldPlanets;
+            colonisedPlanets.valueHasMutated();
+            return;
           }
 
           checkForPlanetsWeLost(
