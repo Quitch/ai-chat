@@ -5,7 +5,7 @@
 - Fix an ally not reporting its lost planets once it has no colony or factory left
 - Fix an ally reporting a planet lost while it still holds it and later announcing it colonised again
 - Fix allies announcing enemy contact on a planet again each time enemy units come and go
-- Fix allies repeating old news when you load a saved game or rejoin one: invasions of planets they already held, colonies, enemy contact, and tech milestones
+- Fix allies repeating old news when you load a saved game or rejoin one
 - Fix allies not reporting new colonies, invasions or their commander's moves in a loaded game
 - Fix allies still reporting colonies, invasions and commander locations once every other planet has been destroyed
 - Fix allies repeating the enemy fleet warning for the same fleet, and warning once per enemy army when several share a planet
